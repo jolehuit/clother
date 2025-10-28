@@ -9,13 +9,13 @@ BIN="${CLOTHER_BIN:-$HOME/bin}"
 SECRETS="$BASE/secrets.env"
 
 # --- ASCII Art Banner ---
-BANNER='
+read -r -d '' BANNER <<'EOF' || true
   ____ _       _   _               
  / ___| | ___ | |_| |__   ___ _ __ 
 | |   | |/ _ \| __| '_ \ / _ \ '__|
 | |___| | (_) | |_| | | |  __/ |   
  \____|_|\___/ \__|_| |_|\___|_|   
-'
+EOF
 
 # --- Color Codes ---
 RED=$'\033[0;31m'
