@@ -7,7 +7,7 @@
 ```
 
 Manage and switch between multiple **Claude Code**–compatible LLM providers from one tiny CLI.
-Works with native Anthropic and any vendor exposing a Claude-compatible endpoint (currently **Z.AI**, **GLM**, **MiniMax**, **KAT-Coder**).
+Works with native Anthropic and any vendor exposing a Claude-compatible endpoint (currently **Z.AI** (**GLM**), **MiniMax**, **Moonshot AI** (**Kimi**), **KAT-Coder**).
 
 > **Why?** More and more LLM vendors ship Claude-compatible APIs. Clother lets you configure them once, then launch with quick commands like `clother-zai`, `clother-minimax`, etc.
 
@@ -58,6 +58,7 @@ clother help     # all commands
 | **zai**      | `https://api.z.ai/api/anthropic`                                                           | `ZAI_API_KEY`                  |
 | **minimax**  | `https://api.minimax.io/anthropic`                                                         | `MINIMAX_API_KEY`              |
 | **katcoder** | `https://vanchin.streamlake.ai/api/gateway/v1/endpoints/$VC_ENDPOINT_ID/claude-code-proxy` | `VC_API_KEY`, `VC_ENDPOINT_ID` |
+| **kimi**     | `https://api.moonshot.ai/anthropic`                                                        | `KIMI_API_KEY`                   |
 
 ---
 
