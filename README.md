@@ -1,13 +1,16 @@
+```text
   ____ _       _   _               
  / ___| | ___ | |_| |__   ___ _ __ 
 | |   | |/ _ \| __| '_ \ / _ \ '__|
 | |___| | (_) | |_| | | |  __/ |   
  \____|_|\___/ \__|_| |_|\___|_|   
+```
 
-Manage and switch between multiple Claude Code–compatible LLM providers from one tiny CLI.
-Works with native Anthropic and any vendor exposing a Claude-compatible endpoint (currently Z.AI GLM, MiniMax, KAT-Coder).
+Manage and switch between multiple **Claude Code**–compatible LLM providers from one tiny CLI.
+Works with native Anthropic and any vendor exposing a Claude-compatible endpoint (currently **Z.AI**, **GLM**, **MiniMax**, **KAT-Coder**).
 
-Why? More and more LLM vendors ship Claude-compatible APIs. Clother lets you configure them once, then launch with quick commands like clother-zai, clother-minimax, etc.
+> **Why?** More and more LLM vendors ship Claude-compatible APIs. Clother lets you configure them once, then launch with quick commands like `clother-zai`, `clother-minimax`, etc.
+
 ---
 
 ## Install
@@ -18,7 +21,7 @@ Requires the **Claude Code CLI** (`claude`):
 npm install -g @anthropic-ai/claude-code
 ```
 
-Install Clother:
+Install **Clother**:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash
@@ -43,21 +46,24 @@ clother help     # all commands
 ## What it does
 
 * Creates secure `~/.clother/secrets.env` (not a symlink, `chmod 600`)
-* Writes launchers: `clother-<name>` that export `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN` and exec `claude`
+* Writes launchers: `clother-<name>` that export `ANTHROPIC_BASE_URL` / `ANTHROPIC_AUTH_TOKEN` and exec `claude`
+
 ---
 
 ## Providers (built-in defaults)
 
-* **native** — Anthropic CLI as-is
-* **zai** — `https://api.z.ai/api/anthropic` (needs `ZAI_API_KEY`)
-* **minimax** — `https://api.minimax.io/anthropic` (needs `MINIMAX_API_KEY`)
-* **katcoder** — `https://vanchin.streamlake.ai/api/gateway/v1/endpoints/$VC_ENDPOINT_ID/claude-code-proxy` (needs `VC_API_KEY`, `VC_ENDPOINT_ID`)
+| Name         | Base URL                                                                                   | Required Env                   |
+| ------------ | ------------------------------------------------------------------------------------------ | ------------------------------ |
+| **native**   | Anthropic CLI as-is                                                                        | —                              |
+| **zai**      | `https://api.z.ai/api/anthropic`                                                           | `ZAI_API_KEY`                  |
+| **minimax**  | `https://api.minimax.io/anthropic`                                                         | `MINIMAX_API_KEY`              |
+| **katcoder** | `https://vanchin.streamlake.ai/api/gateway/v1/endpoints/$VC_ENDPOINT_ID/claude-code-proxy` | `VC_API_KEY`, `VC_ENDPOINT_ID` |
 
 ---
 
 ## OS notes
 
-* **macOS/Linux:** zsh/bash; PATH update via `~/.zshrc` or `~/.bashrc`.
+* **macOS/Linux:** zsh/bash; update PATH via `~/.zshrc` or `~/.bashrc`.
 * **Windows:** use **WSL** (recommended) or **Git Bash**. Native PowerShell isn’t supported.
 
 ---
@@ -72,8 +78,10 @@ Removes `~/.clother` and all `clother-*` launchers (with `$HOME` safety check).
 
 ---
 
-## Troubleshooting
+## 🧭 Troubleshooting
 
-* `claude: command not found` → install the CLI, ensure npm bin is on `PATH`.
-* `... API key not set` → run `clother config`.
-* `clother-*: command not found` → add `$HOME/bin` to `PATH` and reload shell.
+| Problem                        | Solution                                      |
+| ------------------------------ | --------------------------------------------- |
+| `claude: command not found`    | Install the CLI, ensure npm bin is on `PATH`. |
+| `... API key not set`          | Run `clother config`.                         |
+| `clother-*: command not found` | Add `$HOME/bin` to `PATH` and reload shell.   |
