@@ -78,7 +78,7 @@ Removes `~/.clother` and all `clother-*` launchers (with `$HOME` safety check).
 
 ---
 
-## 🧭 Troubleshooting
+## Troubleshooting
 
 | Problem                        | Solution                                      |
 | ------------------------------ | --------------------------------------------- |
