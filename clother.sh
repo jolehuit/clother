@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-VERSION="1.0"
+VERSION="1.1" # Version updated
 BASE="${CLOTHER_HOME:-$HOME/.clother}"
 BIN="${CLOTHER_BIN:-$HOME/bin}"
 SECRETS="$BASE/secrets.env"
@@ -64,7 +64,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-VERSION="1.0"
+VERSION="1.1"
 BASE="${CLOTHER_HOME:-$HOME/.clother}"
 BIN="${CLOTHER_BIN:-$HOME/bin}"
 SECRETS="$BASE/secrets.env"
@@ -113,9 +113,10 @@ cmd_config() {
   echo " 2) zai      - Z.AI"
   echo " 3) minimax  - MiniMax"
   echo " 4) katcoder - KAT-Coder"
-  echo " 5) custom   - Add your own"
+  echo " 5) kimi     - Moonshot AI"
+  echo " 6) custom   - Add your own"
   echo
-  read -r -p "Choose [1-5]: " choice
+  read -r -p "Choose [1-6]: " choice
   case "$choice" in
     1)
       echo
@@ -155,6 +156,16 @@ cmd_config() {
       ;;
     5)
       echo
+      echo "Moonshot AI (Kimi) Configuration"
+      [ -n "${KIMI_API_KEY:-}" ] && echo "Current key: $(mask_key "$KIMI_API_KEY")"
+      read -rs -p "API Key: " key; echo
+      [ -z "$key" ] && { error "Key is required"; return 1; }
+      save_kv "KIMI_API_KEY" "$key"
+      success "Kimi API Key saved."
+      log "To use it, run: ${GREEN}clother-kimi${NC}"
+      ;;
+    6)
+      echo
       echo "Custom Provider"
       read -r -p "Provider name (e.g., 'my-provider'): " name
       # Strict name validation to avoid path tricks
@@ -181,11 +192,11 @@ set -euo pipefail
 IFS=$'\n\t'
 
 cat << "ART"
-  ____ _       _   _               
- / ___| | ___ | |_| |__   ___ _ __ 
+  ____ _          _   _
+ / ___| | ___ | |_| |__   ___ _ __
 | |   | |/ _ \| __| '_ \ / _ \ '__|
-| |___| | (_) | |_| | | |  __/ |   
- \____|_|\___/ \__|_| |_|\___|_|   
+| |___| | (_) | |_| | | |  __/ |
+ \____|_|\___/ \__|_| |_|\___|_|
 ART
 
 SECRETS="${CLOTHER_HOME:-$HOME/.clother}/secrets.env"
@@ -195,8 +206,8 @@ SECRETS="${CLOTHER_HOME:-$HOME/.clother}/secrets.env"
 # - PROVIDER_KEYVAR: name of the API key variable to indirect-expand
 # - PROVIDER_BASEVAR: name of the BASE_URL variable containing the URL
 
-provider="${0##*/}"                # e.g., clother-myprovider
-provname="${provider#clother-}"    # e.g., myprovider
+provider="${0##*/}"           # e.g., clother-myprovider
+provname="${provider#clother-}"   # e.g., myprovider
 upperprov="$(echo "$provname" | tr '[:lower:]-' '[:upper:]_' | tr -cd '[:alnum:]_')"
 
 PROVIDER_KEYVAR="${upperprov}_API_KEY"
@@ -263,21 +274,28 @@ cmd_info() {
     zai)
       echo "Base URL: https://api.z.ai/api/anthropic"
       echo "Models:"
-      echo "  Haiku:    glm-4.5-air"
-      echo "  Sonnet:   glm-4.6"
-      echo "  Opus:     glm-4.6"
+      echo "  Haiku:   glm-4.5-air"
+      echo "  Sonnet:  glm-4.6"
+      echo "  Opus:    glm-4.6"
       ;;
     minimax)
       echo "Base URL: https://api.minimax.io/anthropic"
       echo "Models:"
-      echo "  Default:  MiniMax-M2"
+      echo "  Default: MiniMax-M2"
       ;;
     katcoder)
       local endpoint_id="${VC_ENDPOINT_ID:-<not_set>}"
       echo "Base URL: https://vanchin.streamlake.ai/api/gateway/v1/endpoints/$endpoint_id/claude-code-proxy"
       echo "Models:"
-      echo "  Default:      KAT-Coder"
-      echo "  Small/Fast:   KAT-Coder"
+      echo "  Default:    KAT-Coder"
+      echo "  Small/Fast: KAT-Coder"
+      ;;
+    kimi)
+      echo "Base URL: https://api.moonshot.ai/anthropic"
+      echo "Models:"
+      echo "  Default/Fast: kimi-k2-turbo-preview"
+      echo "  Latest:       kimi-k2-0905-preview"
+      echo "  Alternate:    kimi-k2-0711-preview"
       ;;
     *)
       local launcher_file="$BIN/clother-$provider"
@@ -325,9 +343,9 @@ Manage and switch between different provider profiles for the \`claude\` command
 
 ${YELLOW}Getting Started:${NC}
   1. Configure a provider:
-      ${GREEN}clother config${NC}
+     ${GREEN}clother config${NC}
   2. Use the new profile command:
-      ${GREEN}clother-zai${NC}
+     ${GREEN}clother-zai${NC}
 
 ${BOLD}Commands:${NC}
   config      Configure a new or existing provider profile.
@@ -354,11 +372,11 @@ cat > "$BIN/clother-native" << 'EOF'
 set -euo pipefail
 IFS=$'\n\t'
 cat << "ART"
-  ____ _       _   _               
- / ___| | ___ | |_| |__   ___ _ __ 
+  ____ _          _   _
+ / ___| | ___ | |_| |__   ___ _ __
 | |   | |/ _ \| __| '_ \ / _ \ '__|
-| |___| | (_) | |_| | | |  __/ |   
- \____|_|\___/ \__|_| |_|\___|_|   
+| |___| | (_) | |_| | | |  __/ |
+ \____|_|\___/ \__|_| |_|\___|_|
 ART
 exec claude "$@"
 EOF
@@ -368,11 +386,11 @@ cat > "$BIN/clother-zai" << 'EOF'
 set -euo pipefail
 IFS=$'\n\t'
 cat << "ART"
-  ____ _       _   _               
- / ___| | ___ | |_| |__   ___ _ __ 
+  ____ _          _   _
+ / ___| | ___ | |_| |__   ___ _ __
 | |   | |/ _ \| __| '_ \ / _ \ '__|
-| |___| | (_) | |_| | | |  __/ |   
- \____|_|\___/ \__|_| |_|\___|_|   
+| |___| | (_) | |_| | | |  __/ |
+ \____|_|\___/ \__|_| |_|\___|_|
 ART
 [ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
 if [ -z "${ZAI_API_KEY:-}" ]; then
@@ -393,8 +411,8 @@ cat > "$BIN/clother-minimax" << 'EOF'
 set -euo pipefail
 IFS=$'\n\t'
 cat << "ART"
-  ____ _       _   _
- / ___| | ___ | |_| |__ ___ _ __
+  ____ _          _   _
+ / ___| | ___ | |_| |__   ___ _ __
 | |   | |/ _ \| __| '_ \ / _ \ '__|
 | |___| | (_) | |_| | | |  __/ |
  \____|_|\___/ \__|_| |_|\___|_|
@@ -417,11 +435,11 @@ cat > "$BIN/clother-katcoder" << 'EOF'
 set -euo pipefail
 IFS=$'\n\t'
 cat << "ART"
-  ____ _       _   _               
- / ___| | ___ | |_| |__   ___ _ __ 
+  ____ _          _   _
+ / ___| | ___ | |_| |__   ___ _ __
 | |   | |/ _ \| __| '_ \ / _ \ '__|
-| |___| | (_) | |_| | | |  __/ |   
- \____|_|\___/ \__|_| |_|\___|_|   
+| |___| | (_) | |_| | | |  __/ |
+ \____|_|\___/ \__|_| |_|\___|_|
 ART
 [ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
 if [ -z "${VC_API_KEY:-}" ]; then
@@ -440,6 +458,32 @@ export ANTHROPIC_MODEL="KAT-Coder"
 export ANTHROPIC_SMALL_FAST_MODEL="KAT-Coder"
 exec claude "$@"
 EOF
+
+# --- NOUVEAU LANCEUR POUR KIMI ---
+cat > "$BIN/clother-kimi" << 'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+cat << "ART"
+  ____ _          _   _
+ / ___| | ___ | |_| |__   ___ _ __
+| |   | |/ _ \| __| '_ \ / _ \ '__|
+| |___| | (_) | |_| | | |  __/ |
+ \____|_|\___/ \__|_| |_|\___|_|
+ART
+[ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
+if [ -z "${KIMI_API_KEY:-}" ]; then
+  RED=$'\033[0;31m'; NC=$'\033[0m'
+  echo -e "${RED}✗ Error: Kimi (Moonshot AI) API key not set. Run 'clother config'.${NC}" >&2
+  exit 1
+fi
+export ANTHROPIC_BASE_URL="https://api.moonshot.ai/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$KIMI_API_KEY"
+export ANTHROPIC_MODEL="kimi-k2-turbo-preview"
+export ANTHROPIC_SMALL_FAST_MODEL="kimi-k2-turbo-preview"
+exec claude "$@"
+EOF
+
 
 chmod +x "$BIN"/clother-*
 
