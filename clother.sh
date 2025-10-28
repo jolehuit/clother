@@ -459,7 +459,6 @@ export ANTHROPIC_SMALL_FAST_MODEL="KAT-Coder"
 exec claude "$@"
 EOF
 
-# --- NOUVEAU LANCEUR POUR KIMI ---
 cat > "$BIN/clother-kimi" << 'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
