@@ -3,10 +3,17 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-VERSION="1.1" # Version updated
+VERSION="1.2"
 BASE="${CLOTHER_HOME:-$HOME/.clother}"
 BIN="${CLOTHER_BIN:-$HOME/bin}"
 SECRETS="$BASE/secrets.env"
+
+# --- ASCII Art Banner ---
+BANNER="  ____ _       _   _
+/ ___| | ___ | |_| |__   ___ _ __
+| |   | |/ _ \| __| '_ \ / _ \ '__|
+| |___| | (_) | |_| | | |  __/ |
+\____|_|\___/ \__|_| |_|\___|_|   "
 
 # --- Color Codes ---
 RED=$'\033[0;31m'
@@ -23,13 +30,13 @@ warn() { echo -e "${YELLOW}!${NC} $*"; }
 error() { echo -e "${RED}✗${NC} $*" >&2; }
 
 # --- Shell Detection ---
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  SHELL_RC="$HOME/.zshrc"
-  SHELL_NAME="zsh"
-else
-  SHELL_RC="$HOME/.bashrc"
-  SHELL_NAME="bash"
-fi
+case "${SHELL##*/}" in
+  zsh)  SHELL_RC="$HOME/.zshrc" ;;
+  bash) SHELL_RC="$HOME/.bashrc" ;;
+  fish) SHELL_RC="$HOME/.config/fish/config.fish" ;;
+  *)    SHELL_RC="${SHELL_RC:-$HOME/.bashrc}" ;;
+esac
+SHELL_NAME="${SHELL##*/}"
 
 # --- Installation Start ---
 echo -e "${BOLD}Clother ${VERSION}${NC}"
@@ -64,7 +71,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-VERSION="1.1"
+VERSION="1.2"
 BASE="${CLOTHER_HOME:-$HOME/.clother}"
 BIN="${CLOTHER_BIN:-$HOME/bin}"
 SECRETS="$BASE/secrets.env"
@@ -367,124 +374,99 @@ CLOTHEREOF
 chmod +x "$BIN/clother"
 
 # --- Provider Launchers ---
-cat > "$BIN/clother-native" << 'EOF'
+cat > "$BIN/clother-native" << EOF
 #!/usr/bin/env bash
 set -euo pipefail
-IFS=$'\n\t'
-cat << "ART"
-  ____ _          _   _
- / ___| | ___ | |_| |__   ___ _ __
-| |   | |/ _ \| __| '_ \ / _ \ '__|
-| |___| | (_) | |_| | | |  __/ |
- \____|_|\___/ \__|_| |_|\___|_|
-ART
-exec claude "$@"
+IFS=\$'\n\t'
+echo "$BANNER"
+exec claude "\$@"
 EOF
 
-cat > "$BIN/clother-zai" << 'EOF'
+cat > "$BIN/clother-zai" << EOF
 #!/usr/bin/env bash
 set -euo pipefail
-IFS=$'\n\t'
-cat << "ART"
-  ____ _          _   _
- / ___| | ___ | |_| |__   ___ _ __
-| |   | |/ _ \| __| '_ \ / _ \ '__|
-| |___| | (_) | |_| | | |  __/ |
- \____|_|\___/ \__|_| |_|\___|_|
-ART
-[ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
-if [ -z "${ZAI_API_KEY:-}" ]; then
-  RED=$'\033[0;31m'; NC=$'\033[0m'
-  echo -e "${RED}✗ Error: Z.AI API key not set. Run 'clother config'.${NC}" >&2
+IFS=\$'\n\t'
+echo "$BANNER"
+[ -f "\$HOME/.clother/secrets.env" ] && source "\$HOME/.clother/secrets.env"
+if [ -z "\${ZAI_API_KEY:-}" ]; then
+  RED=\$'\033[0;31m'; NC=\$'\033[0m'
+  echo -e "\${RED}✗ Error: Z.AI API key not set. Run 'clother config'.\${NC}" >&2
   exit 1
 fi
 export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
-export ANTHROPIC_AUTH_TOKEN="$ZAI_API_KEY"
+export ANTHROPIC_AUTH_TOKEN="\$ZAI_API_KEY"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.5-air"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.6"
 export ANTHROPIC_DEFAULT_OPUS_MODEL="glm-4.6"
-exec claude "$@"
+exec claude "\$@"
 EOF
 
-cat > "$BIN/clother-minimax" << 'EOF'
+cat > "$BIN/clother-minimax" << EOF
 #!/usr/bin/env bash
 set -euo pipefail
-IFS=$'\n\t'
-cat << "ART"
-  ____ _          _   _
- / ___| | ___ | |_| |__   ___ _ __
-| |   | |/ _ \| __| '_ \ / _ \ '__|
-| |___| | (_) | |_| | | |  __/ |
- \____|_|\___/ \__|_| |_|\___|_|
-ART
-[ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
-if [ -z "${MINIMAX_API_KEY:-}" ]; then
-  RED=$'\033[0;31m'; NC=$'\033[0m'
-  echo -e "${RED}✗ Error: MiniMax API key not set. Run 'clother config'.${NC}" >&2
+IFS=\$'\n\t'
+echo "$BANNER"
+[ -f "\$HOME/.clother/secrets.env" ] && source "\$HOME/.clother/secrets.env"
+if [ -z "\${MINIMAX_API_KEY:-}" ]; then
+  RED=\$'\033[0;31m'; NC=\$'\033[0m'
+  echo -e "\${RED}✗ Error: MiniMax API key not set. Run 'clother config'.\${NC}" >&2
   exit 1
 fi
 export ANTHROPIC_BASE_URL="https://api.minimax.io/anthropic"
-export ANTHROPIC_AUTH_TOKEN="$MINIMAX_API_KEY"
+export ANTHROPIC_AUTH_TOKEN="\$MINIMAX_API_KEY"
 export ANTHROPIC_MODEL="MiniMax-M2"
 export API_TIMEOUT_MS="3000000"
-exec claude "$@"
+exec claude "\$@"
 EOF
 
-cat > "$BIN/clother-katcoder" << 'EOF'
+cat > "$BIN/clother-katcoder" << EOF
 #!/usr/bin/env bash
 set -euo pipefail
-IFS=$'\n\t'
-cat << "ART"
-  ____ _          _   _
- / ___| | ___ | |_| |__   ___ _ __
-| |   | |/ _ \| __| '_ \ / _ \ '__|
-| |___| | (_) | |_| | | |  __/ |
- \____|_|\___/ \__|_| |_|\___|_|
-ART
-[ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
-if [ -z "${VC_API_KEY:-}" ]; then
-  RED=$'\033[0;31m'; NC=$'\033[0m'
-  echo -e "${RED}✗ Error: KAT-Coder API key not set. Run 'clother config'.${NC}" >&2
+IFS=\$'\n\t'
+echo "$BANNER"
+[ -f "\$HOME/.clother/secrets.env" ] && source "\$HOME/.clother/secrets.env"
+if [ -z "\${VC_API_KEY:-}" ]; then
+  RED=\$'\033[0;31m'; NC=\$'\033[0m'
+  echo -e "\${RED}✗ Error: KAT-Coder API key not set. Run 'clother config'.\${NC}" >&2
   exit 1
 fi
-if [ -z "${VC_ENDPOINT_ID:-}" ]; then
-  RED=$'\033[0;31m'; NC=$'\033[0m'
-  echo -e "${RED}✗ Error: Endpoint ID is missing. Run 'clother config'.${NC}" >&2
+if [ -z "\${VC_ENDPOINT_ID:-}" ]; then
+  RED=\$'\033[0;31m'; NC=\$'\033[0m'
+  echo -e "\${RED}✗ Error: Endpoint ID is missing. Run 'clother config'.\${NC}" >&2
   exit 1
 fi
-export ANTHROPIC_BASE_URL="https://vanchin.streamlake.ai/api/gateway/v1/endpoints/$VC_ENDPOINT_ID/claude-code-proxy"
-export ANTHROPIC_AUTH_TOKEN="$VC_API_KEY"
+export ANTHROPIC_BASE_URL="https://vanchin.streamlake.ai/api/gateway/v1/endpoints/\$VC_ENDPOINT_ID/claude-code-proxy"
+export ANTHROPIC_AUTH_TOKEN="\$VC_API_KEY"
 export ANTHROPIC_MODEL="KAT-Coder"
 export ANTHROPIC_SMALL_FAST_MODEL="KAT-Coder"
-exec claude "$@"
+exec claude "\$@"
 EOF
 
-cat > "$BIN/clother-kimi" << 'EOF'
+cat > "$BIN/clother-kimi" << EOF
 #!/usr/bin/env bash
 set -euo pipefail
-IFS=$'\n\t'
-cat << "ART"
-  ____ _          _   _
- / ___| | ___ | |_| |__   ___ _ __
-| |   | |/ _ \| __| '_ \ / _ \ '__|
-| |___| | (_) | |_| | | |  __/ |
- \____|_|\___/ \__|_| |_|\___|_|
-ART
-[ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
-if [ -z "${KIMI_API_KEY:-}" ]; then
-  RED=$'\033[0;31m'; NC=$'\033[0m'
-  echo -e "${RED}✗ Error: Kimi (Moonshot AI) API key not set. Run 'clother config'.${NC}" >&2
+IFS=\$'\n\t'
+echo "$BANNER"
+[ -f "\$HOME/.clother/secrets.env" ] && source "\$HOME/.clother/secrets.env"
+if [ -z "\${KIMI_API_KEY:-}" ]; then
+  RED=\$'\033[0;31m'; NC=\$'\033[0m'
+  echo -e "\${RED}✗ Error: Kimi (Moonshot AI) API key not set. Run 'clother config'.\${NC}" >&2
   exit 1
 fi
 export ANTHROPIC_BASE_URL="https://api.moonshot.ai/anthropic"
-export ANTHROPIC_AUTH_TOKEN="$KIMI_API_KEY"
+export ANTHROPIC_AUTH_TOKEN="\$KIMI_API_KEY"
 export ANTHROPIC_MODEL="kimi-k2-turbo-preview"
 export ANTHROPIC_SMALL_FAST_MODEL="kimi-k2-turbo-preview"
-exec claude "$@"
+exec claude "\$@"
 EOF
 
-
 chmod +x "$BIN"/clother-*
+
+# --- Verify Installation ---
+if ! "$BIN/clother" help &>/dev/null; then
+  error "Installation failed - clother command doesn't work"
+  exit 1
+fi
 
 # --- Final Instructions ---
 success "Installed Clother to '$BIN/clother'."
