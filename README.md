@@ -1,4 +1,8 @@
-# Clother
+  ____ _       _   _               
+ / ___| | ___ | |_| |__   ___ _ __ 
+| |   | |/ _ \| __| '_ \ / _ \ '__|
+| |___| | (_) | |_| | | |  __/ |   
+ \____|_|\___/ \__|_| |_|\___|_|   
 
 Manage and switch between multiple Claude Code–compatible LLM providers from one tiny CLI.
 Works with native Anthropic and any vendor exposing a Claude-compatible endpoint (currently Z.AI GLM, MiniMax, KAT-Coder).
