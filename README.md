@@ -74,8 +74,7 @@ Add your own Anthropic-compatible endpoint:
 
 ```bash
 clother config              # Choose "custom"
-# Example: Add your company's internal API
-clother-mycompany           # Ready to use!
+clother-myendpoint          # Ready to use!
 ```
 
 ---
