@@ -74,7 +74,7 @@ Add your own Anthropic-compatible endpoint:
 
 ```bash
 clother config              # Choose "custom"
-clother-myendpoint          # Ready to use!
+clother-myprovider          # Ready to use!
 ```
 
 ---
