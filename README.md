@@ -97,7 +97,6 @@ clother uninstall           # Remove everything
 
 # Pass any Claude Code options
 clother-zai --dangerously-skip-permissions
-clother-kimi --model kimi-k2-0905-preview
 
 # Check what's configured
 clother list
