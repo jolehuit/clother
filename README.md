@@ -43,7 +43,7 @@ clother-native              # Use your subscription, no setup needed!
 
 ```bash
 clother config              # Set up Z.AI, MiniMax, Kimi, etc.
-clother-zai                 # Launch with Z.AI (GLM-4)
+clother-zai                 # Launch with Z.AI (GLM)
 clother-minimax             # Launch with MiniMax
 ```
 
