@@ -8,142 +8,135 @@
 
 # Clother
 
-**One CLI to manage them all.** Switch between multiple Claude Code–compatible LLM providers instantly.
+**One CLI to switch between Claude Code providers instantly.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Shell](https://img.shields.io/badge/Shell-Bash-green.svg)](https://www.gnu.org/software/bash/)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20|%20Linux-lightgrey.svg)](#platform-support)
 
-Works with Anthropic and any Claude-compatible endpoint: Z.AI (GLM), MiniMax, Moonshot AI (Kimi), KAT-Coder, and custom providers.
-
----
-
-## Features
-
-- 🔒 **Secure** — API keys in `chmod 600` files, never in shell history
-- 🚀 **Fast** — Zero overhead, pure bash scripts
-- 🎯 **Simple** — One command: `clother-zai`, `clother-minimax`, etc.
-- 🔧 **Extensible** — Add custom providers in 30 seconds
-- 📦 **Lightweight** — Single ~700 line script
+🔒 Secure • 🚀 Fast • 🎯 Simple • 📦 Lightweight (~700 lines)
 
 ---
 
 ## Installation
 
-**Requirements:** [Claude Code CLI](https://github.com/anthropics/claude-code)
-
 ```bash
+# 1. Install Claude Code CLI
 npm install -g @anthropic-ai/claude-code
-```
 
-**Install Clother:**
-
-```bash
+# 2. Install Clother
 curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash
-```
 
-If prompted, add `~/bin` to your `PATH` and reload your shell.
+# 3. Add to PATH (if prompted)
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+```
 
 ---
 
 ## Quick Start
 
+### Got a Claude Pro/Team subscription?
+
 ```bash
-# 1. Configure a provider
-clother config
+clother-native              # Use your subscription, no setup needed!
+```
 
-# 2. List available providers
+### Want to use alternative models?
+
+```bash
+clother config              # Set up Z.AI, MiniMax, Kimi, etc.
+clother-zai                 # Launch with Z.AI (GLM-4)
+clother-minimax             # Launch with MiniMax
+```
+
+---
+
+## Providers
+
+### Native Anthropic (Your Subscription)
+
+```bash
+clother-native              # Claude Sonnet/Opus/Haiku
+                           # Uses your Claude Pro/Team subscription
+                           # No API key needed
+```
+
+### Alternative Models
+
+| Command | Provider | Models | Get API Key |
+|---------|----------|--------|-------------|
+| `clother-zai` | Z.AI | GLM-4.5-air, GLM-4.6 | [z.ai](https://z.ai) |
+| `clother-minimax` | MiniMax | MiniMax-M2 | [minimax.io](https://minimax.io) |
+| `clother-kimi` | Moonshot AI | Kimi-K2 variants | [moonshot.ai](https://moonshot.ai) |
+| `clother-katcoder` | KAT-Coder | KAT-Coder | [streamlake.ai](https://streamlake.ai) |
+
+### Custom Providers
+
+Add your own Anthropic-compatible endpoint:
+
+```bash
+clother config              # Choose "custom"
+# Example: Add your company's internal API
+clother-mycompany           # Ready to use!
+```
+
+---
+
+## Commands
+
+```bash
+clother config              # Set up a provider
+clother list                # Show configured providers
+clother info <name>         # Show provider details
+clother uninstall           # Remove everything
+```
+
+---
+
+## Examples
+
+```bash
+
+# Pass any Claude Code options
+clother-zai --dangerously-skip-permissions
+clother-kimi --model kimi-k2-0905-preview
+
+# Check what's configured
 clother list
-
-# 3. Launch Claude with Z.AI
-clother-zai
-
-# 4. Check provider details
 clother info zai
 ```
 
 ---
 
-## Usage
-
-### Switch Between Providers
-
-```bash
-clother-zai              # Use Z.AI (GLM models)
-clother-minimax          # Use MiniMax
-clother-kimi             # Use Moonshot AI (Kimi)
-clother-native           # Use native Anthropic
-```
-
-### Pass Options to Claude
-
-```bash
-clother-zai --dangerously-skip-permissions
-clother-minimax --help
-```
-
-### All Commands
-
-```bash
-clother config          # Configure a provider
-clother list            # Show all launchers
-clother info <name>     # Show provider details
-clother uninstall       # Remove everything
-clother help            # Show help
-```
-
----
-
-## Built-in Providers
-
-| Provider | Endpoint | Models | API Key |
-|----------|----------|--------|---------|
-| **native** | Anthropic | Claude Sonnet/Opus/Haiku | [console.anthropic.com](https://console.anthropic.com) |
-| **zai** | Z.AI | GLM-4.5-air, GLM-4.6 | [z.ai](https://z.ai) |
-| **minimax** | MiniMax | MiniMax-M2 | [minimax.io](https://minimax.io) |
-| **katcoder** | KAT-Coder | KAT-Coder | [streamlake.ai](https://streamlake.ai) |
-| **kimi** | Moonshot AI | Kimi-K2 variants | [moonshot.ai](https://moonshot.ai) |
-| **custom** | Your own | Any | — |
-
-### Add a Custom Provider
-
-```bash
-clother config
-# Choose: 6) custom
-# Enter: name, base URL, API key
-```
-
-Creates `clother-<name>` immediately usable.
-
----
-
 ## How It Works
 
-Clother creates launcher scripts that:
-
-1. Load secrets from `~/.clother/secrets.env`
-2. Export `ANTHROPIC_BASE_URL` and `ANTHROPIC_AUTH_TOKEN`
-3. Execute `claude` with your arguments
-
-**Example:** `clother-zai` does this behind the scenes:
+Clother creates tiny launcher scripts that set environment variables:
 
 ```bash
+# When you run: clother-zai
+# It does:
 export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
 export ANTHROPIC_AUTH_TOKEN="$ZAI_API_KEY"
 exec claude "$@"
 ```
 
+No proxy, no overhead, just environment variables. API keys stored securely in `~/.clother/secrets.env` (chmod 600).
+
 ---
 
-## Platform Support
+## FAQ
 
-| OS | Shell | Status |
-|----|-------|--------|
-| macOS | zsh/bash | ✅ Fully supported |
-| Linux | zsh/bash | ✅ Fully supported |
-| Windows | WSL | ✅ Recommended |
-| Windows | Git Bash | ⚠️ May work |
-| Windows | PowerShell | ❌ Not supported |
+**Can I use multiple providers at once?**  
+Open multiple terminals — each can use a different provider.
+
+**Where are my API keys stored?**  
+In `~/.clother/secrets.env` with `chmod 600` (only you can read it).
+
+**What providers work with Clother?**  
+Any provider with an Anthropic-compatible API. For non-compatible providers (OpenRouter, LiteLLM), use [claude-code-router](https://github.com/musistudio/claude-code-router) instead.
+
+**Does this modify my Claude installation?**  
+No. It only sets environment variables before launching `claude`.
 
 ---
 
@@ -151,39 +144,18 @@ exec claude "$@"
 
 | Problem | Solution |
 |---------|----------|
-| `claude: command not found` | Install Claude Code CLI: `npm install -g @anthropic-ai/claude-code` |
-| `clother: command not found` | Add `~/bin` to PATH: `echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc` |
-| `... API key not set` | Run `clother config` |
+| `claude: command not found` | `npm install -g @anthropic-ai/claude-code` |
+| `clother: command not found` | Add `~/bin` to PATH (see installation) |
+| `API key not set` | Run `clother config` |
 
 ---
 
-## Uninstall
+## Platform Support
 
-```bash
-clother uninstall
-```
-
-Removes `~/.clother` and all `clother-*` launchers (with `$HOME` safety check).
-
----
-
-## FAQ
-
-**Q: Can I use multiple providers at once?**  
-A: Each terminal uses one provider. Open multiple terminals for different providers.
-
-**Q: Where are my API keys stored?**  
-A: In `~/.clother/secrets.env` with `chmod 600` (readable only by you).
-
-**Q: Does this modify my Claude installation?**  
-A: No. It only sets environment variables before launching `claude`.
+✅ macOS (zsh/bash) • ✅ Linux (zsh/bash) • ✅ Windows (WSL)
 
 ---
 
 ## License
 
 MIT © [jolehuit](https://github.com/jolehuit)
-
----
-
-**Made with ☕ for developers who value simplicity.**
