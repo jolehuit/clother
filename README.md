@@ -12,7 +12,7 @@
 [![Shell](https://img.shields.io/badge/Shell-Bash-green.svg)](https://www.gnu.org/software/bash/)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20|%20Linux-lightgrey.svg)](#platform-support)
 
-🔒 Secure • 🚀 Fast • 🎯 Simple • 📦 Lightweight (~700 lines)
+🔒 Secure • 🚀 Fast • 📦 Lightweight (~700 lines)
 
 ---
 
