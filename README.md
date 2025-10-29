@@ -6,8 +6,6 @@
  \____|_|\___/ \__|_| |_|\___|_|   
 ```
 
-# Clother
-
 **One CLI to switch between Claude Code providers instantly.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
