@@ -301,11 +301,11 @@ cmd_info() {
       echo "  Small/Fast: KAT-Coder"
       ;;
     kimi)
-      echo "Base URL: https://api.moonshot.ai/anthropic"
+      echo "Base URL: https://api.kimi.com/coding/"
       echo "Models:"
-      echo "  Default/Fast: kimi-k2-turbo-preview"
-      echo "  Latest:       kimi-k2-0905-preview"
-      echo "  Alternate:    kimi-k2-0711-preview"
+      echo "  Default/Fast: kimi-k2-thinking-turbo"
+      echo "  Latest:       kimi-k2-thinking"
+      echo "  Alternate:    kimi-k2-0905-preview"
       ;;
     *)
       local launcher_file="$BIN/clother-$provider"
@@ -487,9 +487,9 @@ if [ -z "${KIMI_API_KEY:-}" ]; then
   echo -e "${RED}✗ Error: Kimi (Moonshot AI) API key not set. Run 'clother config'.${NC}" >&2
   exit 1
 fi
-export ANTHROPIC_BASE_URL="https://api.moonshot.ai/anthropic"
+export ANTHROPIC_BASE_URL="https://api.kimi.com/coding/"
 export ANTHROPIC_AUTH_TOKEN="$KIMI_API_KEY"
-export ANTHROPIC_MODEL="kimi-k2-turbo-preview"
+export ANTHROPIC_MODEL="kimi-k2-thinking-turbo"
 export ANTHROPIC_SMALL_FAST_MODEL="kimi-k2-turbo-preview"
 exec claude "$@"
 KIMIEOF
