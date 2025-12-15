@@ -20,13 +20,11 @@
 
 ```bash
 # 1. Install Claude Code CLI
-npm install -g @anthropic-ai/claude-code
+curl -fsSL https://claude.ai/install.sh | bash
 
 # 2. Install Clother
 curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash
 
-# 3. Add to PATH (if prompted)
-echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
 ```
 
 ---
