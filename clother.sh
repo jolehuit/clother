@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-VERSION="1.2"
+VERSION="1.3"
 BASE="${CLOTHER_HOME:-$HOME/.clother}"
 BIN="${CLOTHER_BIN:-$HOME/bin}"
 SECRETS="$BASE/secrets.env"
@@ -50,7 +50,7 @@ if ! command -v claude &>/dev/null; then
   echo
   echo "Clother requires the 'claude' command-line tool to be installed and in your PATH."
   echo "Please install it first using the official command:"
-  echo -e " ${YELLOW}npm install -g @anthropic-ai/claude-code${NC}"
+  echo -e " ${YELLOW}curl -fsSL https://claude.ai/install.sh | bash${NC}"
   echo
   exit 1
 fi
@@ -74,7 +74,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-VERSION="1.2"
+VERSION="1.3"
 BASE="${CLOTHER_HOME:-$HOME/.clother}"
 BIN="${CLOTHER_BIN:-$HOME/bin}"
 SECRETS="$BASE/secrets.env"
@@ -119,14 +119,19 @@ cmd_config() {
   echo -e "${BOLD}Configure a Provider Profile${NC}"
   echo
   echo "Available providers:"
-  echo " 1) native   - Anthropic (no key needed)"
-  echo " 2) zai      - Z.AI"
-  echo " 3) minimax  - MiniMax"
-  echo " 4) katcoder - KAT-Coder"
-  echo " 5) kimi     - Moonshot AI"
-  echo " 6) custom   - Add your own"
+  echo " 1) native      - Anthropic (no key needed)"
+  echo " 2) zai         - Z.AI"
+  echo " 3) zai-cn      - Z.AI (China)"
+  echo " 4) minimax     - MiniMax"
+  echo " 5) minimax-cn  - MiniMax (China)"
+  echo " 6) katcoder    - KAT-Coder"
+  echo " 7) kimi        - Kimi Coding Plan (api.kimi.com)"
+  echo " 8) moonshot    - Moonshot AI legacy (api.moonshot.ai)"
+  echo " 9) ve          - VolcEngine (China)"
+  echo "10) deepseek    - DeepSeek"
+  echo "11) custom      - Add your own"
   echo
-  read -r -p "Choose [1-6]: " choice
+  read -r -p "Choose [1-11]: " choice
   case "$choice" in
     1)
       echo
@@ -145,6 +150,16 @@ cmd_config() {
       ;;
     3)
       echo
+      echo "Z.AI (China) Configuration"
+      [ -n "${ZAI_CN_API_KEY:-}" ] && echo "Current key: $(mask_key "$ZAI_CN_API_KEY")"
+      read -rs -p "API Key: " key; echo
+      [ -z "$key" ] && { error "Key is required"; return 1; }
+      save_kv "ZAI_CN_API_KEY" "$key"
+      success "Z.AI (China) API Key saved."
+      log "To use it, run: ${GREEN}clother-zai-cn${NC}"
+      ;;
+    4)
+      echo
       echo "MiniMax Configuration"
       [ -n "${MINIMAX_API_KEY:-}" ] && echo "Current key: $(mask_key "$MINIMAX_API_KEY")"
       read -rs -p "API Key: " key; echo
@@ -152,7 +167,16 @@ cmd_config() {
       save_kv "MINIMAX_API_KEY" "$key"
       success "MiniMax API Key saved. You can now use 'clother-minimax'."
       ;;
-    4)
+    5)
+      echo
+      echo "MiniMax (China) Configuration"
+      [ -n "${MINIMAX_CN_API_KEY:-}" ] && echo "Current key: $(mask_key "$MINIMAX_CN_API_KEY")"
+      read -rs -p "API Key: " key; echo
+      [ -z "$key" ] && { error "Key is required"; return 1; }
+      save_kv "MINIMAX_CN_API_KEY" "$key"
+      success "MiniMax (China) API Key saved. You can now use 'clother-minimax-cn'."
+      ;;
+    6)
       echo
       echo "KAT-Coder Configuration"
       [ -n "${VC_API_KEY:-}" ] && echo "Current key: $(mask_key "$VC_API_KEY")"
@@ -164,9 +188,9 @@ cmd_config() {
       save_kv "VC_ENDPOINT_ID" "$endpoint"
       success "KAT-Coder configured. You can now use 'clother-katcoder'."
       ;;
-    5)
+    7)
       echo
-      echo "Moonshot AI (Kimi) Configuration"
+      echo "Kimi Coding Plan Configuration (api.kimi.com)"
       [ -n "${KIMI_API_KEY:-}" ] && echo "Current key: $(mask_key "$KIMI_API_KEY")"
       read -rs -p "API Key: " key; echo
       [ -z "$key" ] && { error "Key is required"; return 1; }
@@ -174,7 +198,37 @@ cmd_config() {
       success "Kimi API Key saved."
       log "To use it, run: ${GREEN}clother-kimi${NC}"
       ;;
-    6)
+    8)
+      echo
+      echo "Moonshot AI Legacy Configuration (api.moonshot.ai)"
+      [ -n "${MOONSHOT_API_KEY:-}" ] && echo "Current key: $(mask_key "$MOONSHOT_API_KEY")"
+      read -rs -p "API Key: " key; echo
+      [ -z "$key" ] && { error "Key is required"; return 1; }
+      save_kv "MOONSHOT_API_KEY" "$key"
+      success "Moonshot API Key saved."
+      log "To use it, run: ${GREEN}clother-moonshot${NC}"
+      ;;
+    9)
+      echo
+      echo "VolcEngine Configuration"
+      [ -n "${ARK_API_KEY:-}" ] && echo "Current key: $(mask_key "$ARK_API_KEY")"
+      read -rs -p "API Key: " key; echo
+      [ -z "$key" ] && { error "Key is required"; return 1; }
+      save_kv "ARK_API_KEY" "$key"
+      success "VolcEngine API Key saved."
+      log "To use it, run: ${GREEN}clother-ve${NC}"
+      ;;
+    10)
+      echo
+      echo "DeepSeek Configuration"
+      [ -n "${DEEPSEEK_API_KEY:-}" ] && echo "Current key: $(mask_key "$DEEPSEEK_API_KEY")"
+      read -rs -p "API Key: " key; echo
+      [ -z "$key" ] && { error "Key is required"; return 1; }
+      save_kv "DEEPSEEK_API_KEY" "$key"
+      success "DeepSeek API Key saved."
+      log "To use it, run: ${GREEN}clother-deepseek${NC}"
+      ;;
+    11)
       echo
       echo "Custom Provider"
       read -r -p "Provider name (e.g., 'my-provider'): " name
@@ -288,8 +342,20 @@ cmd_info() {
       echo "  Sonnet:  glm-4.6"
       echo "  Opus:    glm-4.6"
       ;;
+    zai-cn)
+      echo "Base URL: https://open.bigmodel.cn/api/anthropic"
+      echo "Models:"
+      echo "  Haiku:   glm-4.5-air"
+      echo "  Sonnet:  glm-4.6"
+      echo "  Opus:    glm-4.6"
+      ;;
     minimax)
       echo "Base URL: https://api.minimax.io/anthropic"
+      echo "Models:"
+      echo "  Default: MiniMax-M2"
+      ;;
+    minimax-cn)
+      echo "Base URL: https://api.minimaxi.com/anthropic"
       echo "Models:"
       echo "  Default: MiniMax-M2"
       ;;
@@ -301,11 +367,28 @@ cmd_info() {
       echo "  Small/Fast: KAT-Coder"
       ;;
     kimi)
+      echo "Base URL: https://api.kimi.com/coding/"
+      echo "Models:"
+      echo "  Default/Fast: kimi-k2-thinking-turbo"
+      echo "  Latest:       kimi-k2-thinking"
+      echo "  Alternate:    kimi-k2-0905-preview"
+      ;;
+    moonshot)
       echo "Base URL: https://api.moonshot.ai/anthropic"
       echo "Models:"
       echo "  Default/Fast: kimi-k2-turbo-preview"
       echo "  Latest:       kimi-k2-0905-preview"
       echo "  Alternate:    kimi-k2-0711-preview"
+      ;;
+    ve)
+      echo "Base URL: https://ark.cn-beijing.volces.com/api/coding"
+      echo "Models:"
+      echo "  Default: doubao-seed-code-preview-latest"
+      ;;
+    deepseek)
+      echo "Base URL: https://api.deepseek.com/anthropic"
+      echo "Models:"
+      echo "  Default: deepseek-chat"
       ;;
     *)
       local launcher_file="$BIN/clother-$provider"
@@ -360,7 +443,7 @@ ${YELLOW}Getting Started:${NC}
 ${BOLD}Commands:${NC}
   config      Configure a new or existing provider profile.
   list        List all available profiles.
-  info <name> Show information and models for a provider.
+  info <n> Show information and models for a provider.
   uninstall   Remove Clother and all related files.
   help, -h    Show this help message."
 }
@@ -417,6 +500,31 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL="glm-4.6"
 exec claude "$@"
 ZAIEOF
 
+cat > "$BIN/clother-zai-cn" <<'ZAICNEOF'
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+cat <<'BANNER'
+  ____ _       _   _               
+ / ___| | ___ | |_| |__   ___ _ __ 
+| |   | |/ _ \| __| '_ \ / _ \ '__|
+| |___| | (_) | |_| | | |  __/ |   
+ \____|_|\___/ \__|_| |_|\___|_|   
+BANNER
+[ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
+if [ -z "${ZAI_CN_API_KEY:-}" ]; then
+  RED=$'\033[0;31m'; NC=$'\033[0m'
+  echo -e "${RED}✗ Error: Z.AI (China) API key not set. Run 'clother config'.${NC}" >&2
+  exit 1
+fi
+export ANTHROPIC_BASE_URL="https://open.bigmodel.cn/api/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$ZAI_CN_API_KEY"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.5-air"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.6"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="glm-4.6"
+exec claude "$@"
+ZAICNEOF
+
 cat > "$BIN/clother-minimax" <<'MINIMAXEOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -440,6 +548,34 @@ export ANTHROPIC_MODEL="MiniMax-M2"
 export API_TIMEOUT_MS="3000000"
 exec claude "$@"
 MINIMAXEOF
+
+cat > "$BIN/clother-minimax-cn" <<'MINIMAXCNEOF'
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+cat <<'BANNER'
+  ____ _       _   _               
+ / ___| | ___ | |_| |__   ___ _ __ 
+| |   | |/ _ \| __| '_ \ / _ \ '__|
+| |___| | (_) | |_| | | |  __/ |   
+ \____|_|\___/ \__|_| |_|\___|_|   
+BANNER
+[ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
+if [ -z "${MINIMAX_CN_API_KEY:-}" ]; then
+  RED=$'\033[0;31m'; NC=$'\033[0m'
+  echo -e "${RED}✗ Error: MiniMax (China) API key not set. Run 'clother config'.${NC}" >&2
+  exit 1
+fi
+export ANTHROPIC_BASE_URL="https://api.minimaxi.com/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$MINIMAX_CN_API_KEY"
+export ANTHROPIC_MODEL="MiniMax-M2"
+export ANTHROPIC_SMALL_FAST_MODEL="MiniMax-M2"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="MiniMax-M2"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="MiniMax-M2"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="MiniMax-M2"
+export API_TIMEOUT_MS="3000000"
+exec claude "$@"
+MINIMAXCNEOF
 
 cat > "$BIN/clother-katcoder" <<'KATEOF'
 #!/usr/bin/env bash
@@ -484,15 +620,90 @@ BANNER
 [ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
 if [ -z "${KIMI_API_KEY:-}" ]; then
   RED=$'\033[0;31m'; NC=$'\033[0m'
-  echo -e "${RED}✗ Error: Kimi (Moonshot AI) API key not set. Run 'clother config'.${NC}" >&2
+  echo -e "${RED}✗ Error: Kimi API key not set. Run 'clother config'.${NC}" >&2
   exit 1
 fi
-export ANTHROPIC_BASE_URL="https://api.moonshot.ai/anthropic"
+export ANTHROPIC_BASE_URL="https://api.kimi.com/coding/"
 export ANTHROPIC_AUTH_TOKEN="$KIMI_API_KEY"
-export ANTHROPIC_MODEL="kimi-k2-turbo-preview"
+export ANTHROPIC_MODEL="kimi-k2-thinking-turbo"
 export ANTHROPIC_SMALL_FAST_MODEL="kimi-k2-turbo-preview"
 exec claude "$@"
 KIMIEOF
+
+cat > "$BIN/clother-moonshot" <<'MOONSHOTEOF'
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+cat <<'BANNER'
+  ____ _       _   _               
+ / ___| | ___ | |_| |__   ___ _ __ 
+| |   | |/ _ \| __| '_ \ / _ \ '__|
+| |___| | (_) | |_| | | |  __/ |   
+ \____|_|\___/ \__|_| |_|\___|_|   
+BANNER
+[ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
+if [ -z "${MOONSHOT_API_KEY:-}" ]; then
+  RED=$'\033[0;31m'; NC=$'\033[0m'
+  echo -e "${RED}✗ Error: Moonshot API key not set. Run 'clother config'.${NC}" >&2
+  exit 1
+fi
+export ANTHROPIC_BASE_URL="https://api.moonshot.ai/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$MOONSHOT_API_KEY"
+export ANTHROPIC_MODEL="kimi-k2-turbo-preview"
+export ANTHROPIC_SMALL_FAST_MODEL="kimi-k2-turbo-preview"
+exec claude "$@"
+MOONSHOTEOF
+
+cat > "$BIN/clother-ve" <<'VEEOF'
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+cat <<'BANNER'
+  ____ _       _   _               
+ / ___| | ___ | |_| |__   ___ _ __ 
+| |   | |/ _ \| __| '_ \ / _ \ '__|
+| |___| | (_) | |_| | | |  __/ |   
+ \____|_|\___/ \__|_| |_|\___|_|   
+BANNER
+[ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
+if [ -z "${ARK_API_KEY:-}" ]; then
+  RED=$'\033[0;31m'; NC=$'\033[0m'
+  echo -e "${RED}✗ Error: VolcEngine API key not set. Run 'clother config'.${NC}" >&2
+  exit 1
+fi
+export ANTHROPIC_BASE_URL="https://ark.cn-beijing.volces.com/api/coding"
+export ANTHROPIC_AUTH_TOKEN="$ARK_API_KEY"
+export ANTHROPIC_MODEL="doubao-seed-code-preview-latest"
+export API_TIMEOUT_MS="3000000"
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+exec claude "$@"
+VEEOF
+
+cat > "$BIN/clother-deepseek" <<'DEEPSEEKEOF'
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+cat <<'BANNER'
+  ____ _       _   _               
+ / ___| | ___ | |_| |__   ___ _ __ 
+| |   | |/ _ \| __| '_ \ / _ \ '__|
+| |___| | (_) | |_| | | |  __/ |   
+ \____|_|\___/ \__|_| |_|\___|_|   
+BANNER
+[ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
+if [ -z "${DEEPSEEK_API_KEY:-}" ]; then
+  RED=$'\033[0;31m'; NC=$'\033[0m'
+  echo -e "${RED}✗ Error: DeepSeek API key not set. Run 'clother config'.${NC}" >&2
+  exit 1
+fi
+export ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$DEEPSEEK_API_KEY"
+export ANTHROPIC_MODEL="deepseek-chat"
+export ANTHROPIC_SMALL_FAST_MODEL="deepseek-chat"
+export API_TIMEOUT_MS="600000"
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+exec claude "$@"
+DEEPSEEKEOF
 
 chmod +x "$BIN"/clother-*
 
