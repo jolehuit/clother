@@ -65,8 +65,18 @@ clother-native              # Claude Sonnet/Opus/Haiku
 |---------|----------|--------|-------------|
 | `clother-zai` | Z.AI | GLM-4.5-air, GLM-4.6 | [z.ai](https://z.ai) |
 | `clother-minimax` | MiniMax | MiniMax-M2 | [minimax.io](https://minimax.io) |
-| `clother-kimi` | Moonshot AI | Kimi-K2 variants | [moonshot.ai](https://moonshot.ai) |
+| `clother-kimi` | Kimi Coding | kimi-k2-thinking-turbo | [kimi.com](https://kimi.com) |
+| `clother-moonshot` | Moonshot AI | kimi-k2-turbo-preview | [moonshot.ai](https://moonshot.ai) |
+| `clother-deepseek` | DeepSeek | deepseek-chat | [deepseek.com](https://platform.deepseek.com) |
 | `clother-katcoder` | KAT-Coder | KAT-Coder | [streamlake.ai](https://streamlake.ai) |
+
+### China Endpoints 🇨🇳
+
+| Command | Provider | Endpoint |
+|---------|----------|----------|
+| `clother-zai-cn` | Z.AI (China) | open.bigmodel.cn |
+| `clother-minimax-cn` | MiniMax (China) | api.minimaxi.com |
+| `clother-ve` | VolcEngine | ark.cn-beijing.volces.com |
 
 ### Custom Providers
 
@@ -149,6 +159,17 @@ No. It only sets environment variables before launching `claude`.
 ## Platform Support
 
 ✅ macOS (zsh/bash) • ✅ Linux (zsh/bash) • ✅ Windows (WSL)
+
+---
+
+## Contributors
+
+Thanks to everyone who helped improve Clother:
+
+- [@darkokoa](https://github.com/darkokoa) — China endpoints (zai-cn, minimax-cn, ve)
+- [@RawToast](https://github.com/RawToast) — Kimi Coding Plan endpoint fix
+
+PRs welcome! 🙏
 
 ---
 
