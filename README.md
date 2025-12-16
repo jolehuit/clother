@@ -66,7 +66,7 @@ clother-native              # Claude Sonnet/Opus/Haiku
 | `clother-kimi` | Kimi Coding | kimi-k2-thinking-turbo | [kimi.com](https://kimi.com) |
 | `clother-moonshot` | Moonshot AI | kimi-k2-turbo-preview | [moonshot.ai](https://moonshot.ai) |
 | `clother-deepseek` | DeepSeek | deepseek-chat | [deepseek.com](https://platform.deepseek.com) |
-| `clother-mimo` | Xiaomi MiMo | mimo-v2-flash | [xiaomimimo.com](https://xiaomimimo.com) |
+| `clother-mimo` | Xiaomi MiMo | mimo-v2-flash | [xiaomimimo.com](https://platform.xiaomimimo.com) |
 | `clother-katcoder` | KAT-Coder | KAT-Coder | [streamlake.ai](https://streamlake.ai) |
 
 ⚠️ Note: MiMo is not compatible with Claude Code thinking mode. Press Tab to disable thinking.
