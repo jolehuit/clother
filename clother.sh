@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-VERSION="1.3"
+VERSION="1.4"
 BASE="${CLOTHER_HOME:-$HOME/.clother}"
 BIN="${CLOTHER_BIN:-$HOME/bin}"
 SECRETS="$BASE/secrets.env"
@@ -74,7 +74,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-VERSION="1.3"
+VERSION="1.4"
 BASE="${CLOTHER_HOME:-$HOME/.clother}"
 BIN="${CLOTHER_BIN:-$HOME/bin}"
 SECRETS="$BASE/secrets.env"
@@ -129,9 +129,10 @@ cmd_config() {
   echo " 8) moonshot    - Moonshot AI legacy (api.moonshot.ai)"
   echo " 9) ve          - VolcEngine (China)"
   echo "10) deepseek    - DeepSeek"
-  echo "11) custom      - Add your own"
+  echo "11) mimo        - Xiaomi MiMo"
+  echo "12) custom      - Add your own"
   echo
-  read -r -p "Choose [1-11]: " choice
+  read -r -p "Choose [1-12]: " choice
   case "$choice" in
     1)
       echo
@@ -229,6 +230,17 @@ cmd_config() {
       log "To use it, run: ${GREEN}clother-deepseek${NC}"
       ;;
     11)
+      echo
+      echo "Xiaomi MiMo Configuration"
+      [ -n "${MIMO_API_KEY:-}" ] && echo "Current key: $(mask_key "$MIMO_API_KEY")"
+      read -rs -p "API Key: " key; echo
+      [ -z "$key" ] && { error "Key is required"; return 1; }
+      save_kv "MIMO_API_KEY" "$key"
+      success "MiMo API Key saved."
+      log "To use it, run: ${GREEN}clother-mimo${NC}"
+      warn "Note: MiMo is not compatible with thinking mode (use Tab to disable)."
+      ;;
+    12)
       echo
       echo "Custom Provider"
       read -r -p "Provider name (e.g., 'my-provider'): " name
@@ -389,6 +401,12 @@ cmd_info() {
       echo "Base URL: https://api.deepseek.com/anthropic"
       echo "Models:"
       echo "  Default: deepseek-chat"
+      ;;
+    mimo)
+      echo "Base URL: https://api.xiaomimimo.com/anthropic"
+      echo "Models:"
+      echo "  Default: mimo-v2-flash"
+      echo "Note: Not compatible with thinking mode"
       ;;
     *)
       local launcher_file="$BIN/clother-$provider"
@@ -704,6 +722,33 @@ export API_TIMEOUT_MS="600000"
 export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 exec claude "$@"
 DEEPSEEKEOF
+
+cat > "$BIN/clother-mimo" <<'MIMOEOF'
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+cat <<'BANNER'
+  ____ _       _   _               
+ / ___| | ___ | |_| |__   ___ _ __ 
+| |   | |/ _ \| __| '_ \ / _ \ '__|
+| |___| | (_) | |_| | | |  __/ |   
+ \____|_|\___/ \__|_| |_|\___|_|   
+BANNER
+[ -f "$HOME/.clother/secrets.env" ] && source "$HOME/.clother/secrets.env"
+if [ -z "${MIMO_API_KEY:-}" ]; then
+  RED=$'\033[0;31m'; NC=$'\033[0m'
+  echo -e "${RED}✗ Error: Xiaomi MiMo API key not set. Run 'clother config'.${NC}" >&2
+  exit 1
+fi
+export ANTHROPIC_BASE_URL="https://api.xiaomimimo.com/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$MIMO_API_KEY"
+export ANTHROPIC_MODEL="mimo-v2-flash"
+export ANTHROPIC_SMALL_FAST_MODEL="mimo-v2-flash"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="mimo-v2-flash"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="mimo-v2-flash"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="mimo-v2-flash"
+exec claude "$@"
+MIMOEOF
 
 chmod +x "$BIN"/clother-*
 
