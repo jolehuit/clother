@@ -634,20 +634,28 @@ config_openrouter() {
 
   load_secrets
 
-  local api_key="${OPENROUTER_API_KEY:-}"
-  if [[ -n "$api_key" ]]; then
-    echo -e "Current key: ${DIM}$(mask_key "$api_key")${NC}"
-    if ! confirm "Change key?"; then
-      api_key=""  # Keep existing
+  # Handle API key
+  if [[ -n "${OPENROUTER_API_KEY:-}" ]]; then
+    echo -e "Current key: ${DIM}$(mask_key "$OPENROUTER_API_KEY")${NC}"
+    if confirm "Change key?" "n"; then
+      local new_key
+      prompt_secret "New API Key" new_key
+      if [[ -n "$new_key" ]]; then
+        validate_api_key "$new_key" "openrouter" || return 0
+        save_secret "OPENROUTER_API_KEY" "$new_key"
+        success "API key saved"
+      fi
     fi
-  fi
-
-  if [[ -z "$api_key" ]] || [[ -n "${OPENROUTER_API_KEY:-}" && "$api_key" != "${OPENROUTER_API_KEY:-}" ]]; then
-    prompt_secret "API Key" api_key
-    if [[ -n "$api_key" ]]; then
-      validate_api_key "$api_key" "openrouter" || return 1
-      save_secret "OPENROUTER_API_KEY" "$api_key"
+  else
+    local new_key
+    prompt_secret "API Key" new_key
+    if [[ -n "$new_key" ]]; then
+      validate_api_key "$new_key" "openrouter" || return 0
+      save_secret "OPENROUTER_API_KEY" "$new_key"
       success "API key saved"
+    else
+      warn "No API key provided"
+      return 0
     fi
   fi
 
