@@ -505,8 +505,11 @@ cmd_config() {
   load_secrets
 
   if [[ -n "$provider" ]]; then
-    config_provider "$provider"
-    return
+    case "$provider" in
+      openrouter) config_openrouter; return ;;
+      custom)     config_custom; return ;;
+      *)          config_provider "$provider"; return ;;
+    esac
   fi
 
   # Interactive menu
