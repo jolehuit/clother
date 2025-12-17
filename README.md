@@ -1,9 +1,11 @@
-```text
-  ____ _       _   _               
- / ___| | ___ | |_| |__   ___ _ __ 
+# Clother
+
+```
+  ____ _       _   _
+ / ___| | ___ | |_| |__   ___ _ __
 | |   | |/ _ \| __| '_ \ / _ \ '__|
-| |___| | (_) | |_| | | |  __/ |   
- \____|_|\___/ \__|_| |_|\___|_|   
+| |___| | (_) | |_| | | |  __/ |
+ \____|_|\___/ \__|_| |_|\___|_|
 ```
 
 **One CLI to switch between Claude Code providers instantly.**
@@ -12,40 +14,43 @@
 [![Shell](https://img.shields.io/badge/Shell-Bash-green.svg)](https://www.gnu.org/software/bash/)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20|%20Linux-lightgrey.svg)](#platform-support)
 
-🔒 Secure • 🚀 Fast • 📦 Lightweight (~500 lines)
-
----
+🔒 Secure • 🚀 Fast • 📦 XDG Compliant
 
 ## Installation
+
+**Requirements:** Claude Code CLI, Go 1.16+ (for OpenRouter)
 
 ```bash
 # 1. Install Claude Code CLI
 curl -fsSL https://claude.ai/install.sh | bash
 
-# 2. Install Clother
+# 2. Install Go (for OpenRouter support)
+# macOS: brew install go
+# Linux: https://go.dev/dl/
+
+# 3. Install Clother
 curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash
-
 ```
-
----
 
 ## Quick Start
 
-### Got a Claude Pro/Team subscription?
-
+**Got a Claude Pro/Team subscription?**
 ```bash
 clother-native              # Use your subscription, no setup needed!
 ```
 
-### Want to use alternative models?
-
+**Want to use alternative models?**
 ```bash
 clother config              # Set up Z.AI, MiniMax, Kimi, etc.
 clother-zai                 # Launch with Z.AI (GLM)
 clother-minimax             # Launch with MiniMax
 ```
 
----
+**Want 100+ models via OpenRouter?**
+```bash
+clother config openrouter   # Set up OpenRouter + Go proxy
+clother-or-devstral         # Launch with Devstral
+```
 
 ## Providers
 
@@ -57,19 +62,15 @@ clother-native              # Claude Sonnet/Opus/Haiku
                            # No API key needed
 ```
 
-### Alternative Models
+### International
 
 | Command | Provider | Models | Get API Key |
 |---------|----------|--------|-------------|
 | `clother-zai` | Z.AI | GLM-4.5-air, GLM-4.6 | [z.ai](https://z.ai) |
 | `clother-minimax` | MiniMax | MiniMax-M2 | [minimax.io](https://minimax.io) |
-| `clother-kimi` | Kimi Coding | kimi-k2-thinking-turbo | [kimi.com](https://kimi.com) |
 | `clother-moonshot` | Moonshot AI | kimi-k2-turbo-preview | [moonshot.ai](https://moonshot.ai) |
 | `clother-deepseek` | DeepSeek | deepseek-chat | [deepseek.com](https://platform.deepseek.com) |
 | `clother-mimo` | Xiaomi MiMo | mimo-v2-flash | [xiaomimimo.com](https://platform.xiaomimimo.com) |
-| `clother-katcoder` | KAT-Coder | KAT-Coder | [streamlake.ai](https://streamlake.ai) |
-
-⚠️ Note: MiMo is not compatible with Claude Code thinking mode. Press Tab to disable thinking.
 
 ### China Endpoints 🇨🇳
 
@@ -77,47 +78,79 @@ clother-native              # Claude Sonnet/Opus/Haiku
 |---------|----------|----------|
 | `clother-zai-cn` | Z.AI (China) | open.bigmodel.cn |
 | `clother-minimax-cn` | MiniMax (China) | api.minimaxi.com |
+| `clother-kimi` | Kimi | kimi.com |
 | `clother-ve` | VolcEngine | ark.cn-beijing.volces.com |
 
-### Custom Providers
+### Advanced
 
-Add your own Anthropic-compatible endpoint:
+| Command | Provider | Description |
+|---------|----------|-------------|
+| `clother-or-*` | OpenRouter | 100+ models via Go proxy |
+| `clother-<custom>` | Custom | Any Anthropic-compatible endpoint |
+
+## OpenRouter (100+ Models)
+
+Access GPT-4, Gemini, Llama, Mistral and more through OpenRouter.
+
+```bash
+clother config openrouter   # Enter API key from https://openrouter.ai/keys
+
+# Add models interactively:
+Model ID: mistralai/devstral-2512
+Short name: devstral        # Creates: clother-or-devstral
+
+clother-or-devstral         # Use it!
+```
+
+The Go proxy compiles on first run and handles Anthropic ↔ OpenAI format conversion.
+
+## Custom Providers
+
+Add any Anthropic-compatible endpoint:
 
 ```bash
 clother config              # Choose "custom"
 clother-myprovider          # Ready to use!
 ```
 
----
-
 ## Commands
 
-```bash
-clother config              # Set up a provider
-clother list                # Show configured providers
-clother info <name>         # Show provider details
-clother uninstall           # Remove everything
-```
+| Command | Description |
+|---------|-------------|
+| `clother config [provider]` | Configure provider (interactive menu if no args) |
+| `clother list [--json]` | List configured profiles |
+| `clother info <name>` | Show provider details |
+| `clother test [provider]` | Test connectivity |
+| `clother status` | Show installation status |
+| `clother uninstall` | Remove everything |
 
----
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `-v, --verbose` | Verbose output |
+| `-q, --quiet` | Minimal output |
+| `-y, --yes` | Auto-confirm prompts |
+| `--json` | JSON output |
+| `--no-color` | Disable colors |
 
 ## Examples
 
 ```bash
-
 # Pass any Claude Code options
 clother-zai --dangerously-skip-permissions
 
 # Check what's configured
 clother list
 clother info zai
-```
 
----
+# Machine-readable output
+clother list --json | jq '.profiles[].name'
+```
 
 ## How It Works
 
-Clother creates tiny launcher scripts that set environment variables:
+Clother creates lightweight launcher scripts that set environment variables:
 
 ```bash
 # When you run: clother-zai
@@ -127,41 +160,32 @@ export ANTHROPIC_AUTH_TOKEN="$ZAI_API_KEY"
 exec claude "$@"
 ```
 
-No proxy, no overhead, just environment variables. API keys stored securely in `~/.clother/secrets.env` (chmod 600).
+API keys stored securely in `~/.local/share/clother/secrets.env` (chmod 600).
 
----
+## File Locations
 
-## FAQ
+Follows [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html):
 
-**Can I use multiple providers at once?**  
-Open multiple terminals — each can use a different provider.
-
-**Where are my API keys stored?**  
-In `~/.clother/secrets.env` with `chmod 600` (only you can read it).
-
-**What providers work with Clother?**  
-Any provider with an Anthropic-compatible API. For non-compatible providers (OpenRouter, LiteLLM), use [claude-code-router](https://github.com/musistudio/claude-code-router) instead.
-
-**Does this modify my Claude installation?**  
-No. It only sets environment variables before launching `claude`.
-
----
+```
+~/.config/clother/           # Configuration
+~/.local/share/clother/      # Data (secrets, proxy)
+~/bin/clother-*              # Launcher scripts
+```
 
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
-| `claude: command not found` | `npm install -g @anthropic-ai/claude-code` |
-| `clother: command not found` | Add `~/bin` to PATH (see installation) |
+| `claude: command not found` | Install Claude CLI first |
+| `clother: command not found` | Add `~/bin` to PATH |
 | `API key not set` | Run `clother config` |
-
----
+| `Go not installed` (OpenRouter) | Install from [go.dev/dl](https://go.dev/dl/) |
 
 ## Platform Support
 
 ✅ macOS (zsh/bash) • ✅ Linux (zsh/bash) • ✅ Windows (WSL)
 
----
+**Requirements:** Bash 4.0+, Claude Code CLI, Go 1.16+ (OpenRouter only)
 
 ## Contributors
 
@@ -171,8 +195,6 @@ Thanks to everyone who helped improve Clother:
 - [@RawToast](https://github.com/RawToast) — Kimi Coding Plan endpoint fix
 
 PRs welcome! 🙏
-
----
 
 ## License
 
