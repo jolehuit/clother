@@ -170,34 +170,29 @@ spinner_stop() {
 
 prompt() {
   local msg="$1" default="${2:-}" var="${3:-REPLY}"
-  if ! is_interactive; then
-    [[ -n "$default" ]] && { printf -v "$var" "%s" "$default"; return 0; }
-    error "Input required but running non-interactively"; return 1
-  fi
   local prompt_text="$msg"; [[ -n "$default" ]] && prompt_text="$msg [$default]"
-  read -r -p "$prompt_text: " "$var"
-  [[ -z "${!var}" && -n "$default" ]] && printf -v "$var" "%s" "$default"
+  read -r -p "$prompt_text: " "$var" || true
+  if [[ -z "${!var}" && -n "$default" ]]; then
+    printf -v "$var" "%s" "$default"
+  fi
 }
 
 prompt_secret() {
   local msg="$1" var="${2:-REPLY}"
-  ! is_interactive && { error "Secret input required but non-interactive"; return 1; }
   read -rs -p "$msg: " "$var"; echo
 }
 
 confirm() {
   local msg="$1" default="${2:-n}"
   [[ "$YES_MODE" == "1" ]] && return 0
-  ! is_interactive && { [[ "$default" =~ ^[Yy] ]] && return 0 || return 1; }
   local hint; [[ "$default" =~ ^[Yy] ]] && hint="[Y/n]" || hint="[y/N]"
-  local resp; read -r -p "$msg $hint: " resp; resp="${resp:-$default}"
-  [[ "$resp" =~ ^[Yy] ]]
+  local resp; read -r -p "$msg $hint: " resp || true; resp="${resp:-$default}"
+  [[ "$resp" =~ ^[Yy] ]] && return 0 || return 1
 }
 
 confirm_danger() {
   local action="$1" phrase="${2:-yes}"
   [[ "$YES_MODE" == "1" ]] && { warn "Auto-confirming: $action"; return 0; }
-  ! is_interactive && { error "Dangerous action requires --yes flag"; return 1; }
   echo; draw_box "DANGER" 40; echo
   echo -e "${RED}${BOLD}$action${NC}"; echo
   echo -e "Type ${YELLOW}${BOLD}$phrase${NC} to confirm:"
@@ -533,8 +528,8 @@ cmd_config() {
 
   # China
   echo -e "${BOLD}CHINA${NC}"
-  local -a china_providers=(zai-cn minimax-cn kimi ve)
-  local -a china_names=("Z.AI China" "MiniMax China" "Kimi K2" "VolcEngine")
+  local -a china_providers=(zai-cn minimax-cn ve)
+  local -a china_names=("Z.AI China" "MiniMax China" "VolcEngine")
   for i in "${!china_providers[@]}"; do
     local p="${china_providers[$i]}"
     local status; is_provider_configured "$p" && status="${GREEN}${SYM_CHECK}${NC}" || status="${DIM}${SYM_UNCHECK}${NC}"
@@ -544,12 +539,12 @@ cmd_config() {
 
   # International
   echo -e "${BOLD}INTERNATIONAL${NC}"
-  local -a intl_providers=(zai minimax moonshot deepseek mimo)
-  local -a intl_names=("Z.AI" "MiniMax" "Moonshot AI" "DeepSeek" "Xiaomi MiMo")
+  local -a intl_providers=(zai minimax kimi moonshot deepseek mimo)
+  local -a intl_names=("Z.AI" "MiniMax" "Kimi K2" "Moonshot AI" "DeepSeek" "Xiaomi MiMo")
   for i in "${!intl_providers[@]}"; do
     local p="${intl_providers[$i]}"
     local status; is_provider_configured "$p" && status="${GREEN}${SYM_CHECK}${NC}" || status="${DIM}${SYM_UNCHECK}${NC}"
-    printf "  ${CYAN}%-2s${NC} %-12s %-24s %s\n" "$((i+6))" "$p" "${intl_names[$i]}" "$status"
+    printf "  ${CYAN}%-2s${NC} %-12s %-24s %s\n" "$((i+5))" "$p" "${intl_names[$i]}" "$status"
   done
   echo
 
@@ -570,10 +565,10 @@ cmd_config() {
     1)  config_provider "native" ;;
     2)  config_provider "zai-cn" ;;
     3)  config_provider "minimax-cn" ;;
-    4)  config_provider "kimi" ;;
-    5)  config_provider "ve" ;;
-    6)  config_provider "zai" ;;
-    7)  config_provider "minimax" ;;
+    4)  config_provider "ve" ;;
+    5)  config_provider "zai" ;;
+    6)  config_provider "minimax" ;;
+    7)  config_provider "kimi" ;;
     8)  config_provider "moonshot" ;;
     9)  config_provider "deepseek" ;;
     10) config_provider "mimo" ;;
@@ -961,7 +956,7 @@ PROXY_BIN="\$DATA_DIR/openrouter-proxy"
 if [[ ! -x "\$PROXY_BIN" ]]; then
   GO_BIN=\$(find_go) || { echo "Error: Go required. Install from https://go.dev/dl/" >&2; exit 1; }
   echo "Compiling proxy (one-time)..."
-  "\$GO_BIN" build -o "\$PROXY_BIN" "\$DATA_DIR/proxy.go" || { echo "Compile failed" >&2; exit 1; }
+  (cd "\$DATA_DIR" && [[ -f go.mod ]] || "\$GO_BIN" mod init clother-proxy >/dev/null 2>&1; "\$GO_BIN" build -o openrouter-proxy proxy.go) || { echo "Compile failed" >&2; exit 1; }
 fi
 
 PROXY_PORT="\${CLOTHER_OPENROUTER_PORT:-8378}"
@@ -1155,36 +1150,136 @@ func convertMessage(m map[string]interface{}) []interface{} {
 	return result
 }
 
+type ToolCallAccumulator struct {
+	ID        string
+	Name      string
+	Arguments strings.Builder
+	BlockIdx  int
+	Started   bool
+}
+
 func handleStream(w http.ResponseWriter, resp *http.Response, model string) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	flusher, ok := w.(http.Flusher)
 	if !ok { http.Error(w, "Streaming not supported", 500); return }
-	msgID, started, textIndex := fmt.Sprintf("msg_%d", time.Now().UnixNano()), false, 0
+
+	msgID := fmt.Sprintf("msg_%d", time.Now().UnixNano())
+	started := false
+	nextBlockIdx := 0
+	textBlockIdx := -1
+	textBlockStarted := false
+	toolAccumulators := make(map[int]*ToolCallAccumulator)
+
 	scanner := bufio.NewScanner(resp.Body)
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, 1024*1024)
+
 	for scanner.Scan() {
 		line := scanner.Text()
 		if !strings.HasPrefix(line, "data: ") { continue }
 		data := strings.TrimPrefix(line, "data: ")
-		if data == "[DONE]" { fmt.Fprintf(w, "event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n"); flusher.Flush(); break }
+		if data == "[DONE]" {
+			// Emit content_block_stop for all blocks
+			if textBlockStarted {
+				j, _ := json.Marshal(map[string]interface{}{"type": "content_block_stop", "index": textBlockIdx})
+				fmt.Fprintf(w, "event: content_block_stop\ndata: %s\n\n", j); flusher.Flush()
+			}
+			for _, acc := range toolAccumulators {
+				if acc.Started {
+					// Send final arguments
+					if acc.Arguments.Len() > 0 {
+						j, _ := json.Marshal(map[string]interface{}{"type": "content_block_delta", "index": acc.BlockIdx, "delta": map[string]interface{}{"type": "input_json_delta", "partial_json": acc.Arguments.String()}})
+						fmt.Fprintf(w, "event: content_block_delta\ndata: %s\n\n", j); flusher.Flush()
+					}
+					j, _ := json.Marshal(map[string]interface{}{"type": "content_block_stop", "index": acc.BlockIdx})
+					fmt.Fprintf(w, "event: content_block_stop\ndata: %s\n\n", j); flusher.Flush()
+				}
+			}
+			fmt.Fprintf(w, "event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n"); flusher.Flush()
+			break
+		}
+
 		var chunk map[string]interface{}
 		if json.Unmarshal([]byte(data), &chunk) != nil { continue }
+
 		if !started {
-			j, _ := json.Marshal(map[string]interface{}{"type": "message_start", "message": map[string]interface{}{"id": msgID, "type": "message", "role": "assistant", "model": model, "content": []interface{}{}}})
-			fmt.Fprintf(w, "event: message_start\ndata: %s\n\n", j); flusher.Flush(); started = true
+			j, _ := json.Marshal(map[string]interface{}{"type": "message_start", "message": map[string]interface{}{"id": msgID, "type": "message", "role": "assistant", "model": model, "content": []interface{}{}, "usage": map[string]interface{}{"input_tokens": 0, "output_tokens": 0}}})
+			fmt.Fprintf(w, "event: message_start\ndata: %s\n\n", j); flusher.Flush()
+			started = true
 		}
+
 		choices, _ := chunk["choices"].([]interface{})
 		if len(choices) == 0 { continue }
 		choice, _ := choices[0].(map[string]interface{})
 		delta, _ := choice["delta"].(map[string]interface{})
+
+		// Handle text content
 		if content, ok := delta["content"].(string); ok && content != "" {
-			j, _ := json.Marshal(map[string]interface{}{"type": "content_block_delta", "index": textIndex, "delta": map[string]interface{}{"type": "text_delta", "text": content}})
+			if !textBlockStarted {
+				textBlockIdx = nextBlockIdx
+				nextBlockIdx++
+				j, _ := json.Marshal(map[string]interface{}{"type": "content_block_start", "index": textBlockIdx, "content_block": map[string]interface{}{"type": "text", "text": ""}})
+				fmt.Fprintf(w, "event: content_block_start\ndata: %s\n\n", j); flusher.Flush()
+				textBlockStarted = true
+			}
+			j, _ := json.Marshal(map[string]interface{}{"type": "content_block_delta", "index": textBlockIdx, "delta": map[string]interface{}{"type": "text_delta", "text": content}})
 			fmt.Fprintf(w, "event: content_block_delta\ndata: %s\n\n", j); flusher.Flush()
 		}
+
+		// Handle tool_calls
+		if toolCalls, ok := delta["tool_calls"].([]interface{}); ok {
+			for _, tc := range toolCalls {
+				toolCall, ok := tc.(map[string]interface{})
+				if !ok { continue }
+
+				idx := 0
+				if idxFloat, ok := toolCall["index"].(float64); ok {
+					idx = int(idxFloat)
+				}
+
+				if _, exists := toolAccumulators[idx]; !exists {
+					toolAccumulators[idx] = &ToolCallAccumulator{BlockIdx: nextBlockIdx}
+					nextBlockIdx++
+				}
+				acc := toolAccumulators[idx]
+
+				if id, ok := toolCall["id"].(string); ok && id != "" {
+					acc.ID = id
+				}
+
+				if function, ok := toolCall["function"].(map[string]interface{}); ok {
+					if name, ok := function["name"].(string); ok && name != "" {
+						acc.Name = name
+					}
+					if args, ok := function["arguments"].(string); ok {
+						acc.Arguments.WriteString(args)
+					}
+				}
+
+				// Start block when we have ID and Name
+				if !acc.Started && acc.ID != "" && acc.Name != "" {
+					acc.Started = true
+					j, _ := json.Marshal(map[string]interface{}{
+						"type": "content_block_start",
+						"index": acc.BlockIdx,
+						"content_block": map[string]interface{}{
+							"type": "tool_use",
+							"id": acc.ID,
+							"name": acc.Name,
+							"input": map[string]interface{}{},
+						},
+					})
+					fmt.Fprintf(w, "event: content_block_start\ndata: %s\n\n", j); flusher.Flush()
+				}
+			}
+		}
+
+		// Handle finish_reason
 		if finish, ok := choice["finish_reason"].(string); ok && finish != "" {
 			stopReason := "end_turn"
 			if finish == "length" { stopReason = "max_tokens" } else if finish == "tool_calls" { stopReason = "tool_use" }
-			j, _ := json.Marshal(map[string]interface{}{"type": "message_delta", "delta": map[string]interface{}{"stop_reason": stopReason}})
+			j, _ := json.Marshal(map[string]interface{}{"type": "message_delta", "delta": map[string]interface{}{"stop_reason": stopReason}, "usage": map[string]interface{}{"output_tokens": 0}})
 			fmt.Fprintf(w, "event: message_delta\ndata: %s\n\n", j); flusher.Flush()
 		}
 	}
@@ -1199,11 +1294,42 @@ func handleSync(w http.ResponseWriter, resp *http.Response) {
 	choice, _ := choices[0].(map[string]interface{})
 	message, _ := choice["message"].(map[string]interface{})
 	var content []interface{}
-	if text, ok := message["content"].(string); ok && text != "" { content = append(content, map[string]interface{}{"type": "text", "text": text}) }
+
+	// Handle text content
+	if text, ok := message["content"].(string); ok && text != "" {
+		content = append(content, map[string]interface{}{"type": "text", "text": text})
+	}
+
+	// Handle tool_calls - convert OpenAI format to Anthropic tool_use
+	if toolCalls, ok := message["tool_calls"].([]interface{}); ok {
+		for _, tc := range toolCalls {
+			toolCall, ok := tc.(map[string]interface{})
+			if !ok { continue }
+
+			function, _ := toolCall["function"].(map[string]interface{})
+			var input interface{} = map[string]interface{}{}
+			if argsStr, ok := function["arguments"].(string); ok && argsStr != "" {
+				json.Unmarshal([]byte(argsStr), &input)
+			}
+
+			content = append(content, map[string]interface{}{
+				"type": "tool_use",
+				"id": toolCall["id"],
+				"name": function["name"],
+				"input": input,
+			})
+		}
+	}
+
 	finish, _ := choice["finish_reason"].(string)
 	stopReason := "end_turn"
 	if finish == "length" { stopReason = "max_tokens" } else if finish == "tool_calls" { stopReason = "tool_use" }
-	anthropicResp := map[string]interface{}{"id": fmt.Sprintf("msg_%v", openaiResp["id"]), "type": "message", "role": "assistant", "model": openaiResp["model"], "content": content, "stop_reason": stopReason}
+	usage := map[string]interface{}{"input_tokens": 0, "output_tokens": 0}
+	if u, ok := openaiResp["usage"].(map[string]interface{}); ok {
+		if pt, ok := u["prompt_tokens"].(float64); ok { usage["input_tokens"] = int(pt) }
+		if ct, ok := u["completion_tokens"].(float64); ok { usage["output_tokens"] = int(ct) }
+	}
+	anthropicResp := map[string]interface{}{"id": fmt.Sprintf("msg_%v", openaiResp["id"]), "type": "message", "role": "assistant", "model": openaiResp["model"], "content": content, "stop_reason": stopReason, "usage": usage}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(anthropicResp)
 }
