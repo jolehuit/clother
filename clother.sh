@@ -1208,6 +1208,14 @@ do_install() {
   echo -e "${BOLD}Clother $VERSION${NC}"
   echo
 
+  # Clean previous installation (preserve secrets)
+  local secrets_backup=""
+  if [[ -f "$SECRETS_FILE" ]]; then
+    secrets_backup=$(cat "$SECRETS_FILE")
+  fi
+  rm -f "$BIN_DIR/clother" "$BIN_DIR"/clother-* 2>/dev/null || true
+  rm -rf "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR" 2>/dev/null || true
+
   log "Checking for 'claude' command..."
   if ! command -v claude &>/dev/null; then
     error_ctx "E010" "Claude CLI not found" "Checking prerequisites" \
@@ -1219,6 +1227,12 @@ do_install() {
 
   # Create directories (XDG compliant)
   mkdir -p "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR" "$BIN_DIR"
+
+  # Restore secrets if they existed
+  if [[ -n "$secrets_backup" ]]; then
+    echo "$secrets_backup" > "$SECRETS_FILE"
+    chmod 600 "$SECRETS_FILE"
+  fi
 
   # Security check for secrets
   if [[ -L "$SECRETS_FILE" ]]; then
