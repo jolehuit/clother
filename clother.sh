@@ -1366,9 +1366,9 @@ main() {
 }
 
 # If sourced, don't run main
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  # Check if this is an install run (script name contains install or first run)
-  if [[ "$0" == *"clother-v2"* ]] && [[ ! -f "$BIN_DIR/clother" ]]; then
+if [[ "${BASH_SOURCE[0]:-$0}" == "${0}" || "$0" == "bash" ]]; then
+  # Piped execution (curl | bash) or first run → install
+  if [[ "$0" == "bash" ]] || [[ ! -f "$BIN_DIR/clother" ]]; then
     do_install
   else
     main "$@"
