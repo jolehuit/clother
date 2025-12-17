@@ -1292,7 +1292,12 @@ MAINEOF
   chmod +x "$BIN_DIR/clother"
 
   # Copy this script as the full implementation
-  cp "$0" "$DATA_DIR/clother-full.sh"
+  if [[ "$0" == "bash" ]]; then
+    # Piped execution - download from GitHub
+    curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh > "$DATA_DIR/clother-full.sh"
+  else
+    cp "$0" "$DATA_DIR/clother-full.sh"
+  fi
   chmod +x "$DATA_DIR/clother-full.sh"
 }
 
