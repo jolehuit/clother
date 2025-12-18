@@ -126,14 +126,17 @@ draw_box() {
   local inner=$((width - 2))
   local pad=$(( (inner - ${#title}) / 2 ))
 
-  printf "%s" "$BOX_TL"; printf "%${inner}s" | tr ' ' "$BOX_H"; printf "%s\n" "$BOX_TR"
+  # Use printf repeat instead of tr (tr fails with multi-byte UTF-8 on some Linux)
+  local hline; printf -v hline "%${inner}s" ""; hline="${hline// /$BOX_H}"
+  printf "%s%s%s\n" "$BOX_TL" "$hline" "$BOX_TR"
   printf "%s%${pad}s${BOLD}%s${NC}%$((inner - pad - ${#title}))s%s\n" "$BOX_V" "" "$title" "" "$BOX_V"
-  printf "%s" "$BOX_BL"; printf "%${inner}s" | tr ' ' "$BOX_H"; printf "%s\n" "$BOX_BR"
+  printf "%s%s%s\n" "$BOX_BL" "$hline" "$BOX_BR"
 }
 
 draw_separator() {
   local width="${1:-52}"
-  printf "${DIM}"; printf "%${width}s" | tr ' ' "$BOX_H"; printf "${NC}\n"
+  local hline; printf -v hline "%${width}s" ""; hline="${hline// /$BOX_H}"
+  printf "${DIM}%s${NC}\n" "$hline"
 }
 
 # Spinner for long operations
@@ -515,7 +518,7 @@ cmd_config() {
   # Count configured
   local configured=0
   for p in native zai zai-cn minimax minimax-cn kimi moonshot ve deepseek mimo; do
-    is_provider_configured "$p" && ((configured++))
+    is_provider_configured "$p" && ((++configured)) || true
   done
   echo -e "${DIM}$configured providers configured${NC}"
   echo
@@ -824,14 +827,14 @@ cmd_test() {
       IFS='|' read -r keyvar baseurl _ _ _ <<< "$def"
       if [[ -n "$keyvar" && -z "${!keyvar:-}" ]]; then
         echo -e "${YELLOW}not configured${NC}"
-        ((fail++))
+        ((++fail)) || true
         continue
       fi
     fi
 
     # TODO: Actually test connectivity
     echo -e "${GREEN}${SYM_OK} ready${NC}"
-    ((ok++))
+    ((++ok)) || true
   done
 
   echo
@@ -851,7 +854,7 @@ cmd_status() {
   echo
 
   local count=0
-  for f in "$BIN_DIR"/clother-*; do [[ -x "$f" ]] && ((count++)); done
+  for f in "$BIN_DIR"/clother-*; do [[ -x "$f" ]] && ((++count)) || true; done
   echo -e "  Profiles:    ${BOLD}$count${NC} installed"
 
   if [[ -n "$DEFAULT_PROVIDER" ]]; then
