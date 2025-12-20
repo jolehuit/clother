@@ -933,7 +933,12 @@ SECRETS="\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/secrets.env"
 export ANTHROPIC_BASE_URL="https://openrouter.ai/api"
 export ANTHROPIC_AUTH_TOKEN="\$OPENROUTER_API_KEY"
 export ANTHROPIC_API_KEY=""  # Must be explicitly empty
+
+# Override all model tiers to use the selected model
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$model"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="$model"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$model"
+export ANTHROPIC_SMALL_FAST_MODEL="$model"
 
 exec claude "\$@"
 LAUNCHER
