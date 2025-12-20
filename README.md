@@ -92,11 +92,15 @@ Access Grok, Gemini, Mistral and more through OpenRouter's native Anthropic API.
 clother config openrouter   # Enter API key from https://openrouter.ai/keys
 
 # Add models interactively:
-Model ID: mistralai/devstral-2512
-Short name: devstral        # Creates: clother-or-devstral
+Model ID: moonshotai/kimi-k2-0905:exacto
+Short name: kimi-k2         # Creates: clother-or-kimi-k2
 
-clother-or-devstral         # Use it!
+clother-or-kimi-k2          # Use it!
 ```
+
+> **Important:** For non-Claude models, use the `:exacto` variant (e.g. `moonshotai/kimi-k2-0905:exacto`).
+> Exacto handles Claude Code's message format better and provides reliable tool use support.
+> See [OpenRouter Exacto docs](https://openrouter.ai/docs/features/exacto) for details.
 
 ## Custom Providers
 
