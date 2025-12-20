@@ -31,8 +31,6 @@ readonly BIN_DIR="${CLOTHER_BIN:-$HOME/bin}"
 
 readonly CONFIG_FILE="$CONFIG_DIR/config"
 readonly SECRETS_FILE="$DATA_DIR/secrets.env"
-readonly PROXY_SOURCE="$DATA_DIR/proxy.go"
-readonly PROXY_BIN="$DATA_DIR/openrouter-proxy"
 
 # =============================================================================
 # GLOBAL FLAGS (can be set via env vars)
@@ -408,7 +406,7 @@ ${BOLD}PROVIDERS${NC}
     mimo               Xiaomi MiMo
 
   ${DIM}Advanced${NC}
-    openrouter         100+ models via Go proxy
+    openrouter         100+ models via native API
     custom             Anthropic-compatible endpoint
 
 ${BOLD}ENVIRONMENT${NC}
@@ -553,7 +551,7 @@ cmd_config() {
 
   # Advanced
   echo -e "${BOLD}ADVANCED${NC}"
-  printf "  ${CYAN}%-2s${NC} %-12s %-24s\n" "11" "openrouter" "100+ models (Go proxy)"
+  printf "  ${CYAN}%-2s${NC} %-12s %-24s\n" "11" "openrouter" "100+ models (native API)"
   printf "  ${CYAN}%-2s${NC} %-12s %-24s\n" "12" "custom" "Anthropic-compatible"
   echo
 
@@ -626,7 +624,7 @@ config_provider() {
 config_openrouter() {
   echo
   echo -e "${BOLD}Configure: OpenRouter${NC}"
-  echo -e "${DIM}Access 100+ models via local Go proxy${NC}"
+  echo -e "${DIM}Access 100+ models via native Anthropic API${NC}"
   echo -e "Get API key: ${CYAN}https://openrouter.ai/keys${NC}"
   echo
 
@@ -655,14 +653,6 @@ config_openrouter() {
       warn "No API key provided"
       return 0
     fi
-  fi
-
-  # Check Go
-  local go_bin
-  go_bin=$(find_go)
-  if [[ -z "$go_bin" ]]; then
-    warn "Go not installed - required for OpenRouter proxy"
-    echo -e "Install from: ${CYAN}https://go.dev/dl/${NC}"
   fi
 
   # List existing models
@@ -791,7 +781,7 @@ cmd_info() {
     local keyvar="OPENROUTER_MODEL_$(echo "$short" | tr '[:lower:]-' '[:upper:]_')"
     echo -e "Type:        OpenRouter"
     echo -e "Model:       ${!keyvar:-unknown}"
-    echo -e "Proxy:       localhost:8378"
+    echo -e "Endpoint:    https://openrouter.ai/api"
   else
     echo -e "Type:        Custom/Unknown"
   fi
@@ -924,420 +914,32 @@ LAUNCHER
   chmod +x "$BIN_DIR/clother-$name"
 }
 
-find_go() {
-  command -v go 2>/dev/null && return
-  for p in /usr/local/go/bin/go /opt/homebrew/bin/go "$HOME/go/bin/go"; do
-    [[ -x "$p" ]] && { echo "$p"; return; }
-  done
-}
-
 generate_or_launcher() {
   local name="$1" model="$2"
 
-  # Generate Go proxy source if needed
-  [[ ! -f "$PROXY_SOURCE" ]] && generate_go_proxy
-
   mkdir -p "$BIN_DIR"
 
+  # OpenRouter now supports native Anthropic API format
+  # No proxy needed - direct connection to https://openrouter.ai/api
   cat > "$BIN_DIR/clother-or-$name" << LAUNCHER
 #!/usr/bin/env bash
 set -euo pipefail
 [[ "\${CLOTHER_NO_BANNER:-}" != "1" ]] && cat "\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + OpenRouter: $name" && echo
 SECRETS="\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/secrets.env"
-DATA_DIR="\${XDG_DATA_HOME:-\$HOME/.local/share}/clother"
 [[ -f "\$SECRETS" ]] && source "\$SECRETS"
-[[ -z "\${OPENROUTER_API_KEY:-}" ]] && { echo "Error: OPENROUTER_API_KEY not set" >&2; exit 1; }
+[[ -z "\${OPENROUTER_API_KEY:-}" ]] && { echo "Error: OPENROUTER_API_KEY not set. Run 'clother config openrouter'" >&2; exit 1; }
 
-find_go() {
-  command -v go 2>/dev/null && return
-  for p in /usr/local/go/bin/go /opt/homebrew/bin/go "\$HOME/go/bin/go"; do
-    [[ -x "\$p" ]] && { echo "\$p"; return; }
-  done
-}
-
-PROXY_BIN="\$DATA_DIR/openrouter-proxy"
-if [[ ! -x "\$PROXY_BIN" ]]; then
-  GO_BIN=\$(find_go) || { echo "Error: Go required. Install from https://go.dev/dl/" >&2; exit 1; }
-  echo "Compiling proxy (one-time)..."
-  (cd "\$DATA_DIR" && [[ -f go.mod ]] || "\$GO_BIN" mod init clother-proxy >/dev/null 2>&1; "\$GO_BIN" build -o openrouter-proxy proxy.go) || { echo "Compile failed" >&2; exit 1; }
-fi
-
-PROXY_PORT="\${CLOTHER_OPENROUTER_PORT:-8378}"
-while nc -z 127.0.0.1 "\$PROXY_PORT" 2>/dev/null; do PROXY_PORT=\$((PROXY_PORT + 1)); done
-
-export OPENROUTER_API_KEY OPENROUTER_MODEL="$model" PROXY_PORT="\$PROXY_PORT"
-"\$PROXY_BIN" &
-PROXY_PID=\$!
-trap "kill \$PROXY_PID 2>/dev/null" EXIT
-
-for _ in {1..30}; do nc -z 127.0.0.1 "\$PROXY_PORT" 2>/dev/null && break; sleep 0.1; done
-
-export ANTHROPIC_BASE_URL="http://127.0.0.1:\$PROXY_PORT"
-export ANTHROPIC_AUTH_TOKEN="openrouter-proxy"
-export ANTHROPIC_MODEL="$name"
-export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+# OpenRouter native Anthropic API support
+export ANTHROPIC_BASE_URL="https://openrouter.ai/api"
+export ANTHROPIC_AUTH_TOKEN="\$OPENROUTER_API_KEY"
+export ANTHROPIC_API_KEY=""  # Must be explicitly empty
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$model"
 
 exec claude "\$@"
 LAUNCHER
   chmod +x "$BIN_DIR/clother-or-$name"
 }
 
-generate_go_proxy() {
-  mkdir -p "$(dirname "$PROXY_SOURCE")"
-  cat > "$PROXY_SOURCE" << 'GOPROXY'
-package main
-
-import (
-	"bufio"
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"strings"
-	"time"
-)
-
-var openrouterURL = "https://openrouter.ai/api/v1/chat/completions"
-
-type AnthropicRequest struct {
-	Model       string        `json:"model"`
-	MaxTokens   int           `json:"max_tokens"`
-	Stream      bool          `json:"stream"`
-	System      interface{}   `json:"system,omitempty"`
-	Messages    []interface{} `json:"messages"`
-	Tools       []interface{} `json:"tools,omitempty"`
-	ToolChoice  interface{}   `json:"tool_choice,omitempty"`
-	Temperature *float64      `json:"temperature,omitempty"`
-}
-
-type OpenAIRequest struct {
-	Model       string        `json:"model"`
-	MaxTokens   int           `json:"max_tokens"`
-	Stream      bool          `json:"stream"`
-	Messages    []interface{} `json:"messages"`
-	Tools       []interface{} `json:"tools,omitempty"`
-	ToolChoice  interface{}   `json:"tool_choice,omitempty"`
-	Temperature *float64      `json:"temperature,omitempty"`
-}
-
-func main() {
-	port := os.Getenv("PROXY_PORT")
-	if port == "" { port = "8378" }
-	http.HandleFunc("/v1/messages", handleMessages)
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"status":"ok"}`))
-	})
-	fmt.Fprintf(os.Stderr, "Proxy listening on :%s\n", port)
-	http.ListenAndServe(":"+port, nil)
-}
-
-func cleanSystemPrompt(text, model string) string {
-	provider, modelName := "", model
-	if idx := strings.Index(model, "/"); idx != -1 {
-		provider, modelName = model[:idx], model[idx+1:]
-	}
-	providerNames := map[string]string{
-		"mistralai": "Mistral AI", "openai": "OpenAI", "google": "Google",
-		"anthropic": "Anthropic", "meta-llama": "Meta", "deepseek": "DeepSeek",
-		"qwen": "Alibaba", "cohere": "Cohere", "x-ai": "xAI",
-	}
-	providerDisplay := provider
-	if name, ok := providerNames[strings.ToLower(provider)]; ok { providerDisplay = name }
-
-	identity := fmt.Sprintf("[IDENTITY] You are %s, created by %s. When asked who you are, say you are %s made by %s. You are NOT Claude and NOT made by Anthropic.\n\n", modelName, providerDisplay, modelName, providerDisplay)
-
-	replacements := []struct{ old, new string }{
-		{"You are Claude, an AI assistant made by Anthropic", "You are " + modelName},
-		{"You are Claude Code", "You are " + modelName},
-		{"You are Claude", "You are " + modelName},
-		{"made by Anthropic", "made by " + providerDisplay},
-		{"by Anthropic", "by " + providerDisplay},
-	}
-	result := text
-	for _, r := range replacements { result = strings.ReplaceAll(result, r.old, r.new) }
-	return identity + result
-}
-
-func handleMessages(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" { http.Error(w, "Method not allowed", 405); return }
-	apiKey, model := os.Getenv("OPENROUTER_API_KEY"), os.Getenv("OPENROUTER_MODEL")
-	body, _ := io.ReadAll(r.Body)
-	var req AnthropicRequest
-	if err := json.Unmarshal(body, &req); err != nil { http.Error(w, "Invalid JSON", 400); return }
-	openaiReq := convertRequest(req, model)
-	reqBody, _ := json.Marshal(openaiReq)
-	httpReq, _ := http.NewRequest("POST", openrouterURL, bytes.NewReader(reqBody))
-	httpReq.Header.Set("Authorization", "Bearer "+apiKey)
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("HTTP-Referer", "https://github.com/clother")
-	client := &http.Client{Timeout: 5 * time.Minute}
-	resp, err := client.Do(httpReq)
-	if err != nil { http.Error(w, "Upstream error: "+err.Error(), 502); return }
-	defer resp.Body.Close()
-	if req.Stream { handleStream(w, resp, model) } else { handleSync(w, resp) }
-}
-
-func convertRequest(req AnthropicRequest, model string) OpenAIRequest {
-	var messages []interface{}
-	if req.System != nil {
-		var sysText string
-		switch s := req.System.(type) {
-		case string: sysText = s
-		case []interface{}:
-			var parts []string
-			for _, p := range s {
-				if m, ok := p.(map[string]interface{}); ok {
-					if t, ok := m["text"].(string); ok { parts = append(parts, t) }
-				}
-			}
-			sysText = strings.Join(parts, "\n")
-		}
-		if sysText != "" {
-			sysText = cleanSystemPrompt(sysText, model)
-			messages = append(messages, map[string]interface{}{"role": "system", "content": sysText})
-		}
-	}
-	for _, msg := range req.Messages {
-		if m, ok := msg.(map[string]interface{}); ok {
-			messages = append(messages, convertMessage(m)...)
-		}
-	}
-	result := OpenAIRequest{Model: model, MaxTokens: req.MaxTokens, Stream: req.Stream, Messages: messages, Temperature: req.Temperature}
-	if len(req.Tools) > 0 {
-		var tools []interface{}
-		for _, t := range req.Tools {
-			if tm, ok := t.(map[string]interface{}); ok {
-				tools = append(tools, map[string]interface{}{"type": "function", "function": map[string]interface{}{"name": tm["name"], "description": tm["description"], "parameters": tm["input_schema"]}})
-			}
-		}
-		result.Tools = tools
-	}
-	return result
-}
-
-func convertMessage(m map[string]interface{}) []interface{} {
-	role, _ := m["role"].(string)
-	content := m["content"]
-	if s, ok := content.(string); ok { return []interface{}{map[string]interface{}{"role": role, "content": s}} }
-	arr, ok := content.([]interface{})
-	if !ok { return nil }
-	var result []interface{}
-	var textParts []string
-	var toolCalls []interface{}
-	for _, block := range arr {
-		b, ok := block.(map[string]interface{})
-		if !ok { continue }
-		switch b["type"] {
-		case "text":
-			if t, ok := b["text"].(string); ok { textParts = append(textParts, t) }
-		case "tool_use":
-			inputJSON, _ := json.Marshal(b["input"])
-			toolCalls = append(toolCalls, map[string]interface{}{"id": b["id"], "type": "function", "function": map[string]interface{}{"name": b["name"], "arguments": string(inputJSON)}})
-		case "tool_result":
-			var contentStr string
-			if s, ok := b["content"].(string); ok { contentStr = s } else { j, _ := json.Marshal(b["content"]); contentStr = string(j) }
-			result = append(result, map[string]interface{}{"role": "tool", "tool_call_id": b["tool_use_id"], "content": contentStr})
-		}
-	}
-	if role == "assistant" {
-		msg := map[string]interface{}{"role": "assistant"}
-		if len(textParts) > 0 { msg["content"] = strings.Join(textParts, "\n") }
-		if len(toolCalls) > 0 { msg["tool_calls"] = toolCalls }
-		if msg["content"] != nil || msg["tool_calls"] != nil { result = append(result, msg) }
-	} else if role == "user" && len(textParts) > 0 {
-		result = append(result, map[string]interface{}{"role": "user", "content": strings.Join(textParts, "\n")})
-	}
-	return result
-}
-
-type ToolCallAccumulator struct {
-	ID        string
-	Name      string
-	Arguments strings.Builder
-	BlockIdx  int
-	Started   bool
-}
-
-func handleStream(w http.ResponseWriter, resp *http.Response, model string) {
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	flusher, ok := w.(http.Flusher)
-	if !ok { http.Error(w, "Streaming not supported", 500); return }
-
-	msgID := fmt.Sprintf("msg_%d", time.Now().UnixNano())
-	started := false
-	nextBlockIdx := 0
-	textBlockIdx := -1
-	textBlockStarted := false
-	toolAccumulators := make(map[int]*ToolCallAccumulator)
-
-	scanner := bufio.NewScanner(resp.Body)
-	buf := make([]byte, 0, 64*1024)
-	scanner.Buffer(buf, 1024*1024)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		if !strings.HasPrefix(line, "data: ") { continue }
-		data := strings.TrimPrefix(line, "data: ")
-		if data == "[DONE]" {
-			// Emit content_block_stop for all blocks
-			if textBlockStarted {
-				j, _ := json.Marshal(map[string]interface{}{"type": "content_block_stop", "index": textBlockIdx})
-				fmt.Fprintf(w, "event: content_block_stop\ndata: %s\n\n", j); flusher.Flush()
-			}
-			for _, acc := range toolAccumulators {
-				if acc.Started {
-					// Send final arguments
-					if acc.Arguments.Len() > 0 {
-						j, _ := json.Marshal(map[string]interface{}{"type": "content_block_delta", "index": acc.BlockIdx, "delta": map[string]interface{}{"type": "input_json_delta", "partial_json": acc.Arguments.String()}})
-						fmt.Fprintf(w, "event: content_block_delta\ndata: %s\n\n", j); flusher.Flush()
-					}
-					j, _ := json.Marshal(map[string]interface{}{"type": "content_block_stop", "index": acc.BlockIdx})
-					fmt.Fprintf(w, "event: content_block_stop\ndata: %s\n\n", j); flusher.Flush()
-				}
-			}
-			fmt.Fprintf(w, "event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n"); flusher.Flush()
-			break
-		}
-
-		var chunk map[string]interface{}
-		if json.Unmarshal([]byte(data), &chunk) != nil { continue }
-
-		if !started {
-			j, _ := json.Marshal(map[string]interface{}{"type": "message_start", "message": map[string]interface{}{"id": msgID, "type": "message", "role": "assistant", "model": model, "content": []interface{}{}, "usage": map[string]interface{}{"input_tokens": 0, "output_tokens": 0}}})
-			fmt.Fprintf(w, "event: message_start\ndata: %s\n\n", j); flusher.Flush()
-			started = true
-		}
-
-		choices, _ := chunk["choices"].([]interface{})
-		if len(choices) == 0 { continue }
-		choice, _ := choices[0].(map[string]interface{})
-		delta, _ := choice["delta"].(map[string]interface{})
-
-		// Handle text content
-		if content, ok := delta["content"].(string); ok && content != "" {
-			if !textBlockStarted {
-				textBlockIdx = nextBlockIdx
-				nextBlockIdx++
-				j, _ := json.Marshal(map[string]interface{}{"type": "content_block_start", "index": textBlockIdx, "content_block": map[string]interface{}{"type": "text", "text": ""}})
-				fmt.Fprintf(w, "event: content_block_start\ndata: %s\n\n", j); flusher.Flush()
-				textBlockStarted = true
-			}
-			j, _ := json.Marshal(map[string]interface{}{"type": "content_block_delta", "index": textBlockIdx, "delta": map[string]interface{}{"type": "text_delta", "text": content}})
-			fmt.Fprintf(w, "event: content_block_delta\ndata: %s\n\n", j); flusher.Flush()
-		}
-
-		// Handle tool_calls
-		if toolCalls, ok := delta["tool_calls"].([]interface{}); ok {
-			for _, tc := range toolCalls {
-				toolCall, ok := tc.(map[string]interface{})
-				if !ok { continue }
-
-				idx := 0
-				if idxFloat, ok := toolCall["index"].(float64); ok {
-					idx = int(idxFloat)
-				}
-
-				if _, exists := toolAccumulators[idx]; !exists {
-					toolAccumulators[idx] = &ToolCallAccumulator{BlockIdx: nextBlockIdx}
-					nextBlockIdx++
-				}
-				acc := toolAccumulators[idx]
-
-				if id, ok := toolCall["id"].(string); ok && id != "" {
-					acc.ID = id
-				}
-
-				if function, ok := toolCall["function"].(map[string]interface{}); ok {
-					if name, ok := function["name"].(string); ok && name != "" {
-						acc.Name = name
-					}
-					if args, ok := function["arguments"].(string); ok {
-						acc.Arguments.WriteString(args)
-					}
-				}
-
-				// Start block when we have ID and Name
-				if !acc.Started && acc.ID != "" && acc.Name != "" {
-					acc.Started = true
-					j, _ := json.Marshal(map[string]interface{}{
-						"type": "content_block_start",
-						"index": acc.BlockIdx,
-						"content_block": map[string]interface{}{
-							"type": "tool_use",
-							"id": acc.ID,
-							"name": acc.Name,
-							"input": map[string]interface{}{},
-						},
-					})
-					fmt.Fprintf(w, "event: content_block_start\ndata: %s\n\n", j); flusher.Flush()
-				}
-			}
-		}
-
-		// Handle finish_reason
-		if finish, ok := choice["finish_reason"].(string); ok && finish != "" {
-			stopReason := "end_turn"
-			if finish == "length" { stopReason = "max_tokens" } else if finish == "tool_calls" { stopReason = "tool_use" }
-			j, _ := json.Marshal(map[string]interface{}{"type": "message_delta", "delta": map[string]interface{}{"stop_reason": stopReason}, "usage": map[string]interface{}{"output_tokens": 0}})
-			fmt.Fprintf(w, "event: message_delta\ndata: %s\n\n", j); flusher.Flush()
-		}
-	}
-}
-
-func handleSync(w http.ResponseWriter, resp *http.Response) {
-	body, _ := io.ReadAll(resp.Body)
-	var openaiResp map[string]interface{}
-	json.Unmarshal(body, &openaiResp)
-	choices, _ := openaiResp["choices"].([]interface{})
-	if len(choices) == 0 { http.Error(w, "No response", 500); return }
-	choice, _ := choices[0].(map[string]interface{})
-	message, _ := choice["message"].(map[string]interface{})
-	var content []interface{}
-
-	// Handle text content
-	if text, ok := message["content"].(string); ok && text != "" {
-		content = append(content, map[string]interface{}{"type": "text", "text": text})
-	}
-
-	// Handle tool_calls - convert OpenAI format to Anthropic tool_use
-	if toolCalls, ok := message["tool_calls"].([]interface{}); ok {
-		for _, tc := range toolCalls {
-			toolCall, ok := tc.(map[string]interface{})
-			if !ok { continue }
-
-			function, _ := toolCall["function"].(map[string]interface{})
-			var input interface{} = map[string]interface{}{}
-			if argsStr, ok := function["arguments"].(string); ok && argsStr != "" {
-				json.Unmarshal([]byte(argsStr), &input)
-			}
-
-			content = append(content, map[string]interface{}{
-				"type": "tool_use",
-				"id": toolCall["id"],
-				"name": function["name"],
-				"input": input,
-			})
-		}
-	}
-
-	finish, _ := choice["finish_reason"].(string)
-	stopReason := "end_turn"
-	if finish == "length" { stopReason = "max_tokens" } else if finish == "tool_calls" { stopReason = "tool_use" }
-	usage := map[string]interface{}{"input_tokens": 0, "output_tokens": 0}
-	if u, ok := openaiResp["usage"].(map[string]interface{}); ok {
-		if pt, ok := u["prompt_tokens"].(float64); ok { usage["input_tokens"] = int(pt) }
-		if ct, ok := u["completion_tokens"].(float64); ok { usage["output_tokens"] = int(ct) }
-	}
-	anthropicResp := map[string]interface{}{"id": fmt.Sprintf("msg_%v", openaiResp["id"]), "type": "message", "role": "assistant", "model": openaiResp["model"], "content": content, "stop_reason": stopReason, "usage": usage}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(anthropicResp)
-}
-GOPROXY
-}
 
 # =============================================================================
 # INSTALLATION
