@@ -18,17 +18,13 @@
 
 ## Installation
 
-**Requirements:** Claude Code CLI, Go 1.16+ (for OpenRouter)
+**Requirements:** Claude Code CLI
 
 ```bash
 # 1. Install Claude Code CLI
 curl -fsSL https://claude.ai/install.sh | bash
 
-# 2. Install Go (for OpenRouter support)
-# macOS: brew install go
-# Linux: https://go.dev/dl/
-
-# 3. Install Clother
+# 2. Install Clother
 curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash
 ```
 
@@ -48,7 +44,7 @@ clother-minimax             # Launch with MiniMax
 
 **Want 100+ models via OpenRouter?**
 ```bash
-clother config openrouter   # Set up OpenRouter + Go proxy
+clother config openrouter   # Set up OpenRouter
 clother-or-devstral         # Launch with Devstral
 ```
 
@@ -85,12 +81,12 @@ clother-native              # Claude Sonnet/Opus/Haiku
 
 | Command | Provider | Description |
 |---------|----------|-------------|
-| `clother-or-*` | OpenRouter | 100+ models via Go proxy |
+| `clother-or-*` | OpenRouter | 100+ models via native API |
 | `clother-<custom>` | Custom | Any Anthropic-compatible endpoint |
 
 ## OpenRouter (100+ Models)
 
-Access GPT-4, Gemini, Llama, Mistral and more through OpenRouter.
+Access GPT-4, Gemini, Llama, Mistral and more through OpenRouter's native Anthropic API.
 
 ```bash
 clother config openrouter   # Enter API key from https://openrouter.ai/keys
@@ -101,8 +97,6 @@ Short name: devstral        # Creates: clother-or-devstral
 
 clother-or-devstral         # Use it!
 ```
-
-The Go proxy compiles on first run and handles Anthropic ↔ OpenAI format conversion.
 
 ## Custom Providers
 
@@ -168,7 +162,7 @@ Follows [XDG Base Directory Specification](https://specifications.freedesktop.or
 
 ```
 ~/.config/clother/           # Configuration
-~/.local/share/clother/      # Data (secrets, proxy)
+~/.local/share/clother/      # Data (secrets)
 ~/bin/clother-*              # Launcher scripts
 ```
 
@@ -179,13 +173,12 @@ Follows [XDG Base Directory Specification](https://specifications.freedesktop.or
 | `claude: command not found` | Install Claude CLI first |
 | `clother: command not found` | Add `~/bin` to PATH |
 | `API key not set` | Run `clother config` |
-| `Go not installed` (OpenRouter) | Install from [go.dev/dl](https://go.dev/dl/) |
 
 ## Platform Support
 
 ✅ macOS (zsh/bash) • ✅ Linux (zsh/bash) • ✅ Windows (WSL)
 
-**Requirements:** Bash 4.0+, Claude Code CLI, Go 1.16+ (OpenRouter only)
+**Requirements:** Bash 4.0+, Claude Code CLI
 
 ## Contributors
 
