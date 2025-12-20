@@ -86,7 +86,7 @@ clother-native              # Claude Sonnet/Opus/Haiku
 
 ## OpenRouter (100+ Models)
 
-Access GPT-4, Gemini, Llama, Mistral and more through OpenRouter's native Anthropic API.
+Access Grok, Gemini, Mistral and more through OpenRouter's native Anthropic API.
 
 ```bash
 clother config openrouter   # Enter API key from https://openrouter.ai/keys
