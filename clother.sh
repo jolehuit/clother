@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# CLOTHER v2.0 - Multi-provider launcher for Claude CLI
+# CLOTHER v2.1 - Multi-provider launcher for Claude CLI
 # =============================================================================
 # A CLI tool to manage and switch between different LLM providers
 # for the Claude Code command-line interface.
@@ -13,7 +13,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-readonly VERSION="2.0"
+readonly VERSION="2.1"
 readonly CLOTHER_DOCS="https://github.com/your/clother"
 
 # =============================================================================
@@ -300,8 +300,8 @@ get_provider_def() {
     native)     echo "|||Native Anthropic" ;;
     zai)        echo "ZAI_API_KEY|https://api.z.ai/api/anthropic|glm-4.7|haiku=glm-4.5-air,sonnet=glm-4.7,opus=glm-4.7|Z.AI International" ;;
     zai-cn)     echo "ZAI_CN_API_KEY|https://open.bigmodel.cn/api/anthropic|glm-4.7|haiku=glm-4.5-air,sonnet=glm-4.7,opus=glm-4.7|Z.AI China" ;;
-    minimax)    echo "MINIMAX_API_KEY|https://api.minimax.io/anthropic|MiniMax-M2||MiniMax International" ;;
-    minimax-cn) echo "MINIMAX_CN_API_KEY|https://api.minimaxi.com/anthropic|MiniMax-M2||MiniMax China" ;;
+    minimax)    echo "MINIMAX_API_KEY|https://api.minimax.io/anthropic|MiniMax-M2.1||MiniMax International" ;;
+    minimax-cn) echo "MINIMAX_CN_API_KEY|https://api.minimaxi.com/anthropic|MiniMax-M2.1||MiniMax China" ;;
     kimi)       echo "KIMI_API_KEY|https://api.kimi.com/coding/|kimi-k2-thinking-turbo|small=kimi-k2-turbo-preview|Kimi K2" ;;
     moonshot)   echo "MOONSHOT_API_KEY|https://api.moonshot.ai/anthropic|kimi-k2-turbo-preview||Moonshot AI" ;;
     ve)         echo "ARK_API_KEY|https://ark.cn-beijing.volces.com/api/coding|doubao-seed-code-preview-latest||VolcEngine" ;;
