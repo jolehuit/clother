@@ -13,7 +13,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-readonly VERSION="2.1"
+readonly VERSION="2.2"
 readonly CLOTHER_DOCS="https://github.com/your/clother"
 
 # =============================================================================
@@ -302,8 +302,8 @@ get_provider_def() {
     zai-cn)     echo "ZAI_CN_API_KEY|https://open.bigmodel.cn/api/anthropic|glm-4.7|haiku=glm-4.5-air,sonnet=glm-4.7,opus=glm-4.7|Z.AI China" ;;
     minimax)    echo "MINIMAX_API_KEY|https://api.minimax.io/anthropic|MiniMax-M2.1||MiniMax International" ;;
     minimax-cn) echo "MINIMAX_CN_API_KEY|https://api.minimaxi.com/anthropic|MiniMax-M2.1||MiniMax China" ;;
-    kimi)       echo "KIMI_API_KEY|https://api.kimi.com/coding/|kimi-k2-thinking-turbo|small=kimi-k2-turbo-preview|Kimi K2" ;;
-    moonshot)   echo "MOONSHOT_API_KEY|https://api.moonshot.ai/anthropic|kimi-k2-turbo-preview||Moonshot AI" ;;
+    kimi)       echo "KIMI_API_KEY|https://api.kimi.com/coding/|kimi-k2.5|small=kimi-k2.5|Kimi K2" ;;
+    moonshot)   echo "MOONSHOT_API_KEY|https://api.moonshot.ai/anthropic|kimi-k2.5||Moonshot AI" ;;
     ve)         echo "ARK_API_KEY|https://ark.cn-beijing.volces.com/api/coding|doubao-seed-code-preview-latest||VolcEngine" ;;
     deepseek)   echo "DEEPSEEK_API_KEY|https://api.deepseek.com/anthropic|deepseek-chat|small=deepseek-chat|DeepSeek" ;;
     mimo)       echo "MIMO_API_KEY|https://api.xiaomimimo.com/anthropic|mimo-v2-flash|haiku=mimo-v2-flash,sonnet=mimo-v2-flash,opus=mimo-v2-flash|Xiaomi MiMo" ;;
