@@ -5,7 +5,7 @@
 # A CLI tool to manage and switch between different LLM providers
 # for the Claude Code command-line interface.
 #
-# Repository: https://github.com/your/clother
+# Repository: https://github.com/jolehuit/clother
 # License: MIT
 # =============================================================================
 
@@ -13,8 +13,8 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-readonly VERSION="2.2"
-readonly CLOTHER_DOCS="https://github.com/your/clother"
+readonly VERSION="2.3"
+readonly CLOTHER_DOCS="https://github.com/jolehuit/clother"
 
 # =============================================================================
 # XDG BASE DIRECTORY SPECIFICATION
@@ -307,6 +307,10 @@ get_provider_def() {
     ve)         echo "ARK_API_KEY|https://ark.cn-beijing.volces.com/api/coding|doubao-seed-code-preview-latest||VolcEngine" ;;
     deepseek)   echo "DEEPSEEK_API_KEY|https://api.deepseek.com/anthropic|deepseek-chat|small=deepseek-chat|DeepSeek" ;;
     mimo)       echo "MIMO_API_KEY|https://api.xiaomimimo.com/anthropic|mimo-v2-flash|haiku=mimo-v2-flash,sonnet=mimo-v2-flash,opus=mimo-v2-flash|Xiaomi MiMo" ;;
+    # Local providers (no API key needed)
+    ollama)     echo "@ollama|http://localhost:11434|||Ollama (Local)" ;;
+    lmstudio)   echo "@lmstudio|http://localhost:1234|||LM Studio (Local)" ;;
+    llamacpp)   echo "@|http://localhost:8000|||llama.cpp (Local)" ;;
     *)          echo "" ;;
   esac
 }
@@ -317,6 +321,7 @@ is_provider_configured() {
   [[ -z "$def" ]] && return 1
   IFS='|' read -r keyvar _ _ _ _ <<< "$def"
   [[ -z "$keyvar" ]] && return 0  # native
+  [[ "$keyvar" == @* ]] && return 0  # local providers (ollama, lmstudio, llamacpp)
   [[ -n "${!keyvar:-}" ]]
 }
 
@@ -393,17 +398,22 @@ ${BOLD}PROVIDERS${NC}
     native             Anthropic direct (no config needed)
 
   ${DIM}China${NC}
-    zai-cn             Z.AI China (GLM-4.6)
-    minimax-cn         MiniMax China (M2)
-    kimi               Kimi (K2 Thinking)
+    zai-cn             Z.AI China (GLM-4.7)
+    minimax-cn         MiniMax China (M2.1)
+    kimi               Kimi (K2.5)
     ve                 VolcEngine (Doubao)
 
   ${DIM}International${NC}
-    zai                Z.AI (GLM-4.6)
-    minimax            MiniMax (M2)
+    zai                Z.AI (GLM-4.7)
+    minimax            MiniMax (M2.1)
     moonshot           Moonshot AI
     deepseek           DeepSeek
     mimo               Xiaomi MiMo
+
+  ${DIM}Local${NC}
+    ollama             Ollama (localhost:11434)
+    lmstudio           LM Studio (localhost:1234)
+    llamacpp           llama.cpp (localhost:8000)
 
   ${DIM}Advanced${NC}
     openrouter         100+ models via native API
@@ -446,7 +456,8 @@ ${BOLD}EXAMPLES${NC}
 
 ${BOLD}PROVIDERS${NC}
   native, zai, zai-cn, minimax, minimax-cn, kimi,
-  moonshot, ve, deepseek, mimo, openrouter, custom
+  moonshot, ve, deepseek, mimo, ollama, lmstudio,
+  llamacpp, openrouter, custom
 EOF
       ;;
     list)
@@ -504,6 +515,7 @@ cmd_config() {
     case "$provider" in
       openrouter) config_openrouter; return ;;
       custom)     config_custom; return ;;
+      ollama|lmstudio|llamacpp) config_local_provider "$provider"; return ;;
       *)          config_provider "$provider"; return ;;
     esac
   fi
@@ -515,7 +527,7 @@ cmd_config() {
 
   # Count configured
   local configured=0
-  for p in native zai zai-cn minimax minimax-cn kimi moonshot ve deepseek mimo; do
+  for p in native zai zai-cn minimax minimax-cn kimi moonshot ve deepseek mimo ollama lmstudio llamacpp; do
     is_provider_configured "$p" && ((++configured)) || true
   done
   echo -e "${DIM}$configured providers configured${NC}"
@@ -549,10 +561,21 @@ cmd_config() {
   done
   echo
 
+  # Local
+  echo -e "${BOLD}LOCAL${NC}"
+  local -a local_providers=(ollama lmstudio llamacpp)
+  local -a local_names=("Ollama" "LM Studio" "llama.cpp")
+  for i in "${!local_providers[@]}"; do
+    local p="${local_providers[$i]}"
+    local status; is_provider_configured "$p" && status="${GREEN}${SYM_CHECK}${NC}" || status="${DIM}${SYM_UNCHECK}${NC}"
+    printf "  ${CYAN}%-2s${NC} %-12s %-24s %s\n" "$((i+11))" "$p" "${local_names[$i]}" "$status"
+  done
+  echo
+
   # Advanced
   echo -e "${BOLD}ADVANCED${NC}"
-  printf "  ${CYAN}%-2s${NC} %-12s %-24s\n" "11" "openrouter" "100+ models (native API)"
-  printf "  ${CYAN}%-2s${NC} %-12s %-24s\n" "12" "custom" "Anthropic-compatible"
+  printf "  ${CYAN}%-2s${NC} %-12s %-24s\n" "14" "openrouter" "100+ models (native API)"
+  printf "  ${CYAN}%-2s${NC} %-12s %-24s\n" "15" "custom" "Anthropic-compatible"
   echo
 
   draw_separator 54
@@ -573,8 +596,11 @@ cmd_config() {
     8)  config_provider "moonshot" ;;
     9)  config_provider "deepseek" ;;
     10) config_provider "mimo" ;;
-    11) config_openrouter ;;
-    12) config_custom ;;
+    11) config_local_provider "ollama" ;;
+    12) config_local_provider "lmstudio" ;;
+    13) config_local_provider "llamacpp" ;;
+    14) config_openrouter ;;
+    15) config_custom ;;
     t|T) cmd_test ;;
     q|Q) log "Cancelled" ;;
     *)  error "Invalid choice: $choice" ;;
@@ -708,6 +734,61 @@ config_custom() {
 
   generate_launcher "$name" "$keyvar" "$url" "" ""
   success "Created ${GREEN}clother-$name${NC}"
+}
+
+config_local_provider() {
+  local provider="$1"
+  local def; def=$(get_provider_def "$provider")
+  IFS='|' read -r keyvar baseurl model _ description <<< "$def"
+  local auth_token="${keyvar#@}"  # Remove @ prefix
+
+  echo
+  echo -e "${BOLD}Configure: $description${NC}"
+  echo -e "${DIM}Endpoint: $baseurl${NC}"
+  echo
+
+  case "$provider" in
+    ollama)
+      echo -e "Ollama serves local models with Anthropic-compatible API."
+      echo
+      echo -e "${BOLD}Setup:${NC}"
+      echo -e "  1. Install Ollama: ${CYAN}https://ollama.com${NC}"
+      echo -e "  2. Pull a model: ${GREEN}ollama pull qwen3-coder${NC}"
+      echo -e "  3. Start serving: ${GREEN}ollama serve${NC}"
+      echo
+      echo -e "${BOLD}Recommended models:${NC}"
+      echo -e "  ${DIM}${SYM_ARROW}${NC} qwen3-coder"
+      echo -e "  ${DIM}${SYM_ARROW}${NC} glm-4.7"
+      echo -e "  ${DIM}${SYM_ARROW}${NC} gpt-oss:20b"
+      echo -e "  ${DIM}${SYM_ARROW}${NC} gpt-oss:120b"
+      ;;
+    lmstudio)
+      echo -e "LM Studio runs local models with Anthropic-compatible API."
+      echo
+      echo -e "${BOLD}Setup:${NC}"
+      echo -e "  1. Install LM Studio: ${CYAN}https://lmstudio.ai/download${NC}"
+      echo -e "  2. Load a model in the app"
+      echo -e "  3. Start the server (port 1234)"
+      echo
+      echo -e "${BOLD}Usage:${NC}"
+      echo -e "  ${GREEN}clother-lmstudio --model <model-name>${NC}"
+      ;;
+    llamacpp)
+      echo -e "llama.cpp's llama-server with Anthropic-compatible API."
+      echo
+      echo -e "${BOLD}Setup:${NC}"
+      echo -e "  1. Build llama.cpp: ${CYAN}https://github.com/ggml-org/llama.cpp${NC}"
+      echo -e "  2. Start server:"
+      echo -e "     ${GREEN}./llama-server --model <model.gguf> --port 8000 --jinja${NC}"
+      echo
+      echo -e "${BOLD}Usage:${NC}"
+      echo -e "  ${GREEN}clother-llamacpp --model <model-name>${NC}"
+      ;;
+  esac
+
+  echo
+  success "Ready to use: ${GREEN}clother-$provider${NC}"
+  [[ -n "$model" ]] && echo -e "${DIM}Default model: $model${NC}"
 }
 
 cmd_list() {
@@ -945,6 +1026,45 @@ LAUNCHER
   chmod +x "$BIN_DIR/clother-or-$name"
 }
 
+generate_local_launcher() {
+  local name="$1" baseurl="$2" auth_token="$3" model="$4" model_opts="$5"
+
+  mkdir -p "$BIN_DIR"
+
+  cat > "$BIN_DIR/clother-$name" << LAUNCHER
+#!/usr/bin/env bash
+set -euo pipefail
+[[ "\${CLOTHER_NO_BANNER:-}" != "1" ]] && cat "\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + $name (local)" && echo
+export ANTHROPIC_BASE_URL="$baseurl"
+LAUNCHER
+
+  if [[ -n "$auth_token" ]]; then
+    cat >> "$BIN_DIR/clother-$name" << LAUNCHER
+export ANTHROPIC_AUTH_TOKEN="$auth_token"
+export ANTHROPIC_API_KEY=""
+LAUNCHER
+  fi
+
+  [[ -n "$model" ]] && echo "export ANTHROPIC_MODEL=\"$model\"" >> "$BIN_DIR/clother-$name"
+
+  # Parse model_opts
+  if [[ -n "$model_opts" ]]; then
+    IFS=',' read -ra opts <<< "$model_opts"
+    for opt in "${opts[@]}"; do
+      IFS='=' read -r key val <<< "$opt"
+      case "$key" in
+        haiku)  echo "export ANTHROPIC_DEFAULT_HAIKU_MODEL=\"$val\"" >> "$BIN_DIR/clother-$name" ;;
+        sonnet) echo "export ANTHROPIC_DEFAULT_SONNET_MODEL=\"$val\"" >> "$BIN_DIR/clother-$name" ;;
+        opus)   echo "export ANTHROPIC_DEFAULT_OPUS_MODEL=\"$val\"" >> "$BIN_DIR/clother-$name" ;;
+        small)  echo "export ANTHROPIC_SMALL_FAST_MODEL=\"$val\"" >> "$BIN_DIR/clother-$name" ;;
+      esac
+    done
+  fi
+
+  echo 'exec claude "$@"' >> "$BIN_DIR/clother-$name"
+  chmod +x "$BIN_DIR/clother-$name"
+}
+
 
 # =============================================================================
 # INSTALLATION
@@ -1009,6 +1129,11 @@ EOF
     IFS='|' read -r keyvar baseurl model model_opts _ <<< "$def"
     generate_launcher "$p" "$keyvar" "$baseurl" "$model" "$model_opts"
   done
+
+  # Generate local launchers (Ollama, LM Studio, llama.cpp)
+  generate_local_launcher "ollama" "http://localhost:11434" "ollama" "" ""
+  generate_local_launcher "lmstudio" "http://localhost:1234" "lmstudio" "" ""
+  generate_local_launcher "llamacpp" "http://localhost:8000" "" "" ""
 
   # Verify
   if ! "$BIN_DIR/clother" --version &>/dev/null; then
