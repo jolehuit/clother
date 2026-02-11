@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | 
 
 ```bash
 clother-native                          # Use your Claude Pro/Team subscription
-clother-zai                             # Z.AI (GLM-4.7)
+clother-zai                             # Z.AI (GLM-5)
 clother-ollama --model qwen3-coder      # Local with Ollama
 clother config                          # Configure providers
 ```
@@ -40,7 +40,7 @@ clother config                          # Configure providers
 | Command | Provider | Model | API Key |
 |---------|----------|-------|---------|
 | `clother-native` | Anthropic | Claude | Your subscription |
-| `clother-zai` | Z.AI | GLM-4.7 | [z.ai](https://z.ai) |
+| `clother-zai` | Z.AI | GLM-5 | [z.ai](https://z.ai) |
 | `clother-minimax` | MiniMax | MiniMax-M2.1 | [minimax.io](https://minimax.io) |
 | `clother-kimi` | Kimi | kimi-k2.5 | [kimi.com](https://kimi.com) |
 | `clother-moonshot` | Moonshot AI | kimi-k2.5 | [moonshot.ai](https://moonshot.ai) |

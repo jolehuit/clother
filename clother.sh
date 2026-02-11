@@ -13,7 +13,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-readonly VERSION="2.3"
+readonly VERSION="2.4"
 readonly CLOTHER_DOCS="https://github.com/jolehuit/clother"
 
 # =============================================================================
@@ -298,8 +298,8 @@ get_provider_def() {
   # Format: keyvar|baseurl|model|model_opts|description
   case "$1" in
     native)     echo "|||Native Anthropic" ;;
-    zai)        echo "ZAI_API_KEY|https://api.z.ai/api/anthropic|glm-4.7|haiku=glm-4.5-air,sonnet=glm-4.7,opus=glm-4.7|Z.AI International" ;;
-    zai-cn)     echo "ZAI_CN_API_KEY|https://open.bigmodel.cn/api/anthropic|glm-4.7|haiku=glm-4.5-air,sonnet=glm-4.7,opus=glm-4.7|Z.AI China" ;;
+    zai)        echo "ZAI_API_KEY|https://api.z.ai/api/anthropic|glm-5|haiku=glm-5,sonnet=glm-5,opus=glm-5|Z.AI International" ;;
+    zai-cn)     echo "ZAI_CN_API_KEY|https://open.bigmodel.cn/api/anthropic|glm-5|haiku=glm-5,sonnet=glm-5,opus=glm-5|Z.AI China" ;;
     minimax)    echo "MINIMAX_API_KEY|https://api.minimax.io/anthropic|MiniMax-M2.1||MiniMax International" ;;
     minimax-cn) echo "MINIMAX_CN_API_KEY|https://api.minimaxi.com/anthropic|MiniMax-M2.1||MiniMax China" ;;
     kimi)       echo "KIMI_API_KEY|https://api.kimi.com/coding/|kimi-k2.5|small=kimi-k2.5|Kimi K2" ;;
@@ -398,13 +398,13 @@ ${BOLD}PROVIDERS${NC}
     native             Anthropic direct (no config needed)
 
   ${DIM}China${NC}
-    zai-cn             Z.AI China (GLM-4.7)
+    zai-cn             Z.AI China (GLM-5)
     minimax-cn         MiniMax China (M2.1)
     kimi               Kimi (K2.5)
     ve                 VolcEngine (Doubao)
 
   ${DIM}International${NC}
-    zai                Z.AI (GLM-4.7)
+    zai                Z.AI (GLM-5)
     minimax            MiniMax (M2.1)
     moonshot           Moonshot AI
     deepseek           DeepSeek
@@ -758,7 +758,7 @@ config_local_provider() {
       echo
       echo -e "${BOLD}Recommended models:${NC}"
       echo -e "  ${DIM}${SYM_ARROW}${NC} qwen3-coder"
-      echo -e "  ${DIM}${SYM_ARROW}${NC} glm-4.7"
+      echo -e "  ${DIM}${SYM_ARROW}${NC} glm-5"
       echo -e "  ${DIM}${SYM_ARROW}${NC} gpt-oss:20b"
       echo -e "  ${DIM}${SYM_ARROW}${NC} gpt-oss:120b"
       ;;
