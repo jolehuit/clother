@@ -313,8 +313,8 @@ get_provider_def() {
     native)     echo "|||Native Anthropic" ;;
     zai)        echo "ZAI_API_KEY|https://api.z.ai/api/anthropic|glm-5|haiku=glm-5,sonnet=glm-5,opus=glm-5|Z.AI International" ;;
     zai-cn)     echo "ZAI_CN_API_KEY|https://open.bigmodel.cn/api/anthropic|glm-5|haiku=glm-5,sonnet=glm-5,opus=glm-5|Z.AI China" ;;
-    minimax)    echo "MINIMAX_API_KEY|https://api.minimax.io/anthropic|MiniMax-M2.1||MiniMax International" ;;
-    minimax-cn) echo "MINIMAX_CN_API_KEY|https://api.minimaxi.com/anthropic|MiniMax-M2.1||MiniMax China" ;;
+    minimax)    echo "MINIMAX_API_KEY|https://api.minimax.io/anthropic|MiniMax-M2.5||MiniMax International" ;;
+    minimax-cn) echo "MINIMAX_CN_API_KEY|https://api.minimaxi.com/anthropic|MiniMax-M2.5||MiniMax China" ;;
     kimi)       echo "KIMI_API_KEY|https://api.kimi.com/coding/|kimi-k2.5|small=kimi-k2.5|Kimi K2" ;;
     moonshot)   echo "MOONSHOT_API_KEY|https://api.moonshot.ai/anthropic|kimi-k2.5||Moonshot AI" ;;
     ve)         echo "ARK_API_KEY|https://ark.cn-beijing.volces.com/api/coding|doubao-seed-code-preview-latest||VolcEngine" ;;
@@ -413,12 +413,12 @@ ${BOLD}PROVIDERS${NC}
 
   ${DIM}China${NC}
     zai-cn             Z.AI China (GLM-5)
-    minimax-cn         MiniMax China (M2.1)
+    minimax-cn         MiniMax China (M2.5)
     ve                 VolcEngine (Doubao)
 
   ${DIM}International${NC}
     zai                Z.AI (GLM-5)
-    minimax            MiniMax (M2.1)
+    minimax            MiniMax (M2.5)
     kimi               Kimi (K2.5)
     moonshot           Moonshot AI
     deepseek           DeepSeek

@@ -41,7 +41,7 @@ clother config                          # Configure providers
 |---------|----------|-------|---------|
 | `clother-native` | Anthropic | Claude | Your subscription |
 | `clother-zai` | Z.AI | GLM-5 | [z.ai](https://z.ai) |
-| `clother-minimax` | MiniMax | MiniMax-M2.1 | [minimax.io](https://minimax.io) |
+| `clother-minimax` | MiniMax | MiniMax-M2.5 | [minimax.io](https://minimax.io) |
 | `clother-kimi` | Kimi | kimi-k2.5 | [kimi.com](https://kimi.com) |
 | `clother-moonshot` | Moonshot AI | kimi-k2.5 | [moonshot.ai](https://moonshot.ai) |
 | `clother-deepseek` | DeepSeek | deepseek-chat | [deepseek.com](https://platform.deepseek.com) |
