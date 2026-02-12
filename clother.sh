@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# CLOTHER v2.6 - Multi-provider launcher for Claude CLI
+# CLOTHER v2.7 - Multi-provider launcher for Claude CLI
 # =============================================================================
 # A CLI tool to manage and switch between different LLM providers
 # for the Claude Code command-line interface.
@@ -13,7 +13,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-readonly VERSION="2.6"
+readonly VERSION="2.7"
 readonly CLOTHER_DOCS="https://github.com/jolehuit/clother"
 
 # =============================================================================
