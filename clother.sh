@@ -27,7 +27,17 @@ readonly XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 readonly CONFIG_DIR="${CLOTHER_CONFIG_DIR:-$XDG_CONFIG_HOME/clother}"
 readonly DATA_DIR="${CLOTHER_DATA_DIR:-$XDG_DATA_HOME/clother}"
 readonly CACHE_DIR="${CLOTHER_CACHE_DIR:-$XDG_CACHE_HOME/clother}"
-readonly BIN_DIR="${CLOTHER_BIN:-$HOME/bin}"
+
+# Default bin directory: ~/.local/bin on Linux (XDG standard), ~/bin on macOS
+if [[ -z "${CLOTHER_BIN:-}" ]]; then
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    BIN_DIR="$HOME/bin"
+  else
+    BIN_DIR="$HOME/.local/bin"
+  fi
+else
+  BIN_DIR="$CLOTHER_BIN"
+fi
 
 readonly CONFIG_FILE="$CONFIG_DIR/config"
 readonly SECRETS_FILE="$DATA_DIR/secrets.env"
@@ -390,6 +400,7 @@ ${BOLD}OPTIONS${NC}
   -d, --debug          Debug mode
   -q, --quiet          Minimal output
   -y, --yes            Auto-confirm prompts
+  --bin-dir <path>     Set install directory (default: ~/.local/bin on Linux, ~/bin on macOS)
   --no-input           Non-interactive mode (for scripts)
   --no-color           Disable colors
   --no-banner          Hide ASCII banner
@@ -425,7 +436,7 @@ ${BOLD}PROVIDERS${NC}
 ${BOLD}ENVIRONMENT${NC}
   CLOTHER_CONFIG_DIR   Config directory (default: ~/.config/clother)
   CLOTHER_DATA_DIR     Data directory (default: ~/.local/share/clother)
-  CLOTHER_BIN          Binary directory (default: ~/bin)
+  CLOTHER_BIN          Binary directory (default: ~/.local/bin on Linux, ~/bin on macOS)
   CLOTHER_DEFAULT_PROVIDER  Default provider to use
   CLOTHER_VERBOSE      Enable verbose mode (1)
   CLOTHER_QUIET        Enable quiet mode (1)
@@ -435,7 +446,7 @@ ${BOLD}ENVIRONMENT${NC}
 ${BOLD}FILES${NC}
   ~/.config/clother/config       User configuration
   ~/.local/share/clother/secrets.env  API keys (chmod 600)
-  ~/bin/clother-*                Provider launchers
+  \$BIN_DIR/clother-*             Provider launchers (see --bin-dir)
 
 ${DIM}Documentation: $CLOTHER_DOCS${NC}
 EOF
@@ -1245,6 +1256,7 @@ parse_args() {
       -d|--debug)   DEBUG=1; VERBOSE=1 ;;
       -q|--quiet)   QUIET=1 ;;
       -y|--yes)     YES_MODE=1 ;;
+      --bin-dir)    [[ -n "${2:-}" ]] || { error "--bin-dir requires a path argument"; exit 1; }; BIN_DIR="$2"; shift ;;
       --no-input)   NO_INPUT=1 ;;
       --no-color)   NO_COLOR=1; setup_colors ;;
       --no-banner)  NO_BANNER=1 ;;

@@ -117,12 +117,31 @@ exec claude "$@"
 
 API keys stored in `~/.local/share/clother/secrets.env` (chmod 600).
 
+## Install Directory
+
+By default, Clother installs launchers to:
+- **macOS**: `~/bin`
+- **Linux**: `~/.local/bin` (XDG standard)
+
+You can override this with `--bin-dir` or the `CLOTHER_BIN` environment variable:
+
+```bash
+# Using --bin-dir flag
+curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash -s -- --bin-dir ~/.local/bin
+
+# Using environment variable
+export CLOTHER_BIN="$HOME/.local/bin"
+curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash
+```
+
+Make sure the chosen directory is in your `PATH`.
+
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
 | `claude: command not found` | Install Claude CLI first |
-| `clother: command not found` | Add `~/bin` to PATH |
+| `clother: command not found` | Add your bin directory to PATH (see [Install Directory](#install-directory)) |
 | `API key not set` | Run `clother config` |
 
 ## Platform Support
@@ -134,6 +153,7 @@ macOS (zsh/bash) • Linux (zsh/bash) • Windows (WSL)
 - [@darkokoa](https://github.com/darkokoa) — China endpoints
 - [@RawToast](https://github.com/RawToast) — Kimi endpoint fix
 - [@sammcj](https://github.com/sammcj) — Security hardening
+- [@luciano-fiandesio](https://github.com/luciano-fiandesio) — Install directory improvement (issue)
 
 ## License
 
