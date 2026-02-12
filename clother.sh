@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# CLOTHER v2.1 - Multi-provider launcher for Claude CLI
+# CLOTHER v2.5 - Multi-provider launcher for Claude CLI
 # =============================================================================
 # A CLI tool to manage and switch between different LLM providers
 # for the Claude Code command-line interface.
@@ -13,7 +13,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-readonly VERSION="2.4"
+readonly VERSION="2.5"
 readonly CLOTHER_DOCS="https://github.com/jolehuit/clother"
 
 # =============================================================================
@@ -91,7 +91,7 @@ setup_symbols
 # =============================================================================
 
 debug()   { [[ "$DEBUG" == "1" ]] && echo -e "${DIM}[DEBUG] $*${NC}" >&2 || true; }
-verbose() { [[ "$VERBOSE" == "1" || "$DEBUG" == "1" ]] && echo -e "${DIM}$*${NC}" || true; }
+verbose() { [[ "$VERBOSE" == "1" || "$DEBUG" == "1" ]] && echo -e "${DIM}$*${NC}" >&2 || true; }
 log()     { [[ "$QUIET" != "1" ]] && echo -e "${BLUE}${SYM_INFO}${NC} $*" || true; }
 success() { echo -e "${GREEN}${SYM_OK}${NC} $*"; }
 warn()    { echo -e "${YELLOW}${SYM_WARN}${NC} $*" >&2; }
@@ -122,6 +122,9 @@ suggest_next() {
 draw_box() {
   local title="$1" width="${2:-52}"
   local inner=$((width - 2))
+  if [[ ${#title} -gt $((inner - 4)) && inner -gt 10 ]]; then
+    title="${title:0:$((inner - 7))}..."
+  fi
   local pad=$(( (inner - ${#title}) / 2 ))
 
   # Use printf repeat instead of tr (tr fails with multi-byte UTF-8 on some Linux)
@@ -400,12 +403,12 @@ ${BOLD}PROVIDERS${NC}
   ${DIM}China${NC}
     zai-cn             Z.AI China (GLM-5)
     minimax-cn         MiniMax China (M2.1)
-    kimi               Kimi (K2.5)
     ve                 VolcEngine (Doubao)
 
   ${DIM}International${NC}
     zai                Z.AI (GLM-5)
     minimax            MiniMax (M2.1)
+    kimi               Kimi (K2.5)
     moonshot           Moonshot AI
     deepseek           DeepSeek
     mimo               Xiaomi MiMo
@@ -483,7 +486,7 @@ EOF
   esac
 }
 
-# Command suggestion (Levenshtein-like)
+# Command suggestion (prefix/substring match)
 suggest_command() {
   local input="$1"
   local -a commands=(config list info test status uninstall help)
@@ -787,6 +790,10 @@ config_local_provider() {
   esac
 
   echo
+
+  # Regenerate launcher
+  generate_local_launcher "$provider" "$baseurl" "$auth_token" "$model" ""
+
   success "Ready to use: ${GREEN}clother-$provider${NC}"
   [[ -n "$model" ]] && echo -e "${DIM}Default model: $model${NC}"
 }
@@ -889,27 +896,51 @@ cmd_test() {
     done
   fi
 
-  local ok=0 fail=0
+  local ok=0 fail=0 skip=0
   for p in "${providers_to_test[@]}"; do
     printf "  Testing %-15s " "$p"
 
     local def; def=$(get_provider_def "$p")
+    local test_url=""
+
     if [[ -n "$def" ]]; then
       IFS='|' read -r keyvar baseurl _ _ _ <<< "$def"
-      if [[ -n "$keyvar" && -z "${!keyvar:-}" ]]; then
+      # Check API key for non-local, non-native providers
+      if [[ -n "$keyvar" && "$keyvar" != @* && -z "${!keyvar:-}" ]]; then
         echo -e "${YELLOW}not configured${NC}"
         ((++fail)) || true
         continue
       fi
+      test_url="${baseurl:-https://api.anthropic.com}"
+    elif [[ "$p" == or-* ]]; then
+      if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
+        echo -e "${YELLOW}not configured${NC}"
+        ((++fail)) || true
+        continue
+      fi
+      test_url="https://openrouter.ai/api"
     fi
 
-    # TODO: Actually test connectivity
-    echo -e "${GREEN}${SYM_OK} ready${NC}"
-    ((++ok)) || true
+    if [[ -z "$test_url" ]]; then
+      echo -e "${DIM}skipped${NC}"
+      ((++skip)) || true
+      continue
+    fi
+
+    # Test endpoint reachability (any HTTP response = reachable)
+    local http_code
+    http_code=$(curl -s --max-time 5 -o /dev/null -w "%{http_code}" "$test_url" 2>/dev/null) || http_code="000"
+    if [[ "$http_code" != "000" ]]; then
+      echo -e "${GREEN}${SYM_OK} reachable${NC} ${DIM}(HTTP $http_code)${NC}"
+      ((++ok)) || true
+    else
+      echo -e "${RED}${SYM_ERR} unreachable${NC}"
+      ((++fail)) || true
+    fi
   done
 
   echo
-  echo -e "Results: ${GREEN}$ok OK${NC}, ${RED}$fail failed${NC}"
+  echo -e "Results: ${GREEN}$ok reachable${NC}, ${RED}$fail failed${NC}$([[ $skip -gt 0 ]] && echo ", ${DIM}$skip skipped${NC}")"
 }
 
 cmd_status() {
@@ -964,7 +995,10 @@ generate_launcher() {
 set -euo pipefail
 [[ "\${CLOTHER_NO_BANNER:-}" != "1" ]] && cat "\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + $name" && echo
 SECRETS="\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/secrets.env"
-[[ -f "\$SECRETS" ]] && source "\$SECRETS"
+if [[ -f "\$SECRETS" ]]; then
+  [[ -L "\$SECRETS" ]] && { echo "Error: secrets file is a symlink - refusing for security" >&2; exit 1; }
+  source "\$SECRETS"
+fi
 LAUNCHER
 
   if [[ -n "$keyvar" ]]; then
@@ -1007,7 +1041,10 @@ generate_or_launcher() {
 set -euo pipefail
 [[ "\${CLOTHER_NO_BANNER:-}" != "1" ]] && cat "\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + OpenRouter: $name" && echo
 SECRETS="\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/secrets.env"
-[[ -f "\$SECRETS" ]] && source "\$SECRETS"
+if [[ -f "\$SECRETS" ]]; then
+  [[ -L "\$SECRETS" ]] && { echo "Error: secrets file is a symlink - refusing for security" >&2; exit 1; }
+  source "\$SECRETS"
+fi
 [[ -z "\${OPENROUTER_API_KEY:-}" ]] && { echo "Error: OPENROUTER_API_KEY not set. Run 'clother config openrouter'" >&2; exit 1; }
 
 # OpenRouter native Anthropic API support
@@ -1075,10 +1112,11 @@ do_install() {
   echo -e "${BOLD}Clother $VERSION${NC}"
   echo
 
-  # Clean previous installation (preserve secrets)
-  local secrets_backup=""
+  # Back up secrets to temp file before cleaning (survives interruption)
+  local secrets_tmp=""
   if [[ -f "$SECRETS_FILE" ]]; then
-    secrets_backup=$(cat "$SECRETS_FILE")
+    secrets_tmp=$(mktemp "${TMPDIR:-/tmp}/clother-secrets.XXXXXX")
+    cp -p "$SECRETS_FILE" "$secrets_tmp"
   fi
   rm -f "$BIN_DIR/clother" "$BIN_DIR"/clother-* 2>/dev/null || true
   rm -rf "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR" 2>/dev/null || true
@@ -1095,16 +1133,10 @@ do_install() {
   # Create directories (XDG compliant)
   mkdir -p "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR" "$BIN_DIR"
 
-  # Restore secrets if they existed
-  if [[ -n "$secrets_backup" ]]; then
-    echo "$secrets_backup" > "$SECRETS_FILE"
+  # Restore secrets from temp backup
+  if [[ -n "$secrets_tmp" && -f "$secrets_tmp" ]]; then
+    mv "$secrets_tmp" "$SECRETS_FILE"
     chmod 600 "$SECRETS_FILE"
-  fi
-
-  # Security check for secrets
-  if [[ -L "$SECRETS_FILE" ]]; then
-    error "Secrets file is a symlink - refusing for security"
-    exit 1
   fi
 
   # Save banner
@@ -1178,11 +1210,11 @@ MAINEOF
   chmod +x "$BIN_DIR/clother"
 
   # Copy this script as the full implementation
-  if [[ "$0" == "bash" ]]; then
+  if [[ ! -f "${BASH_SOURCE[0]:-}" ]]; then
     # Piped execution - download from GitHub
     curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh > "$DATA_DIR/clother-full.sh"
   else
-    cp "$0" "$DATA_DIR/clother-full.sh"
+    cp "${BASH_SOURCE[0]}" "$DATA_DIR/clother-full.sh"
   fi
   chmod +x "$DATA_DIR/clother-full.sh"
 }
@@ -1257,9 +1289,9 @@ main() {
 }
 
 # If sourced, don't run main
-if [[ "${BASH_SOURCE[0]:-$0}" == "${0}" || "$0" == "bash" ]]; then
-  # Piped execution (curl | bash) or first run → install
-  if [[ "$0" == "bash" ]] || [[ ! -f "$BIN_DIR/clother" ]]; then
+if [[ "${BASH_SOURCE[0]:-$0}" == "${0}" ]] || [[ ! -f "${BASH_SOURCE[0]:-}" ]]; then
+  # Piped execution (curl | bash) or first run -> install
+  if [[ ! -f "${BASH_SOURCE[0]:-}" ]] || [[ ! -f "$BIN_DIR/clother" ]]; then
     do_install
   else
     main "$@"
