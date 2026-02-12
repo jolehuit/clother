@@ -104,6 +104,24 @@ clother-myprovider                      # Ready
 | `clother status` | Installation status |
 | `clother uninstall` | Remove everything |
 
+## Changing the Default Model
+
+Each provider launcher comes with a default model (e.g. `glm-5` for Z.AI). You can override it in several ways:
+
+```bash
+# One-time: use --model flag
+clother-zai --model glm-4.7
+
+# Permanent: set ANTHROPIC_MODEL in your shell profile (.zshrc / .bashrc)
+export ANTHROPIC_MODEL="glm-4.7"
+clother-zai
+
+# Or edit the launcher directly
+nano ~/bin/clother-zai    # Replace the model name on all relevant lines
+```
+
+> **Tip**: The `--model` flag is passed directly to Claude CLI and takes priority over everything else.
+
 ## How It Works
 
 Clother creates launcher scripts that set environment variables:
