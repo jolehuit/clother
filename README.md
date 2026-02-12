@@ -162,6 +162,19 @@ Make sure the chosen directory is in your `PATH`.
 | `clother: command not found` | Add your bin directory to PATH (see [Install Directory](#install-directory)) |
 | `API key not set` | Run `clother config` |
 
+## VS Code Integration
+
+To use Clother with the official **Claude Code** extension:
+
+1. Open VS Code Settings (`Cmd+,` or `Ctrl+,`).
+2. Search for **"Claude Process Wrapper"** (`claudeProcessWrapper`).
+3. Set it to the **full path** of your chosen launcher:
+   - macOS: `/Users/yourname/bin/clother-zai`
+   - Linux: `/home/yourname/.local/bin/clother-zai`
+4. Reload VS Code.
+
+> **Note**: Requires Clother v2.6+ (which handles non-interactive shell output correctly).
+
 ## Platform Support
 
 macOS (zsh/bash) • Linux (zsh/bash) • Windows (WSL)
