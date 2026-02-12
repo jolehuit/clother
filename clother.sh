@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# CLOTHER v2.5 - Multi-provider launcher for Claude CLI
+# CLOTHER v2.6 - Multi-provider launcher for Claude CLI
 # =============================================================================
 # A CLI tool to manage and switch between different LLM providers
 # for the Claude Code command-line interface.
@@ -13,7 +13,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-readonly VERSION="2.5"
+readonly VERSION="2.6"
 readonly CLOTHER_DOCS="https://github.com/jolehuit/clother"
 
 # =============================================================================
@@ -1004,7 +1004,7 @@ generate_launcher() {
   cat > "$BIN_DIR/clother-$name" << LAUNCHER
 #!/usr/bin/env bash
 set -euo pipefail
-[[ "\${CLOTHER_NO_BANNER:-}" != "1" ]] && cat "\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + $name" && echo
+[[ "\${CLOTHER_NO_BANNER:-}" != "1" && -t 1 ]] && cat "\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + $name" && echo
 SECRETS="\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/secrets.env"
 if [[ -f "\$SECRETS" ]]; then
   [[ -L "\$SECRETS" ]] && { echo "Error: secrets file is a symlink - refusing for security" >&2; exit 1; }
@@ -1050,7 +1050,7 @@ generate_or_launcher() {
   cat > "$BIN_DIR/clother-or-$name" << LAUNCHER
 #!/usr/bin/env bash
 set -euo pipefail
-[[ "\${CLOTHER_NO_BANNER:-}" != "1" ]] && cat "\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + OpenRouter: $name" && echo
+[[ "\${CLOTHER_NO_BANNER:-}" != "1" && -t 1 ]] && cat "\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + OpenRouter: $name" && echo
 SECRETS="\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/secrets.env"
 if [[ -f "\$SECRETS" ]]; then
   [[ -L "\$SECRETS" ]] && { echo "Error: secrets file is a symlink - refusing for security" >&2; exit 1; }
@@ -1082,7 +1082,7 @@ generate_local_launcher() {
   cat > "$BIN_DIR/clother-$name" << LAUNCHER
 #!/usr/bin/env bash
 set -euo pipefail
-[[ "\${CLOTHER_NO_BANNER:-}" != "1" ]] && cat "\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + $name (local)" && echo
+[[ "\${CLOTHER_NO_BANNER:-}" != "1" && -t 1 ]] && cat "\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + $name (local)" && echo
 export ANTHROPIC_BASE_URL="$baseurl"
 LAUNCHER
 
@@ -1160,7 +1160,7 @@ do_install() {
   cat > "$BIN_DIR/clother-native" << 'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-[[ "${CLOTHER_NO_BANNER:-}" != "1" ]] && cat "${XDG_DATA_HOME:-$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + native" && echo
+[[ "${CLOTHER_NO_BANNER:-}" != "1" && -t 1 ]] && cat "${XDG_DATA_HOME:-$HOME/.local/share}/clother/banner" 2>/dev/null && echo "    + native" && echo
 exec claude "$@"
 EOF
   chmod +x "$BIN_DIR/clother-native"
