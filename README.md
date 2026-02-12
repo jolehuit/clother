@@ -133,6 +133,7 @@ macOS (zsh/bash) • Linux (zsh/bash) • Windows (WSL)
 
 - [@darkokoa](https://github.com/darkokoa) — China endpoints
 - [@RawToast](https://github.com/RawToast) — Kimi endpoint fix
+- [@sammcj](https://github.com/sammcj) — Security hardening
 
 ## License
 
