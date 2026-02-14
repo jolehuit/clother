@@ -56,7 +56,20 @@ clother config openrouter               # Set API key + add models
 clother-or-kimi-k2                      # Use it
 ```
 
-> For non-Claude models, use the `:exacto` variant (e.g. `moonshotai/kimi-k2-0905:exacto`).
+Popular model IDs:
+
+| Model ID | Description |
+|----------|-------------|
+| `anthropic/claude-opus-4.6` | Claude Opus 4.6 |
+| `z-ai/glm-5` | GLM-5 (Z.AI) |
+| `minimax/minimax-m2.5` | MiniMax M2.5 |
+| `moonshotai/kimi-k2.5` | Kimi K2.5 |
+| `qwen/qwen3-coder-next` | Qwen3 Coder Next |
+| `deepseek/deepseek-v3.2-speciale` | DeepSeek V3.2 Speciale |
+
+> **Tip**: Find model IDs on [openrouter.ai/models](https://openrouter.ai/models) — click the copy icon next to any model name.
+
+> If a model doesn't work as expected, try the `:exacto` variant (e.g. `moonshotai/kimi-k2-0905:exacto`) which provides better tool calling support.
 
 ### China Endpoints
 
