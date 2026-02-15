@@ -236,6 +236,10 @@ validate_url() {
       "Provide a valid URL"
     return 1
   fi
+  # Warn about non-HTTPS URLs (credentials sent in cleartext)
+  if [[ "$url" =~ ^http:// ]] && [[ ! "$url" =~ ^http://localhost ]] && [[ ! "$url" =~ ^http://127\.0\.0\.1 ]]; then
+    warn "Using HTTP (not HTTPS) - API keys will be sent in cleartext"
+  fi
 }
 
 validate_api_key() {
@@ -269,13 +273,39 @@ load_secrets() {
   if [[ "$perms" != "600" ]]; then
     warn "Fixing secrets file permissions"; chmod 600 "$SECRETS_FILE"
   fi
+  # Validate secrets file contains only safe variable assignments (KEY=value)
+  # Reject any file containing shell metacharacters, commands, or code
+  if grep -qvE '^\s*$|^\s*#|^[A-Za-z_][A-Za-z0-9_]*=' "$SECRETS_FILE" 2>/dev/null; then
+    error "Secrets file contains invalid content - refusing to load for security"
+    error "Only lines matching KEY=value are allowed"
+    return 1
+  fi
+  # Check for dangerous shell metacharacters in values (allow $'...' from printf %q)
+  if grep -qE "^\s*[A-Za-z_][A-Za-z0-9_]*=.*[;&|]" "$SECRETS_FILE" 2>/dev/null; then
+    error "Secrets file contains shell metacharacters - refusing to load for security"
+    return 1
+  fi
+  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*`' "$SECRETS_FILE" 2>/dev/null; then
+    error "Secrets file contains backticks - refusing to load for security"
+    return 1
+  fi
+  # Reject $(...) command substitutions but allow $'...' quoting from printf %q
+  if grep -qE "^\s*[A-Za-z_][A-Za-z0-9_]*=.*\\\$\(" "$SECRETS_FILE" 2>/dev/null; then
+    error "Secrets file contains command substitutions - refusing to load for security"
+    return 1
+  fi
   source "$SECRETS_FILE"
 }
 
 save_secret() {
   local key="$1" value="$2"
+  # Validate key is a safe variable name
+  if [[ ! "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+    error "Invalid secret key name: $key"; return 1
+  fi
   mkdir -p "$(dirname "$SECRETS_FILE")"
   local tmp; tmp=$(mktemp "${SECRETS_FILE}.XXXXXX")
+  chmod 600 "$tmp"
   [[ -f "$SECRETS_FILE" ]] && grep -v "^${key}=" "$SECRETS_FILE" > "$tmp" 2>/dev/null || true
   printf '%s=%q\n' "$key" "$value" >> "$tmp"
   mv "$tmp" "$SECRETS_FILE"
@@ -825,7 +855,9 @@ cmd_list() {
     for p in "${profiles[@]}"; do
       $first || echo -n ","
       first=false
-      echo -n "{\"name\":\"$p\",\"command\":\"clother-$p\"}"
+      # Escape special JSON characters in profile names
+      local escaped_p; escaped_p=$(printf '%s' "$p" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g; s/\n/\\n/g')
+      echo -n "{\"name\":\"$escaped_p\",\"command\":\"clother-$escaped_p\"}"
     done
     echo ']}'
     return
@@ -939,6 +971,12 @@ cmd_test() {
     fi
 
     # Test endpoint reachability (any HTTP response = reachable)
+    # Validate URL before passing to curl to prevent argument injection
+    if [[ ! "$test_url" =~ ^https?://[a-zA-Z0-9._:/-]+$ ]]; then
+      echo -e "${YELLOW}invalid URL${NC}"
+      ((++skip)) || true
+      continue
+    fi
     local http_code
     http_code=$(curl -s --max-time 5 -o /dev/null -w "%{http_code}" "$test_url" 2>/dev/null) || http_code="000"
     if [[ "$http_code" != "000" ]]; then
@@ -976,6 +1014,12 @@ cmd_status() {
 }
 
 cmd_uninstall() {
+  # Validate paths are under $HOME before rm -rf
+  for dir in "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR"; do
+    if [[ ! "$dir" =~ ^"$HOME"/ ]]; then
+      error "Refusing to remove '$dir' - path is not under \$HOME"; return 1
+    fi
+  done
   echo
   echo -e "${BOLD}Uninstall Clother${NC}"
   echo
@@ -1008,7 +1052,18 @@ set -euo pipefail
 SECRETS="\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/secrets.env"
 if [[ -f "\$SECRETS" ]]; then
   [[ -L "\$SECRETS" ]] && { echo "Error: secrets file is a symlink - refusing for security" >&2; exit 1; }
-  source "\$SECRETS"
+LAUNCHER
+  cat >> "$BIN_DIR/clother-$name" << 'LAUNCHER'
+  if grep -qvE '^\s*$|^\s*#|^[A-Za-z_][A-Za-z0-9_]*=' "$SECRETS" 2>/dev/null; then
+    echo "Error: secrets file contains invalid content" >&2; exit 1
+  fi
+  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*[;&|`]' "$SECRETS" 2>/dev/null; then
+    echo "Error: secrets file contains shell metacharacters" >&2; exit 1
+  fi
+  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*\$\(' "$SECRETS" 2>/dev/null; then
+    echo "Error: secrets file contains command substitutions" >&2; exit 1
+  fi
+  source "$SECRETS"
 fi
 LAUNCHER
 
@@ -1054,8 +1109,21 @@ set -euo pipefail
 SECRETS="\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/secrets.env"
 if [[ -f "\$SECRETS" ]]; then
   [[ -L "\$SECRETS" ]] && { echo "Error: secrets file is a symlink - refusing for security" >&2; exit 1; }
-  source "\$SECRETS"
+LAUNCHER
+  cat >> "$BIN_DIR/clother-or-$name" << 'LAUNCHER'
+  if grep -qvE '^\s*$|^\s*#|^[A-Za-z_][A-Za-z0-9_]*=' "$SECRETS" 2>/dev/null; then
+    echo "Error: secrets file contains invalid content" >&2; exit 1
+  fi
+  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*[;&|`]' "$SECRETS" 2>/dev/null; then
+    echo "Error: secrets file contains shell metacharacters" >&2; exit 1
+  fi
+  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*\$\(' "$SECRETS" 2>/dev/null; then
+    echo "Error: secrets file contains command substitutions" >&2; exit 1
+  fi
+  source "$SECRETS"
 fi
+LAUNCHER
+  cat >> "$BIN_DIR/clother-or-$name" << LAUNCHER
 [[ -z "\${OPENROUTER_API_KEY:-}" ]] && { echo "Error: OPENROUTER_API_KEY not set. Run 'clother config openrouter'" >&2; exit 1; }
 
 # OpenRouter native Anthropic API support
@@ -1127,8 +1195,15 @@ do_install() {
   local secrets_tmp=""
   if [[ -f "$SECRETS_FILE" ]]; then
     secrets_tmp=$(mktemp "${TMPDIR:-/tmp}/clother-secrets.XXXXXX")
+    chmod 600 "$secrets_tmp"
     cp -p "$SECRETS_FILE" "$secrets_tmp"
   fi
+  # Validate paths are under $HOME before rm -rf
+  for dir in "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR"; do
+    if [[ ! "$dir" =~ ^"$HOME"/ ]]; then
+      error "Refusing to remove '$dir' - path is not under \$HOME"; exit 1
+    fi
+  done
   rm -f "$BIN_DIR/clother" "$BIN_DIR"/clother-* 2>/dev/null || true
   rm -rf "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR" 2>/dev/null || true
 
@@ -1223,7 +1298,20 @@ MAINEOF
   # Copy this script as the full implementation
   if [[ ! -f "${BASH_SOURCE[0]:-}" ]]; then
     # Piped execution - download from GitHub
-    curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh > "$DATA_DIR/clother-full.sh"
+    local dl_tmp; dl_tmp=$(mktemp "${DATA_DIR}/clother-dl.XXXXXX")
+    chmod 600 "$dl_tmp"
+    if ! curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh > "$dl_tmp"; then
+      rm -f "$dl_tmp"
+      error "Failed to download script from GitHub"
+      exit 1
+    fi
+    # Basic validation: downloaded file must be a bash script
+    if ! head -1 "$dl_tmp" | grep -q '^#!/usr/bin/env bash'; then
+      rm -f "$dl_tmp"
+      error "Downloaded file is not a valid bash script"
+      exit 1
+    fi
+    mv "$dl_tmp" "$DATA_DIR/clother-full.sh"
   else
     cp "${BASH_SOURCE[0]}" "$DATA_DIR/clother-full.sh"
   fi
