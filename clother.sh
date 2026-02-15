@@ -1052,19 +1052,18 @@ set -euo pipefail
 SECRETS="\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/secrets.env"
 if [[ -f "\$SECRETS" ]]; then
   [[ -L "\$SECRETS" ]] && { echo "Error: secrets file is a symlink - refusing for security" >&2; exit 1; }
-  if grep -qvE '^\s*\$|^\s*#|^[A-Za-z_][A-Za-z0-9_]*=' "\$SECRETS" 2>/dev/null; then
+LAUNCHER
+  cat >> "$BIN_DIR/clother-$name" << 'LAUNCHER'
+  if grep -qvE '^\s*$|^\s*#|^[A-Za-z_][A-Za-z0-9_]*=' "$SECRETS" 2>/dev/null; then
     echo "Error: secrets file contains invalid content" >&2; exit 1
   fi
-  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*[;&|]' "\$SECRETS" 2>/dev/null; then
+  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*[;&|`]' "$SECRETS" 2>/dev/null; then
     echo "Error: secrets file contains shell metacharacters" >&2; exit 1
   fi
-  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*\x60' "\$SECRETS" 2>/dev/null; then
-    echo "Error: secrets file contains backticks" >&2; exit 1
-  fi
-  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*\\\$\(' "\$SECRETS" 2>/dev/null; then
+  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*\$\(' "$SECRETS" 2>/dev/null; then
     echo "Error: secrets file contains command substitutions" >&2; exit 1
   fi
-  source "\$SECRETS"
+  source "$SECRETS"
 fi
 LAUNCHER
 
@@ -1110,20 +1109,21 @@ set -euo pipefail
 SECRETS="\${XDG_DATA_HOME:-\$HOME/.local/share}/clother/secrets.env"
 if [[ -f "\$SECRETS" ]]; then
   [[ -L "\$SECRETS" ]] && { echo "Error: secrets file is a symlink - refusing for security" >&2; exit 1; }
-  if grep -qvE '^\s*\$|^\s*#|^[A-Za-z_][A-Za-z0-9_]*=' "\$SECRETS" 2>/dev/null; then
+LAUNCHER
+  cat >> "$BIN_DIR/clother-or-$name" << 'LAUNCHER'
+  if grep -qvE '^\s*$|^\s*#|^[A-Za-z_][A-Za-z0-9_]*=' "$SECRETS" 2>/dev/null; then
     echo "Error: secrets file contains invalid content" >&2; exit 1
   fi
-  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*[;&|]' "\$SECRETS" 2>/dev/null; then
+  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*[;&|`]' "$SECRETS" 2>/dev/null; then
     echo "Error: secrets file contains shell metacharacters" >&2; exit 1
   fi
-  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*\x60' "\$SECRETS" 2>/dev/null; then
-    echo "Error: secrets file contains backticks" >&2; exit 1
-  fi
-  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*\\\$\(' "\$SECRETS" 2>/dev/null; then
+  if grep -qE '^\s*[A-Za-z_][A-Za-z0-9_]*=.*\$\(' "$SECRETS" 2>/dev/null; then
     echo "Error: secrets file contains command substitutions" >&2; exit 1
   fi
-  source "\$SECRETS"
+  source "$SECRETS"
 fi
+LAUNCHER
+  cat >> "$BIN_DIR/clother-or-$name" << LAUNCHER
 [[ -z "\${OPENROUTER_API_KEY:-}" ]] && { echo "Error: OPENROUTER_API_KEY not set. Run 'clother config openrouter'" >&2; exit 1; }
 
 # OpenRouter native Anthropic API support
