@@ -5,7 +5,7 @@
 # A CLI tool to manage and switch between different LLM providers
 # for the Claude Code command-line interface.
 #
-# Repository: https://github.com/jolehuit/clother
+# Repository: https://github.com/sam-fakhreddine/clother
 # License: MIT
 # =============================================================================
 
@@ -14,7 +14,7 @@ IFS=$'\n\t'
 umask 077
 
 readonly VERSION="2.7"
-readonly CLOTHER_DOCS="https://github.com/jolehuit/clother"
+readonly CLOTHER_DOCS="https://github.com/sam-fakhreddine/clother"
 
 # =============================================================================
 # XDG BASE DIRECTORY SPECIFICATION
@@ -1300,7 +1300,7 @@ MAINEOF
     # Piped execution - download from GitHub
     local dl_tmp; dl_tmp=$(mktemp "${DATA_DIR}/clother-dl.XXXXXX")
     chmod 600 "$dl_tmp"
-    if ! curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh > "$dl_tmp"; then
+    if ! curl -fsSL https://raw.githubusercontent.com/sam-fakhreddine/clother/main/clother.sh > "$dl_tmp"; then
       rm -f "$dl_tmp"
       error "Failed to download script from GitHub"
       exit 1
