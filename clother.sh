@@ -269,6 +269,20 @@ load_secrets() {
   if [[ "$perms" != "600" ]]; then
     warn "Fixing secrets file permissions"; chmod 600 "$SECRETS_FILE"
   fi
+  # Validate file format before sourcing
+  local line_num=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    ((line_num++))
+    # Skip empty lines and comments
+    [[ -z "$line" ]] && continue
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    # Validate format: VAR_NAME=value (VAR_NAME must start with letter or underscore, contain only uppercase letters, numbers, and underscores)
+    if [[ ! "$line" =~ ^[A-Z_][A-Z0-9_]*= ]]; then
+      error "Invalid line in secrets file at line $line_num: malformed variable assignment"
+      error "Expected format: VAR_NAME=value (uppercase letters, numbers, underscores only)"
+      return 1
+    fi
+  done < "$SECRETS_FILE"
   source "$SECRETS_FILE"
 }
 
@@ -295,11 +309,18 @@ mask_key() {
 
 cleanup() {
   local exit_code="${1:-$?}"
-  spinner_stop 1 "Interrupted" 2>/dev/null || true
+  # Kill spinner if still running
+  if [[ -n "${SPINNER_PID:-}" ]]; then
+    kill "$SPINNER_PID" 2>/dev/null || true
+    wait "$SPINNER_PID" 2>/dev/null || true
+    SPINNER_PID=""
+    printf "\r\033[K" 2>/dev/null || true
+  fi
   tput cnorm 2>/dev/null || true  # Show cursor
   exit "$exit_code"
 }
 
+trap 'cleanup $?' EXIT
 trap 'cleanup 130' INT
 trap 'cleanup 143' TERM
 
@@ -501,18 +522,26 @@ EOF
 suggest_command() {
   local input="$1"
   local -a commands=(config list info test status uninstall help)
-  local best="" best_score=999
+  local best="" best_score=0
 
   for cmd in "${commands[@]}"; do
-    # Simple prefix match
+    local score=0
+
     if [[ "$cmd" == "$input"* ]]; then
-      echo "$cmd"; return
+      # Prefix match: score = 100 + remaining length (shorter is better)
+      local remaining=$(( ${#cmd} - ${#input} ))
+      score=$(( 100 + remaining ))
+    elif [[ "$cmd" == *"$input"* ]]; then
+      # Substring match: score = 10 + total length (shorter is better)
+      score=$(( 10 + ${#cmd} ))
     fi
-    # Check if input is substring
-    if [[ "$cmd" == *"$input"* ]]; then
+
+    if [[ $score -gt 0 && $score -gt $best_score ]]; then
       best="$cmd"
+      best_score=$score
     fi
   done
+
   [[ -n "$best" ]] && echo "$best"
 }
 
@@ -825,7 +854,9 @@ cmd_list() {
     for p in "${profiles[@]}"; do
       $first || echo -n ","
       first=false
-      echo -n "{\"name\":\"$p\",\"command\":\"clother-$p\"}"
+      # Escape quotes for JSON safety
+      local safe_p="${p//\"/\\\"}"
+      echo -n "{\"name\":\"$safe_p\",\"command\":\"clother-$safe_p\"}"
     done
     echo ']}'
     return
@@ -1123,15 +1154,7 @@ do_install() {
   echo -e "${BOLD}Clother $VERSION${NC}"
   echo
 
-  # Back up secrets to temp file before cleaning (survives interruption)
-  local secrets_tmp=""
-  if [[ -f "$SECRETS_FILE" ]]; then
-    secrets_tmp=$(mktemp "${TMPDIR:-/tmp}/clother-secrets.XXXXXX")
-    cp -p "$SECRETS_FILE" "$secrets_tmp"
-  fi
-  rm -f "$BIN_DIR/clother" "$BIN_DIR"/clother-* 2>/dev/null || true
-  rm -rf "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR" 2>/dev/null || true
-
+  # Check prerequisites BEFORE any destructive operations
   log "Checking for 'claude' command..."
   if ! command -v claude &>/dev/null; then
     error_ctx "E010" "Claude CLI not found" "Checking prerequisites" \
@@ -1140,6 +1163,15 @@ do_install() {
     exit 1
   fi
   success "'claude' found"
+
+  # Back up secrets to temp file before cleaning (survives interruption)
+  local secrets_tmp=""
+  if [[ -f "$SECRETS_FILE" ]]; then
+    secrets_tmp=$(mktemp "${TMPDIR:-/tmp}/clother-secrets.XXXXXX")
+    cp -p "$SECRETS_FILE" "$secrets_tmp"
+  fi
+  rm -f "$BIN_DIR/clother" "$BIN_DIR"/clother-* 2>/dev/null || true
+  rm -rf "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR" 2>/dev/null || true
 
   # Create directories (XDG compliant)
   mkdir -p "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR" "$BIN_DIR"
