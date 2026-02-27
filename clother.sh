@@ -13,7 +13,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-readonly VERSION="2.9.1"
+readonly VERSION="2.9.2"
 readonly CLOTHER_DOCS="https://github.com/jolehuit/clother"
 
 # =============================================================================
@@ -1113,6 +1113,10 @@ generate_launcher() {
   local name="$1" keyvar="$2" baseurl="$3" model="$4" model_opts="$5"
 
   mkdir -p "$BIN_DIR"
+  # Remove stale launcher from alternate bin location to avoid PATH conflicts
+  for legacy_dir in "$HOME/bin" "$HOME/.local/bin"; do
+    [[ "$legacy_dir" != "$BIN_DIR" ]] && rm -f "$legacy_dir/clother-$name" 2>/dev/null || true
+  done
 
   cat > "$BIN_DIR/clother-$name" << LAUNCHER
 #!/usr/bin/env bash
@@ -1253,6 +1257,10 @@ do_install() {
     cp -p "$SECRETS_FILE" "$secrets_tmp"
   fi
   rm -f "$BIN_DIR/clother" "$BIN_DIR"/clother-* 2>/dev/null || true
+  # Clean legacy launchers from alternate bin locations to avoid stale PATH conflicts
+  for legacy_dir in "$HOME/bin" "$HOME/.local/bin"; do
+    [[ "$legacy_dir" != "$BIN_DIR" && -d "$legacy_dir" ]] && rm -f "$legacy_dir"/clother "$legacy_dir"/clother-* 2>/dev/null || true
+  done
   rm -rf "$CONFIG_DIR" "$DATA_DIR" "$CACHE_DIR" 2>/dev/null || true
 
   # Create directories (XDG compliant)
