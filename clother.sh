@@ -711,15 +711,28 @@ config_provider() {
     return 0
   fi
 
-  # Show current key if set
-  [[ -n "${!keyvar:-}" ]] && echo -e "Current key: ${DIM}$(mask_key "${!keyvar}")${NC}"
-
-  local key
-  prompt_secret "API Key" key
-  validate_api_key "$key" "$provider" || return 1
-
-  save_secret "$keyvar" "$key"
-  success "API key saved"
+  # Handle API key
+  local key_changed=false
+  if [[ -n "${!keyvar:-}" ]]; then
+    echo -e "Current key: ${DIM}$(mask_key "${!keyvar}")${NC}"
+    local key
+    prompt_secret "API Key (Enter to keep current)" key
+    if [[ -n "$key" ]]; then
+      validate_api_key "$key" "$provider" || return 1
+      save_secret "$keyvar" "$key"
+      success "API key updated"
+      key_changed=true
+    else
+      success "Keeping existing key"
+    fi
+  else
+    local key
+    prompt_secret "API Key" key
+    validate_api_key "$key" "$provider" || return 1
+    save_secret "$keyvar" "$key"
+    success "API key saved"
+    key_changed=true
+  fi
 
   # Model selection for providers with multiple models
   local models_list; models_list=$(get_provider_models "$provider" 2>/dev/null) || models_list=""
