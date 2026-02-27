@@ -46,6 +46,8 @@ clother config                          # Configure providers
 | `clother-moonshot` | Moonshot AI | kimi-k2.5 | [moonshot.ai](https://moonshot.ai) |
 | `clother-deepseek` | DeepSeek | deepseek-chat | [deepseek.com](https://platform.deepseek.com) |
 | `clother-mimo` | Xiaomi MiMo | mimo-v2-flash | [xiaomimimo.com](https://platform.xiaomimimo.com) |
+| `clother-alibaba` | Alibaba Coding Plan | qwen3.5-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
+| `clother-alibaba-us` | Alibaba Coding Plan (US) | qwen3.5-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
 
 ### OpenRouter (100+ Models)
 
@@ -78,6 +80,7 @@ Popular model IDs:
 | `clother-zai-cn` | open.bigmodel.cn |
 | `clother-minimax-cn` | api.minimaxi.com |
 | `clother-ve` | ark.cn-beijing.volces.com |
+| `clother-alibaba-cn` | dashscope.aliyuncs.com |
 
 ### Local (No API Key)
 
@@ -105,6 +108,29 @@ clother-llamacpp --model <model>
 ```bash
 clother config                          # Choose "custom"
 clother-myprovider                      # Ready
+```
+
+### Alibaba Coding Plan Models
+
+All Alibaba variants (`alibaba`, `alibaba-us`, `alibaba-cn`) share the same API key and support these models:
+
+| Model | Type |
+|-------|------|
+| `qwen3.5-plus` | Text + Vision (default) |
+| `kimi-k2.5` | Text + Vision |
+| `glm-5` | Text |
+| `MiniMax-M2.5` | Text |
+| `qwen3-coder-next` | Code |
+| `qwen3-coder-plus` | Code |
+| `qwen3-max-2026-01-23` | Text |
+| `glm-4.7` | Text |
+
+Switch models with `--model`:
+
+```bash
+clother-alibaba --model kimi-k2.5
+clother-alibaba --model glm-5
+clother-alibaba-cn --model qwen3-coder-next
 ```
 
 ## Commands

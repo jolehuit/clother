@@ -13,7 +13,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-readonly VERSION="2.8"
+readonly VERSION="2.9"
 readonly CLOTHER_DOCS="https://github.com/jolehuit/clother"
 
 # =============================================================================
@@ -341,6 +341,9 @@ get_provider_def() {
     ve)         echo "ARK_API_KEY|https://ark.cn-beijing.volces.com/api/coding|doubao-seed-code-preview-latest||VolcEngine" ;;
     deepseek)   echo "DEEPSEEK_API_KEY|https://api.deepseek.com/anthropic|deepseek-chat|small=deepseek-chat|DeepSeek" ;;
     mimo)       echo "MIMO_API_KEY|https://api.xiaomimimo.com/anthropic|mimo-v2-flash|haiku=mimo-v2-flash,sonnet=mimo-v2-flash,opus=mimo-v2-flash|Xiaomi MiMo" ;;
+    alibaba)    echo "ALIBABA_API_KEY|https://dashscope-intl.aliyuncs.com/compatible-mode/v1|qwen3.5-plus|haiku=qwen3-coder-flash,sonnet=qwen3.5-plus,opus=qwen3.5-plus|Alibaba Coding Plan (Singapore)" ;;
+    alibaba-us) echo "ALIBABA_API_KEY|https://dashscope-us.aliyuncs.com/compatible-mode/v1|qwen3.5-plus|haiku=qwen3-coder-flash,sonnet=qwen3.5-plus,opus=qwen3.5-plus|Alibaba Coding Plan (US)" ;;
+    alibaba-cn) echo "ALIBABA_API_KEY|https://dashscope.aliyuncs.com/compatible-mode/v1|qwen3.5-plus|haiku=qwen3-coder-flash,sonnet=qwen3.5-plus,opus=qwen3.5-plus|Alibaba Coding Plan (China)" ;;
     # Local providers (no API key needed)
     ollama)     echo "@ollama|http://localhost:11434|||Ollama (Local)" ;;
     lmstudio)   echo "@lmstudio|http://localhost:1234|||LM Studio (Local)" ;;
@@ -357,6 +360,32 @@ is_provider_configured() {
   [[ -z "$keyvar" ]] && return 0  # native
   [[ "$keyvar" == @* ]] && return 0  # local providers (ollama, lmstudio, llamacpp)
   [[ -n "${!keyvar:-}" ]]
+}
+
+# Returns available models for a provider (newline-separated: model|description)
+# Only providers with multiple model choices are listed here.
+get_provider_models() {
+  case "$1" in
+    zai|zai-cn)
+      cat <<'EOF'
+glm-5|GLM-5 (requires Max plan)
+glm-4.7|GLM-4.7
+EOF
+      ;;
+    alibaba|alibaba-us|alibaba-cn)
+      cat <<'EOF'
+qwen3.5-plus|Qwen 3.5 Plus (vision)
+kimi-k2.5|Kimi K2.5 (vision)
+glm-5|GLM-5
+MiniMax-M2.5|MiniMax M2.5
+qwen3-coder-next|Qwen3 Coder Next
+qwen3-coder-plus|Qwen3 Coder Plus
+qwen3-max-2026-01-23|Qwen3 Max
+glm-4.7|GLM-4.7
+EOF
+      ;;
+    *) return 1 ;;  # No model choice
+  esac
 }
 
 # =============================================================================
@@ -436,6 +465,7 @@ ${BOLD}PROVIDERS${NC}
     zai-cn             Z.AI China (GLM-5)
     minimax-cn         MiniMax China (M2.5)
     ve                 VolcEngine (Doubao)
+    alibaba-cn         Alibaba Coding Plan (Beijing)
 
   ${DIM}International${NC}
     zai                Z.AI (GLM-5)
@@ -444,6 +474,8 @@ ${BOLD}PROVIDERS${NC}
     moonshot           Moonshot AI
     deepseek           DeepSeek
     mimo               Xiaomi MiMo
+    alibaba            Alibaba Coding Plan (Singapore)
+    alibaba-us         Alibaba Coding Plan (US Virginia)
 
   ${DIM}Local${NC}
     ollama             Ollama (localhost:11434)
@@ -491,8 +523,9 @@ ${BOLD}EXAMPLES${NC}
 
 ${BOLD}PROVIDERS${NC}
   native, zai, zai-cn, minimax, minimax-cn, kimi,
-  moonshot, ve, deepseek, mimo, ollama, lmstudio,
-  llamacpp, openrouter, custom
+  moonshot, ve, deepseek, mimo, alibaba, alibaba-us,
+  alibaba-cn, ollama, lmstudio, llamacpp, openrouter,
+  custom
 EOF
       ;;
     list)
@@ -570,7 +603,7 @@ cmd_config() {
 
   # Count configured
   local configured=0
-  for p in native zai zai-cn minimax minimax-cn kimi moonshot ve deepseek mimo ollama lmstudio llamacpp; do
+  for p in native zai zai-cn minimax minimax-cn kimi moonshot ve deepseek mimo alibaba alibaba-us alibaba-cn ollama lmstudio llamacpp; do
     is_provider_configured "$p" && ((++configured)) || true
   done
   echo -e "${DIM}$configured providers configured${NC}"
@@ -584,8 +617,8 @@ cmd_config() {
 
   # China
   echo -e "${BOLD}CHINA${NC}"
-  local -a china_providers=(zai-cn minimax-cn ve)
-  local -a china_names=("Z.AI China" "MiniMax China" "VolcEngine")
+  local -a china_providers=(zai-cn minimax-cn ve alibaba-cn)
+  local -a china_names=("Z.AI China" "MiniMax China" "VolcEngine" "Alibaba (Beijing)")
   for i in "${!china_providers[@]}"; do
     local p="${china_providers[$i]}"
     local status; is_provider_configured "$p" && status="${GREEN}${SYM_CHECK}${NC}" || status="${DIM}${SYM_UNCHECK}${NC}"
@@ -595,12 +628,12 @@ cmd_config() {
 
   # International
   echo -e "${BOLD}INTERNATIONAL${NC}"
-  local -a intl_providers=(zai minimax kimi moonshot deepseek mimo)
-  local -a intl_names=("Z.AI" "MiniMax" "Kimi K2" "Moonshot AI" "DeepSeek" "Xiaomi MiMo")
+  local -a intl_providers=(zai minimax kimi moonshot deepseek mimo alibaba alibaba-us)
+  local -a intl_names=("Z.AI" "MiniMax" "Kimi K2" "Moonshot AI" "DeepSeek" "Xiaomi MiMo" "Alibaba (Singapore)" "Alibaba (US)")
   for i in "${!intl_providers[@]}"; do
     local p="${intl_providers[$i]}"
     local status; is_provider_configured "$p" && status="${GREEN}${SYM_CHECK}${NC}" || status="${DIM}${SYM_UNCHECK}${NC}"
-    printf "  ${CYAN}%-2s${NC} %-12s %-24s %s\n" "$((i+5))" "$p" "${intl_names[$i]}" "$status"
+    printf "  ${CYAN}%-2s${NC} %-14s %-24s %s\n" "$((i+6))" "$p" "${intl_names[$i]}" "$status"
   done
   echo
 
@@ -611,14 +644,14 @@ cmd_config() {
   for i in "${!local_providers[@]}"; do
     local p="${local_providers[$i]}"
     local status; is_provider_configured "$p" && status="${GREEN}${SYM_CHECK}${NC}" || status="${DIM}${SYM_UNCHECK}${NC}"
-    printf "  ${CYAN}%-2s${NC} %-12s %-24s %s\n" "$((i+11))" "$p" "${local_names[$i]}" "$status"
+    printf "  ${CYAN}%-2s${NC} %-14s %-24s %s\n" "$((i+14))" "$p" "${local_names[$i]}" "$status"
   done
   echo
 
   # Advanced
   echo -e "${BOLD}ADVANCED${NC}"
-  printf "  ${CYAN}%-2s${NC} %-12s %-24s\n" "14" "openrouter" "100+ models (native API)"
-  printf "  ${CYAN}%-2s${NC} %-12s %-24s\n" "15" "custom" "Anthropic-compatible"
+  printf "  ${CYAN}%-2s${NC} %-14s %-24s\n" "17" "openrouter" "100+ models (native API)"
+  printf "  ${CYAN}%-2s${NC} %-14s %-24s\n" "18" "custom" "Anthropic-compatible"
   echo
 
   draw_separator 54
@@ -633,17 +666,20 @@ cmd_config() {
     2)  config_provider "zai-cn" ;;
     3)  config_provider "minimax-cn" ;;
     4)  config_provider "ve" ;;
-    5)  config_provider "zai" ;;
-    6)  config_provider "minimax" ;;
-    7)  config_provider "kimi" ;;
-    8)  config_provider "moonshot" ;;
-    9)  config_provider "deepseek" ;;
-    10) config_provider "mimo" ;;
-    11) config_local_provider "ollama" ;;
-    12) config_local_provider "lmstudio" ;;
-    13) config_local_provider "llamacpp" ;;
-    14) config_openrouter ;;
-    15) config_custom ;;
+    5)  config_provider "alibaba-cn" ;;
+    6)  config_provider "zai" ;;
+    7)  config_provider "minimax" ;;
+    8)  config_provider "kimi" ;;
+    9)  config_provider "moonshot" ;;
+    10) config_provider "deepseek" ;;
+    11) config_provider "mimo" ;;
+    12) config_provider "alibaba" ;;
+    13) config_provider "alibaba-us" ;;
+    14) config_local_provider "ollama" ;;
+    15) config_local_provider "lmstudio" ;;
+    16) config_local_provider "llamacpp" ;;
+    17) config_openrouter ;;
+    18) config_custom ;;
     t|T) cmd_test ;;
     q|Q) log "Cancelled" ;;
     *)  error "Invalid choice: $choice" ;;
@@ -684,6 +720,39 @@ config_provider() {
 
   save_secret "$keyvar" "$key"
   success "API key saved"
+
+  # Model selection for providers with multiple models
+  local models_list; models_list=$(get_provider_models "$provider" 2>/dev/null) || models_list=""
+  if [[ -n "$models_list" ]]; then
+    echo
+    echo -e "${BOLD}Choose model:${NC}"
+    local -a model_ids=() model_descs=()
+    local idx=1
+    while IFS='|' read -r mid mdesc; do
+      model_ids+=("$mid")
+      model_descs+=("$mdesc")
+      local marker=""
+      [[ "$mid" == "$model" ]] && marker=" ${GREEN}(default)${NC}"
+      printf "  ${CYAN}%-2s${NC} %-24s %s%s\n" "$idx" "$mid" "${DIM}$mdesc${NC}" "$marker"
+      ((idx++))
+    done <<< "$models_list"
+    echo
+
+    local model_choice
+    prompt "Model [1-$((idx-1))]" "1" model_choice
+    if [[ "$model_choice" =~ ^[0-9]+$ ]] && (( model_choice >= 1 && model_choice < idx )); then
+      model="${model_ids[$((model_choice-1))]}"
+      # Update model_opts: map all tiers to selected model
+      model_opts="haiku=$model,sonnet=$model,opus=$model"
+    fi
+    echo -e "${DIM}Selected: $model${NC}"
+  fi
+
+  # Regenerate launcher with chosen model
+  generate_launcher "$provider" "$keyvar" "$baseurl" "$model" "$model_opts"
+
+  echo
+  success "Configured ${GREEN}clother-$provider${NC} with model ${YELLOW}$model${NC}"
 
   suggest_next \
     "Use it: ${GREEN}clother-$provider${NC}" \
@@ -1198,7 +1267,7 @@ EOF
   chmod +x "$BIN_DIR/clother-native"
 
   # Generate standard launchers
-  local providers=(zai zai-cn minimax minimax-cn kimi moonshot ve deepseek mimo)
+  local providers=(zai zai-cn minimax minimax-cn kimi moonshot ve deepseek mimo alibaba alibaba-us alibaba-cn)
   for p in "${providers[@]}"; do
     local def; def=$(get_provider_def "$p")
     IFS='|' read -r keyvar baseurl model model_opts _ <<< "$def"
