@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# CLOTHER v2.7 - Multi-provider launcher for Claude CLI
+# CLOTHER - Multi-provider launcher for Claude CLI
 # =============================================================================
 # A CLI tool to manage and switch between different LLM providers
 # for the Claude Code command-line interface.
