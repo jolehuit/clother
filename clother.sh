@@ -13,7 +13,7 @@ set -euo pipefail
 IFS=$'\n\t'
 umask 077
 
-readonly VERSION="2.9.2"
+readonly VERSION="2.9.3"
 readonly CLOTHER_DOCS="https://github.com/jolehuit/clother"
 
 # =============================================================================
@@ -341,9 +341,9 @@ get_provider_def() {
     ve)         echo "ARK_API_KEY|https://ark.cn-beijing.volces.com/api/coding|doubao-seed-code-preview-latest||VolcEngine" ;;
     deepseek)   echo "DEEPSEEK_API_KEY|https://api.deepseek.com/anthropic|deepseek-chat|small=deepseek-chat|DeepSeek" ;;
     mimo)       echo "MIMO_API_KEY|https://api.xiaomimimo.com/anthropic|mimo-v2-flash|haiku=mimo-v2-flash,sonnet=mimo-v2-flash,opus=mimo-v2-flash|Xiaomi MiMo" ;;
-    alibaba)    echo "ALIBABA_API_KEY|https://dashscope-intl.aliyuncs.com/compatible-mode/v1|qwen3.5-plus|haiku=qwen3-coder-flash,sonnet=qwen3.5-plus,opus=qwen3.5-plus|Alibaba Coding Plan (Singapore)" ;;
-    alibaba-us) echo "ALIBABA_API_KEY|https://dashscope-us.aliyuncs.com/compatible-mode/v1|qwen3.5-plus|haiku=qwen3-coder-flash,sonnet=qwen3.5-plus,opus=qwen3.5-plus|Alibaba Coding Plan (US)" ;;
-    alibaba-cn) echo "ALIBABA_API_KEY|https://dashscope.aliyuncs.com/compatible-mode/v1|qwen3.5-plus|haiku=qwen3-coder-flash,sonnet=qwen3.5-plus,opus=qwen3.5-plus|Alibaba Coding Plan (China)" ;;
+    alibaba)    echo "ALIBABA_API_KEY|https://coding-intl.dashscope.aliyuncs.com/apps/anthropic|qwen3.5-plus|haiku=qwen3-coder-flash,sonnet=qwen3.5-plus,opus=qwen3.5-plus|Alibaba Coding Plan (Singapore)" ;;
+    alibaba-us) echo "ALIBABA_API_KEY|https://coding-us.dashscope.aliyuncs.com/apps/anthropic|qwen3.5-plus|haiku=qwen3-coder-flash,sonnet=qwen3.5-plus,opus=qwen3.5-plus|Alibaba Coding Plan (US)" ;;
+    alibaba-cn) echo "ALIBABA_API_KEY|https://coding.dashscope.aliyuncs.com/apps/anthropic|qwen3.5-plus|haiku=qwen3-coder-flash,sonnet=qwen3.5-plus,opus=qwen3.5-plus|Alibaba Coding Plan (China)" ;;
     # Local providers (no API key needed)
     ollama)     echo "@ollama|http://localhost:11434|||Ollama (Local)" ;;
     lmstudio)   echo "@lmstudio|http://localhost:1234|||LM Studio (Local)" ;;

@@ -80,7 +80,7 @@ Popular model IDs:
 | `clother-zai-cn` | open.bigmodel.cn |
 | `clother-minimax-cn` | api.minimaxi.com |
 | `clother-ve` | ark.cn-beijing.volces.com |
-| `clother-alibaba-cn` | dashscope.aliyuncs.com |
+| `clother-alibaba-cn` | coding.dashscope.aliyuncs.com |
 
 ### Local (No API Key)
 
