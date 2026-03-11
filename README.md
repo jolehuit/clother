@@ -1,28 +1,23 @@
-# Clother
+<div align="center">
+  <img src="docs/logo.png" alt="Clother logo" width="220" />
+  <h1>Clother</h1>
+  <p><strong>One CLI to switch between Claude Code providers instantly.</strong></p>
+  <p>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" /></a>
+    <a href="https://www.gnu.org/software/bash/"><img src="https://img.shields.io/badge/Shell-Bash-green.svg" alt="Shell Bash" /></a>
+    <a href="#platform-support"><img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-lightgrey.svg" alt="Platform macOS and Linux" /></a>
+  </p>
+</div>
 
-```
-  ____ _       _   _
- / ___| | ___ | |_| |__   ___ _ __
-| |   | |/ _ \| __| '_ \ / _ \ '__|
-| |___| | (_) | |_| | | |  __/ |
- \____|_|\___/ \__|_| |_|\___|_|
-```
+<br/>
 
-**One CLI to switch between Claude Code providers instantly.**
+<div align="center">
+  <img src="docs/demo.gif" alt="Clother terminal demo" width="900" />
+</div>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Shell](https://img.shields.io/badge/Shell-Bash-green.svg)](https://www.gnu.org/software/bash/)
-[![Platform](https://img.shields.io/badge/Platform-macOS%20|%20Linux-lightgrey.svg)](#platform-support)
-
-## Installation
-
-```bash
-# 1. Install Claude Code CLI
-curl -fsSL https://claude.ai/install.sh | bash
-
-# 2. Install Clother
-curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash
-```
+<p align="center">
+  <sub>Source recording: <a href="docs/demo.cast">docs/demo.cast</a></sub>
+</p>
 
 ## Quick Start
 
@@ -33,11 +28,15 @@ clother-ollama --model qwen3-coder      # Local with Ollama
 clother config                          # Configure providers
 ```
 
-## Demo
+## Installation
 
-![Clother terminal demo](docs/demo.gif)
+```bash
+# 1. Install Claude Code CLI
+curl -fsSL https://claude.ai/install.sh | bash
 
-Source recording: [`docs/demo.cast`](docs/demo.cast)
+# 2. Install Clother
+curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash
+```
 
 ## Providers
 
