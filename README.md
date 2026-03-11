@@ -12,7 +12,7 @@
 <br/>
 
 <div align="center">
-  <img src="docs/demo.gif" alt="Clother terminal demo" width="900" />
+  <img src="docs/demo-fast.gif" alt="Clother terminal demo" width="900" />
 </div>
 
 ## Installation
