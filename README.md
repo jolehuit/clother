@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | 
 ## Quick Start
 
 ```bash
-clother-native                          # Use your Claude Pro/Team subscription
+clother-native                          # Use your Claude Pro/Max/Team subscription
 clother-zai                             # Z.AI (GLM-5)
 clother-kimi                            # Kimi (kimi-k2.5)
 clother-ollama --model qwen3-coder      # Local with Ollama
