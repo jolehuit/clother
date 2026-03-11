@@ -15,19 +15,6 @@
   <img src="docs/demo.gif" alt="Clother terminal demo" width="900" />
 </div>
 
-<p align="center">
-  <sub>Source recording: <a href="docs/demo.cast">docs/demo.cast</a></sub>
-</p>
-
-## Quick Start
-
-```bash
-clother-native                          # Use your Claude Pro/Team subscription
-clother-zai                             # Z.AI (GLM-5)
-clother-ollama --model qwen3-coder      # Local with Ollama
-clother config                          # Configure providers
-```
-
 ## Installation
 
 ```bash
@@ -36,6 +23,15 @@ curl -fsSL https://claude.ai/install.sh | bash
 
 # 2. Install Clother
 curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash
+```
+
+## Quick Start
+
+```bash
+clother-native                          # Use your Claude Pro/Team subscription
+clother-zai                             # Z.AI (GLM-5)
+clother-ollama --model qwen3-coder      # Local with Ollama
+clother config                          # Configure providers
 ```
 
 ## Providers
