@@ -1,6 +1,6 @@
 <div align="center">
   <img src="docs/logo.png" alt="Clother logo" width="220" /><br/>
-  <strong>Clother</strong>
+  <h3>Clother</h3>
   <p><strong>One CLI to switch between Claude Code providers instantly.</strong></p>
   <p>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" /></a>
@@ -9,7 +9,7 @@
   </p>
 </div>
 
-<br/>
+---
 
 <div align="center">
   <img src="docs/demo-fast.gif" alt="Clother terminal demo" width="900" />
