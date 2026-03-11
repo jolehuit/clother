@@ -223,7 +223,12 @@ macOS (zsh/bash) • Linux (zsh/bash) • Windows (WSL)
 - [@darkokoa](https://github.com/darkokoa) — China endpoints
 - [@RawToast](https://github.com/RawToast) — Kimi endpoint fix
 - [@sammcj](https://github.com/sammcj) — Security hardening
+- [@aprakasa](https://github.com/aprakasa) — Linux compatibility fixes in `load_secrets()`
 - [@luciano-fiandesio](https://github.com/luciano-fiandesio) — Install directory improvement (issue)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jolehuit/clother&type=Date)](https://www.star-history.com/#jolehuit/clother&Date)
 
 ## License
 
