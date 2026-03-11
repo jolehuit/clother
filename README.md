@@ -1,8 +1,6 @@
 <div align="center">
-  <h1>
-    <img src="docs/logo.png" alt="Clother logo" width="220" /><br/>
-    Clother
-  </h1>
+  <img src="docs/logo.png" alt="Clother logo" width="220" /><br/>
+  <strong>Clother</strong>
   <p><strong>One CLI to switch between Claude Code providers instantly.</strong></p>
   <p>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" /></a>
