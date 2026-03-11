@@ -1,13 +1,15 @@
-<h1 align="center">
-  <img src="docs/logo.png" alt="Clother logo" width="220" /><br/>
-  Clother<br/>
-  <sub>One CLI to switch between Claude Code providers instantly.</sub><br/>
-  <sub>
+<div align="center">
+  <img src="docs/logo.png" alt="Clother logo" width="220" />
+  <h1>Clother</h1>
+  <p><strong>One CLI to switch between Claude Code providers instantly.</strong></p>
+  <p>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" /></a>
     <a href="https://www.gnu.org/software/bash/"><img src="https://img.shields.io/badge/Shell-Bash-green.svg" alt="Shell Bash" /></a>
     <a href="#platform-support"><img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-lightgrey.svg" alt="Platform macOS and Linux" /></a>
-  </sub>
-</h1>
+  </p>
+</div>
+
+<br/>
 
 <div align="center">
   <img src="docs/demo-fast.gif" alt="Clother terminal demo" width="900" />
