@@ -35,9 +35,9 @@ clother config                          # Configure providers
 
 ## Demo
 
-<a href="https://asciinema.org/a/iFrphUktoRxkMMH8">
-  <img src="https://asciinema.org/a/iFrphUktoRxkMMH8.svg" alt="Clother terminal demo" width="100%" />
-</a>
+![Clother terminal demo](docs/demo.gif)
+
+Source recording: [`docs/demo.cast`](docs/demo.cast)
 
 ## Providers
 
