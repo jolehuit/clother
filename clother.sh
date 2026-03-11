@@ -265,14 +265,14 @@ load_secrets() {
     error "Secrets file is a symlink - refusing for security"; return 1
   fi
   local perms
-  perms=$(stat -f "%Lp" "$SECRETS_FILE" 2>/dev/null || stat -c "%a" "$SECRETS_FILE" 2>/dev/null || echo "000")
+  perms=$(stat -c "%a" "$SECRETS_FILE" 2>/dev/null || stat -f "%Lp" "$SECRETS_FILE" 2>/dev/null || echo "000")
   if [[ "$perms" != "600" ]]; then
     warn "Fixing secrets file permissions"; chmod 600 "$SECRETS_FILE"
   fi
   # Validate file format before sourcing
   local line_num=0
   while IFS= read -r line || [[ -n "$line" ]]; do
-    ((line_num++))
+    ((++line_num))
     # Skip empty lines and comments
     [[ -z "$line" ]] && continue
     [[ "$line" =~ ^[[:space:]]*# ]] && continue
