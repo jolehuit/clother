@@ -6,6 +6,7 @@
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" /></a>
     <a href="https://go.dev/"><img src="https://img.shields.io/badge/Language-Go-00ADD8.svg" alt="Go" /></a>
     <a href="#platform-support"><img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-lightgrey.svg" alt="Platform macOS and Linux" /></a>
+    <a href="https://github.com/jolehuit/clother/stargazers"><img src="https://img.shields.io/github/stars/jolehuit/clother?style=social" alt="GitHub stars" /></a>
   </p>
 </div>
 
@@ -14,6 +15,11 @@
 <div align="center">
   <img src="docs/demo-fast.gif" alt="Clother terminal demo" width="900" />
 </div>
+
+## Why Clother?
+
+Switching Claude Code providers usually means changing env vars, endpoints, models, and launcher scripts by hand.
+Clother gives you one install, one command family, and consistent provider-aware behavior for launch, resume, and updates.
 
 ## Table of Contents
 
@@ -84,6 +90,14 @@ Clother keeps `claude --resume ...` working with Clother features after install.
 | `clother install` | Install/update Clother |
 | `clother uninstall` | Remove everything |
 
+### Update
+
+```bash
+clother install
+```
+
+This updates Clother in place and refreshes the installed launchers.
+
 ### Changing the Default Model
 
 Each provider launcher comes with a default model (for example `glm-5` for Z.AI). You can override it in two ways:
@@ -131,7 +145,8 @@ single launch, then restores the original session file afterwards.
 
 ### OpenRouter (100+ Models)
 
-Access Grok, Gemini, Mistral and more via [openrouter.ai](https://openrouter.ai).
+OpenRouter launchers follow the `clother-or-<alias>` naming pattern.
+For example, if you alias `moonshotai/kimi-k2.5` to `kimi-k25`, the launcher becomes `clother-or-kimi-k25`.
 
 ```bash
 clother config openrouter               # Set API key + add models
@@ -144,6 +159,9 @@ Popular model IDs:
 | Model ID | Description |
 |----------|-------------|
 | `anthropic/claude-opus-4.6` | Claude Opus 4.6 |
+| `google/gemini-2.5-pro` | Gemini 2.5 Pro |
+| `x-ai/grok-4` | Grok 4 |
+| `mistralai/mistral-large` | Mistral Large |
 | `z-ai/glm-5` | GLM-5 (Z.AI) |
 | `minimax/minimax-m2.5` | MiniMax M2.5 |
 | `moonshotai/kimi-k2.5` | Kimi K2.5 |
@@ -156,12 +174,12 @@ Popular model IDs:
 
 ### China Endpoints
 
-| Command | Endpoint |
-|---------|----------|
-| `clother-zai-cn` | open.bigmodel.cn |
-| `clother-minimax-cn` | api.minimaxi.com |
-| `clother-ve` | ark.cn-beijing.volces.com |
-| `clother-alibaba-cn` | coding.dashscope.aliyuncs.com |
+| Command | Provider | Endpoint |
+|---------|----------|----------|
+| `clother-zai-cn` | Z.AI China | open.bigmodel.cn |
+| `clother-minimax-cn` | MiniMax China | api.minimaxi.com |
+| `clother-ve` | Volcengine | ark.cn-beijing.volces.com |
+| `clother-alibaba-cn` | Alibaba China | coding.dashscope.aliyuncs.com |
 
 ### Local (No API Key)
 
@@ -195,16 +213,16 @@ clother-myprovider                      # Ready
 
 All Alibaba variants (`alibaba`, `alibaba-us`, `alibaba-cn`) share the same API key and support these models:
 
-| Model | Type |
-|-------|------|
-| `qwen3.5-plus` | Text + Vision (default) |
-| `kimi-k2.5` | Text + Vision |
-| `glm-5` | Text |
-| `MiniMax-M2.5` | Text |
-| `qwen3-coder-next` | Code |
-| `qwen3-coder-plus` | Code |
-| `qwen3-max-2026-01-23` | Text |
-| `glm-4.7` | Text |
+| Model |
+|-------|
+| `qwen3.5-plus` (default) |
+| `kimi-k2.5` |
+| `glm-5` |
+| `MiniMax-M2.5` |
+| `qwen3-coder-next` |
+| `qwen3-coder-plus` |
+| `qwen3-max-2026-01-23` |
+| `glm-4.7` |
 
 Switch models with `--model`:
 
@@ -226,7 +244,10 @@ clother-alibaba-cn --model qwen3-coder-next
 
 ## VS Code Integration
 
-To use Clother with the official **Claude Code** extension:
+Clother works with the official **Claude Code** extension.
+Use Claude Code extension `2.6+`.
+
+To configure it:
 
 1. Open VS Code Settings (`Cmd+,` or `Ctrl+,`).
 2. Search for **"Claude Process Wrapper"** (`claudeProcessWrapper`).
