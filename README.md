@@ -96,7 +96,7 @@ clother-zai --model glm-4.7
 clother config zai
 ```
 
-Use `clother info <provider>` to inspect the currently resolved model.
+Use `clother info <provider>` to inspect the resolved model.
 
 ### Resume
 
@@ -245,7 +245,7 @@ macOS (zsh/bash) • Linux (zsh/bash) • Windows (WSL)
 
 ### How It Works
 
-Clother is now a single Go binary. The installer downloads the release artifact,
+Clother is a single Go binary. The installer downloads the release artifact,
 installs `clother` into your bin directory, then creates:
 - `clother-*` symlinks for providers
 - a `claude` shim symlink for resume compatibility
