@@ -26,6 +26,20 @@ clother-ollama --model qwen3-coder      # Local with Ollama
 clother config                          # Configure providers
 ```
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Core Usage](#core-usage)
+- [Provider Reference](#provider-reference)
+- [Troubleshooting](#troubleshooting)
+- [VS Code Integration](#vs-code-integration)
+- [Platform Support](#platform-support)
+- [Maintainer / Dev Notes](#maintainer--dev-notes)
+- [Contributors](#contributors)
+- [Star History](#star-history)
+- [License](#license)
+
 ## Installation
 
 ```bash
@@ -41,21 +55,7 @@ This installs:
 - `clother-*` provider launchers
 - a `claude` shim so `claude --resume ...` can keep working with Clother features
 
-Make sure Clother's bin directory comes before the real Claude binary in your `PATH`.
-
 ### Install Options
-
-From a local checkout:
-
-```bash
-go run ./cmd/clother install
-```
-
-Install a specific release:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/install.sh | CLOTHER_VERSION=v3.0.0 bash
-```
 
 By default, Clother installs launchers to:
 - **macOS**: `~/bin`
@@ -72,8 +72,7 @@ export CLOTHER_BIN="$HOME/.local/bin"
 curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/install.sh | bash
 ```
 
-Make sure the chosen directory is in your `PATH`, and before the real Claude
-binary if you want the `claude` shim to handle `--resume` and `--yolo`.
+Clother installs its `claude` shim in the same bin directory as `clother`.
 
 ## Core Usage
 
