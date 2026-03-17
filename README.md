@@ -23,7 +23,7 @@
 - [Troubleshooting](#troubleshooting)
 - [VS Code Integration](#vs-code-integration)
 - [Platform Support](#platform-support)
-- [Maintainer / Dev Notes](#maintainer--dev-notes)
+- [Under the Hood](#under-the-hood)
 - [Contributors](#contributors)
 - [Star History](#star-history)
 - [License](#license)
@@ -241,7 +241,7 @@ To use Clother with the official **Claude Code** extension:
 
 macOS (zsh/bash) • Linux (zsh/bash) • Windows (WSL)
 
-## Maintainer / Dev Notes
+## Under the Hood
 
 ### How It Works
 
@@ -268,7 +268,7 @@ API keys stored in `~/.local/share/clother/secrets.env` (chmod 600).
 `--yolo` is accepted by Clother launchers and by the Clother `claude` shim as
 shorthand for `--dangerously-skip-permissions`.
 
-### Local Installer Testing
+### Local Release Testing
 
 Test the binary installer locally against a local directory or server:
 
