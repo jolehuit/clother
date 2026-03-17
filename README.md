@@ -19,7 +19,7 @@
 ## Why Clother?
 
 Switching Claude Code providers usually means changing env vars, endpoints, models, and launcher scripts by hand.
-Clother gives you one install, one command family, and consistent provider-aware behavior for launch, resume, and updates.
+Clother gives you one install and one command pattern across Claude, OpenRouter, local backends, China endpoints, and many other Anthropic-compatible providers.
 
 ## Table of Contents
 
