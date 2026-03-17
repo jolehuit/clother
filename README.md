@@ -15,20 +15,8 @@
   <img src="docs/demo-fast.gif" alt="Clother terminal demo" width="900" />
 </div>
 
-## Quick Start
-
-```bash
-clother-native                          # Use your Claude Pro/Max/Team subscription
-clother-zai                             # Z.AI (GLM-5)
-clother-zai --yolo                      # Skip permission prompts
-clother-kimi                            # Kimi (kimi-k2.5)
-clother-ollama --model qwen3-coder      # Local with Ollama
-clother config                          # Configure providers
-```
-
 ## Table of Contents
 
-- [Quick Start](#quick-start)
 - [Installation](#installation)
 - [Core Usage](#core-usage)
 - [Provider Reference](#provider-reference)
@@ -48,12 +36,20 @@ curl -fsSL https://claude.ai/install.sh | bash
 
 # 2. Install Clother
 curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/install.sh | bash
+
+# 3. Start using it
+clother-native                          # Use your Claude Pro/Max/Team subscription
+clother-zai                             # Z.AI (GLM-5)
+clother-zai --yolo                      # Skip permission prompts
+clother-kimi                            # Kimi (kimi-k2.5)
+clother-ollama --model qwen3-coder      # Local with Ollama
+clother config                          # Configure providers
 ```
 
 This installs:
 - `clother`
 - `clother-*` provider launchers
-- a `claude` shim so `claude --resume ...` can keep working with Clother features
+- resume compatibility for `claude --resume ...`
 
 ### Install Options
 
@@ -72,7 +68,7 @@ export CLOTHER_BIN="$HOME/.local/bin"
 curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/install.sh | bash
 ```
 
-Clother installs its `claude` shim in the same bin directory as `clother`.
+Clother keeps `claude --resume ...` working with Clother features after install.
 
 ## Core Usage
 
@@ -102,13 +98,9 @@ clother config zai
 
 Use `clother info <provider>` to inspect the currently resolved model.
 
-> **Tip**: Launchers are symlinks to a single binary now. Do not edit files in `~/bin` directly.
+### Resume
 
-### Resume and Claude Shim
-
-Clother installs a `claude` shim in the same bin directory as `clother`. This
-lets the resume command printed by Claude Code continue to work while still
-passing through Clother's compatibility layer.
+Clother keeps the resume command printed by Claude Code working across providers.
 
 After a provider-launched session, Clother also prints a provider-aware reopen
 command such as:
@@ -120,14 +112,6 @@ clother-kimi --resume <session-id>
 When resuming a non-Claude session into native Claude, Clother temporarily
 sanitizes incompatible non-Claude thinking blocks for the duration of that
 single launch, then restores the original session file afterwards.
-
-If `claude --resume ...` still bypasses Clother, check:
-
-```bash
-command -v claude
-```
-
-It should resolve to Clother's shim in your Clother bin directory.
 
 ## Provider Reference
 
@@ -236,8 +220,8 @@ clother-alibaba-cn --model qwen3-coder-next
 |---------|----------|
 | `claude: command not found` | Install Claude CLI first |
 | `clother: command not found` | Add your bin directory to PATH (see [Installation](#installation)) |
-| `claude --resume ...` still hits the real Claude binary | Put Clother's bin directory before the real Claude binary in PATH |
-| `--yolo` is not recognized | You're probably calling the real Claude binary instead of Clother's launcher or `claude` shim |
+| `claude --resume ...` does not behave like Clother | Restart your shell, then run `clother install` again |
+| `--yolo` is not recognized | Restart your shell, then run `clother install` again |
 | `API key not set` | Run `clother config` |
 
 ## VS Code Integration
