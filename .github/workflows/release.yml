@@ -1,0 +1,25 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test ./...
+      - run: ./scripts/package-release.sh
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/clother_*.tar.gz
+            dist/checksums.txt
+            dist/latest.json

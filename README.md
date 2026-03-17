@@ -4,7 +4,7 @@
   <p><strong>One CLI to switch between Claude Code providers instantly.</strong></p>
   <p>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" /></a>
-    <a href="https://www.gnu.org/software/bash/"><img src="https://img.shields.io/badge/Shell-Bash-green.svg" alt="Shell Bash" /></a>
+    <a href="https://go.dev/"><img src="https://img.shields.io/badge/Language-Go-00ADD8.svg" alt="Go" /></a>
     <a href="#platform-support"><img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-lightgrey.svg" alt="Platform macOS and Linux" /></a>
   </p>
 </div>
@@ -15,6 +15,17 @@
   <img src="docs/demo-fast.gif" alt="Clother terminal demo" width="900" />
 </div>
 
+## Quick Start
+
+```bash
+clother-native                          # Use your Claude Pro/Max/Team subscription
+clother-zai                             # Z.AI (GLM-5)
+clother-zai --yolo                      # Skip permission prompts
+clother-kimi                            # Kimi (kimi-k2.5)
+clother-ollama --model qwen3-coder      # Local with Ollama
+clother config                          # Configure providers
+```
+
 ## Installation
 
 ```bash
@@ -22,20 +33,104 @@
 curl -fsSL https://claude.ai/install.sh | bash
 
 # 2. Install Clother
-curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash
+curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/install.sh | bash
 ```
 
-## Quick Start
+This installs:
+- `clother`
+- `clother-*` provider launchers
+- a `claude` shim so `claude --resume ...` can keep working with Clother features
+
+Make sure Clother's bin directory comes before the real Claude binary in your `PATH`.
+
+### Install Options
+
+From a local checkout:
 
 ```bash
-clother-native                          # Use your Claude Pro/Max/Team subscription
-clother-zai                             # Z.AI (GLM-5)
-clother-kimi                            # Kimi (kimi-k2.5)
-clother-ollama --model qwen3-coder      # Local with Ollama
-clother config                          # Configure providers
+go run ./cmd/clother install
 ```
 
-## Providers
+Install a specific release:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/install.sh | CLOTHER_VERSION=v3.0.0 bash
+```
+
+By default, Clother installs launchers to:
+- **macOS**: `~/bin`
+- **Linux**: `~/.local/bin` (XDG standard)
+
+You can override this with `--bin-dir` or the `CLOTHER_BIN` environment variable:
+
+```bash
+# Using --bin-dir flag
+curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/install.sh | bash -s -- --bin-dir ~/.local/bin
+
+# Using environment variable
+export CLOTHER_BIN="$HOME/.local/bin"
+curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/install.sh | bash
+```
+
+Make sure the chosen directory is in your `PATH`, and before the real Claude
+binary if you want the `claude` shim to handle `--resume` and `--yolo`.
+
+## Core Usage
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `clother config [provider]` | Configure provider |
+| `clother list` | List profiles |
+| `clother info <provider>` | Show provider details |
+| `clother test` | Test connectivity |
+| `clother status` | Installation status |
+| `clother install` | Install/update Clother |
+| `clother uninstall` | Remove everything |
+
+### Changing the Default Model
+
+Each provider launcher comes with a default model (for example `glm-5` for Z.AI). You can override it in two ways:
+
+```bash
+# One-time: pass --model through to Claude CLI
+clother-zai --model glm-4.7
+
+# Permanent: configure the provider and pick a different default
+clother config zai
+```
+
+Use `clother info <provider>` to inspect the currently resolved model.
+
+> **Tip**: Launchers are symlinks to a single binary now. Do not edit files in `~/bin` directly.
+
+### Resume and Claude Shim
+
+Clother installs a `claude` shim in the same bin directory as `clother`. This
+lets the resume command printed by Claude Code continue to work while still
+passing through Clother's compatibility layer.
+
+After a provider-launched session, Clother also prints a provider-aware reopen
+command such as:
+
+```bash
+clother-kimi --resume <session-id>
+```
+
+When resuming a non-Claude session into native Claude, Clother temporarily
+sanitizes incompatible non-Claude thinking blocks for the duration of that
+single launch, then restores the original session file afterwards.
+
+If `claude --resume ...` still bypasses Clother, check:
+
+```bash
+command -v claude
+```
+
+It should resolve to Clother's shim in your Clother bin directory.
+
+## Provider Reference
 
 ### Cloud
 
@@ -57,7 +152,8 @@ Access Grok, Gemini, Mistral and more via [openrouter.ai](https://openrouter.ai)
 
 ```bash
 clother config openrouter               # Set API key + add models
-clother-or-kimi-k2                      # Use it
+# Example: alias moonshotai/kimi-k2.5 as kimi-k25
+clother-or-kimi-k25                     # Use it
 ```
 
 Popular model IDs:
@@ -108,7 +204,7 @@ clother-llamacpp --model <model>
 ### Custom
 
 ```bash
-clother config                          # Choose "custom"
+clother config custom
 clother-myprovider                      # Ready
 ```
 
@@ -135,72 +231,14 @@ clother-alibaba --model glm-5
 clother-alibaba-cn --model qwen3-coder-next
 ```
 
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `clother config [provider]` | Configure provider |
-| `clother list` | List profiles |
-| `clother test` | Test connectivity |
-| `clother status` | Installation status |
-| `clother uninstall` | Remove everything |
-
-## Changing the Default Model
-
-Each provider launcher comes with a default model (e.g. `glm-5` for Z.AI). You can override it in several ways:
-
-```bash
-# One-time: use --model flag
-clother-zai --model glm-4.7
-
-# Permanent: set ANTHROPIC_MODEL in your shell profile (.zshrc / .bashrc)
-export ANTHROPIC_MODEL="glm-4.7"
-clother-zai
-
-# Or edit the launcher directly
-nano ~/bin/clother-zai    # Replace the model name on all relevant lines
-```
-
-> **Tip**: The `--model` flag is passed directly to Claude CLI and takes priority over everything else.
-
-## How It Works
-
-Clother creates launcher scripts that set environment variables:
-
-```bash
-# clother-zai does:
-export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
-export ANTHROPIC_AUTH_TOKEN="$ZAI_API_KEY"
-exec claude "$@"
-```
-
-API keys stored in `~/.local/share/clother/secrets.env` (chmod 600).
-
-## Install Directory
-
-By default, Clother installs launchers to:
-- **macOS**: `~/bin`
-- **Linux**: `~/.local/bin` (XDG standard)
-
-You can override this with `--bin-dir` or the `CLOTHER_BIN` environment variable:
-
-```bash
-# Using --bin-dir flag
-curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash -s -- --bin-dir ~/.local/bin
-
-# Using environment variable
-export CLOTHER_BIN="$HOME/.local/bin"
-curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/clother.sh | bash
-```
-
-Make sure the chosen directory is in your `PATH`.
-
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
 | `claude: command not found` | Install Claude CLI first |
-| `clother: command not found` | Add your bin directory to PATH (see [Install Directory](#install-directory)) |
+| `clother: command not found` | Add your bin directory to PATH (see [Installation](#installation)) |
+| `claude --resume ...` still hits the real Claude binary | Put Clother's bin directory before the real Claude binary in PATH |
+| `--yolo` is not recognized | You're probably calling the real Claude binary instead of Clother's launcher or `claude` shim |
 | `API key not set` | Run `clother config` |
 
 ## VS Code Integration
@@ -219,6 +257,42 @@ To use Clother with the official **Claude Code** extension:
 ## Platform Support
 
 macOS (zsh/bash) • Linux (zsh/bash) • Windows (WSL)
+
+## Maintainer / Dev Notes
+
+### How It Works
+
+Clother is now a single Go binary. The installer downloads the release artifact,
+installs `clother` into your bin directory, then creates:
+- `clother-*` symlinks for providers
+- a `claude` shim symlink for resume compatibility
+
+At runtime, the binary resolves the selected profile from its own invocation
+name, loads config and secrets, sets the required Anthropic-compatible
+environment variables, then launches the real Claude binary outside the Clother
+bin directory.
+
+Example for `clother-zai`:
+
+```bash
+export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$ZAI_API_KEY"
+exec /path/to/the/real/claude "$@"
+```
+
+API keys stored in `~/.local/share/clother/secrets.env` (chmod 600).
+
+`--yolo` is accepted by Clother launchers and by the Clother `claude` shim as
+shorthand for `--dangerously-skip-permissions`.
+
+### Local Installer Testing
+
+Test the binary installer locally against a local directory or server:
+
+```bash
+CLOTHER_RELEASE_BASE_URL=http://127.0.0.1:8000 \
+  ./scripts/install.sh install
+```
 
 ## Contributors
 

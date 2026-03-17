@@ -1,0 +1,420 @@
+{
+  "providers": [
+    {
+      "id": "native",
+      "display_name": "Anthropic",
+      "description": "Native Anthropic",
+      "category": "native",
+      "family": "claude_strict",
+      "auth_mode": "none",
+      "base_url": "",
+      "default_model": "",
+      "model_tiers": {},
+      "model_choices": [],
+      "test_url": "https://api.anthropic.com",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "zai",
+      "display_name": "Z.AI",
+      "description": "Z.AI International",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "ZAI_API_KEY",
+      "base_url": "https://api.z.ai/api/anthropic",
+      "default_model": "glm-5",
+      "model_tiers": {
+        "haiku": "glm-5",
+        "sonnet": "glm-5",
+        "opus": "glm-5"
+      },
+      "model_choices": [
+        {
+          "id": "glm-5",
+          "description": "GLM-5"
+        },
+        {
+          "id": "glm-4.7",
+          "description": "GLM-4.7"
+        }
+      ],
+      "test_url": "https://api.z.ai/api/anthropic",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "zai-cn",
+      "display_name": "Z.AI China",
+      "description": "Z.AI China",
+      "category": "china",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "ZAI_CN_API_KEY",
+      "base_url": "https://open.bigmodel.cn/api/anthropic",
+      "default_model": "glm-5",
+      "model_tiers": {
+        "haiku": "glm-5",
+        "sonnet": "glm-5",
+        "opus": "glm-5"
+      },
+      "model_choices": [
+        {
+          "id": "glm-5",
+          "description": "GLM-5"
+        },
+        {
+          "id": "glm-4.7",
+          "description": "GLM-4.7"
+        }
+      ],
+      "test_url": "https://open.bigmodel.cn/api/anthropic",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "minimax",
+      "display_name": "MiniMax",
+      "description": "MiniMax International",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "MINIMAX_API_KEY",
+      "base_url": "https://api.minimax.io/anthropic",
+      "default_model": "MiniMax-M2.5",
+      "model_tiers": {},
+      "model_choices": [],
+      "test_url": "https://api.minimax.io/anthropic",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "minimax-cn",
+      "display_name": "MiniMax China",
+      "description": "MiniMax China",
+      "category": "china",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "MINIMAX_CN_API_KEY",
+      "base_url": "https://api.minimaxi.com/anthropic",
+      "default_model": "MiniMax-M2.5",
+      "model_tiers": {},
+      "model_choices": [],
+      "test_url": "https://api.minimaxi.com/anthropic",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "kimi",
+      "display_name": "Kimi K2",
+      "description": "Kimi K2",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "KIMI_API_KEY",
+      "base_url": "https://api.kimi.com/coding/",
+      "default_model": "kimi-k2.5",
+      "model_tiers": {
+        "small": "kimi-k2.5"
+      },
+      "model_choices": [],
+      "test_url": "https://api.kimi.com/coding/",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "moonshot",
+      "display_name": "Moonshot AI",
+      "description": "Moonshot AI",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "MOONSHOT_API_KEY",
+      "base_url": "https://api.moonshot.ai/anthropic",
+      "default_model": "kimi-k2.5",
+      "model_tiers": {},
+      "model_choices": [],
+      "test_url": "https://api.moonshot.ai/anthropic",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "ve",
+      "display_name": "VolcEngine",
+      "description": "VolcEngine",
+      "category": "china",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "ARK_API_KEY",
+      "base_url": "https://ark.cn-beijing.volces.com/api/coding",
+      "default_model": "doubao-seed-code-preview-latest",
+      "model_tiers": {},
+      "model_choices": [],
+      "test_url": "https://ark.cn-beijing.volces.com/api/coding",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "deepseek",
+      "display_name": "DeepSeek",
+      "description": "DeepSeek",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "DEEPSEEK_API_KEY",
+      "base_url": "https://api.deepseek.com/anthropic",
+      "default_model": "deepseek-chat",
+      "model_tiers": {
+        "small": "deepseek-chat"
+      },
+      "model_choices": [],
+      "test_url": "https://api.deepseek.com/anthropic",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "mimo",
+      "display_name": "Xiaomi MiMo",
+      "description": "Xiaomi MiMo",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "MIMO_API_KEY",
+      "base_url": "https://api.xiaomimimo.com/anthropic",
+      "default_model": "mimo-v2-flash",
+      "model_tiers": {
+        "haiku": "mimo-v2-flash",
+        "sonnet": "mimo-v2-flash",
+        "opus": "mimo-v2-flash"
+      },
+      "model_choices": [],
+      "test_url": "https://api.xiaomimimo.com/anthropic",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "alibaba",
+      "display_name": "Alibaba Coding Plan (Singapore)",
+      "description": "Alibaba Coding Plan (Singapore)",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "ALIBABA_API_KEY",
+      "base_url": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic",
+      "default_model": "qwen3.5-plus",
+      "model_tiers": {
+        "haiku": "qwen3-coder-flash",
+        "sonnet": "qwen3.5-plus",
+        "opus": "qwen3.5-plus"
+      },
+      "model_choices": [
+        {
+          "id": "qwen3.5-plus",
+          "description": "Qwen 3.5 Plus"
+        },
+        {
+          "id": "kimi-k2.5",
+          "description": "Kimi K2.5"
+        },
+        {
+          "id": "glm-5",
+          "description": "GLM-5"
+        },
+        {
+          "id": "MiniMax-M2.5",
+          "description": "MiniMax M2.5"
+        },
+        {
+          "id": "qwen3-coder-next",
+          "description": "Qwen3 Coder Next"
+        },
+        {
+          "id": "qwen3-coder-plus",
+          "description": "Qwen3 Coder Plus"
+        },
+        {
+          "id": "qwen3-max-2026-01-23",
+          "description": "Qwen3 Max"
+        },
+        {
+          "id": "glm-4.7",
+          "description": "GLM-4.7"
+        }
+      ],
+      "test_url": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "alibaba-us",
+      "display_name": "Alibaba Coding Plan (US)",
+      "description": "Alibaba Coding Plan (US)",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "ALIBABA_API_KEY",
+      "base_url": "https://coding-us.dashscope.aliyuncs.com/apps/anthropic",
+      "default_model": "qwen3.5-plus",
+      "model_tiers": {
+        "haiku": "qwen3-coder-flash",
+        "sonnet": "qwen3.5-plus",
+        "opus": "qwen3.5-plus"
+      },
+      "model_choices": [
+        {
+          "id": "qwen3.5-plus",
+          "description": "Qwen 3.5 Plus"
+        },
+        {
+          "id": "kimi-k2.5",
+          "description": "Kimi K2.5"
+        },
+        {
+          "id": "glm-5",
+          "description": "GLM-5"
+        },
+        {
+          "id": "MiniMax-M2.5",
+          "description": "MiniMax M2.5"
+        },
+        {
+          "id": "qwen3-coder-next",
+          "description": "Qwen3 Coder Next"
+        },
+        {
+          "id": "qwen3-coder-plus",
+          "description": "Qwen3 Coder Plus"
+        },
+        {
+          "id": "qwen3-max-2026-01-23",
+          "description": "Qwen3 Max"
+        },
+        {
+          "id": "glm-4.7",
+          "description": "GLM-4.7"
+        }
+      ],
+      "test_url": "https://coding-us.dashscope.aliyuncs.com/apps/anthropic",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "alibaba-cn",
+      "display_name": "Alibaba Coding Plan (China)",
+      "description": "Alibaba Coding Plan (China)",
+      "category": "china",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "ALIBABA_API_KEY",
+      "base_url": "https://coding.dashscope.aliyuncs.com/apps/anthropic",
+      "default_model": "qwen3.5-plus",
+      "model_tiers": {
+        "haiku": "qwen3-coder-flash",
+        "sonnet": "qwen3.5-plus",
+        "opus": "qwen3.5-plus"
+      },
+      "model_choices": [
+        {
+          "id": "qwen3.5-plus",
+          "description": "Qwen 3.5 Plus"
+        },
+        {
+          "id": "kimi-k2.5",
+          "description": "Kimi K2.5"
+        },
+        {
+          "id": "glm-5",
+          "description": "GLM-5"
+        },
+        {
+          "id": "MiniMax-M2.5",
+          "description": "MiniMax M2.5"
+        },
+        {
+          "id": "qwen3-coder-next",
+          "description": "Qwen3 Coder Next"
+        },
+        {
+          "id": "qwen3-coder-plus",
+          "description": "Qwen3 Coder Plus"
+        },
+        {
+          "id": "qwen3-max-2026-01-23",
+          "description": "Qwen3 Max"
+        },
+        {
+          "id": "glm-4.7",
+          "description": "GLM-4.7"
+        }
+      ],
+      "test_url": "https://coding.dashscope.aliyuncs.com/apps/anthropic",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "ollama",
+      "display_name": "Ollama",
+      "description": "Ollama (Local)",
+      "category": "local",
+      "family": "local",
+      "auth_mode": "literal",
+      "literal_auth_token": "ollama",
+      "base_url": "http://localhost:11434",
+      "default_model": "",
+      "model_tiers": {},
+      "model_choices": [],
+      "test_url": "http://localhost:11434",
+      "setup": [
+        "Install Ollama: https://ollama.com",
+        "Pull a model: ollama pull qwen3-coder",
+        "Start serving: ollama serve"
+      ],
+      "usage": [
+        "clother-ollama --model qwen3-coder"
+      ]
+    },
+    {
+      "id": "lmstudio",
+      "display_name": "LM Studio",
+      "description": "LM Studio (Local)",
+      "category": "local",
+      "family": "local",
+      "auth_mode": "literal",
+      "literal_auth_token": "lmstudio",
+      "base_url": "http://localhost:1234",
+      "default_model": "",
+      "model_tiers": {},
+      "model_choices": [],
+      "test_url": "http://localhost:1234",
+      "setup": [
+        "Install LM Studio: https://lmstudio.ai/download",
+        "Load a model in the app",
+        "Start the server on port 1234"
+      ],
+      "usage": [
+        "clother-lmstudio --model <model-name>"
+      ]
+    },
+    {
+      "id": "llamacpp",
+      "display_name": "llama.cpp",
+      "description": "llama.cpp (Local)",
+      "category": "local",
+      "family": "local",
+      "auth_mode": "none",
+      "base_url": "http://localhost:8000",
+      "default_model": "",
+      "model_tiers": {},
+      "model_choices": [],
+      "test_url": "http://localhost:8000",
+      "setup": [
+        "Build llama.cpp: https://github.com/ggml-org/llama.cpp",
+        "Start the server: ./llama-server --model <model.gguf> --port 8000 --jinja"
+      ],
+      "usage": [
+        "clother-llamacpp --model <model-name>"
+      ]
+    }
+  ]
+}
