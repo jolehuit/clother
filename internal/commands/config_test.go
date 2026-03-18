@@ -31,12 +31,12 @@ func TestResolveModelChoiceKeepsCustomModelID(t *testing.T) {
 	t.Parallel()
 
 	choices := []providers.ModelChoice{
+		{ID: "MiniMax-M2.7"},
 		{ID: "MiniMax-M2.5"},
-		{ID: "MiniMax-M2.5-highspeed"},
 	}
 
-	if got := resolveModelChoice("MiniMax-M2.7", choices); got != "MiniMax-M2.7" {
-		t.Fatalf("resolveModelChoice(MiniMax-M2.7) = %q, want MiniMax-M2.7", got)
+	if got := resolveModelChoice("MiniMax-M2.7-pro", choices); got != "MiniMax-M2.7-pro" {
+		t.Fatalf("resolveModelChoice(MiniMax-M2.7-pro) = %q, want MiniMax-M2.7-pro", got)
 	}
 }
 
@@ -67,7 +67,7 @@ func TestConfigBuiltinAllowsModelOverrideWithoutCatalogChoices(t *testing.T) {
 	provider := providers.Provider{
 		ID:           "minimax",
 		DisplayName:  "MiniMax",
-		DefaultModel: "MiniMax-M2.5",
+		DefaultModel: "MiniMax-M2.7",
 	}
 
 	ctx := Context{
@@ -76,7 +76,7 @@ func TestConfigBuiltinAllowsModelOverrideWithoutCatalogChoices(t *testing.T) {
 		Secrets: config.Secrets{},
 		Catalog: catalog,
 		Output:  &ui.Output{Stdout: io.Discard, Stderr: io.Discard, Format: ui.FormatHuman},
-		Prompt:  ui.NewPrompter(strings.NewReader("MiniMax-M2.7\n"), io.Discard),
+		Prompt:  ui.NewPrompter(strings.NewReader("MiniMax-M2.7-pro\n"), io.Discard),
 	}
 
 	code, err := configBuiltin(ctx, provider)
@@ -86,7 +86,7 @@ func TestConfigBuiltinAllowsModelOverrideWithoutCatalogChoices(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("configBuiltin() code = %d, want 0", code)
 	}
-	if got := cfg.ProviderOverrides["minimax"].Model; got != "MiniMax-M2.7" {
-		t.Fatalf("override model = %q, want MiniMax-M2.7", got)
+	if got := cfg.ProviderOverrides["minimax"].Model; got != "MiniMax-M2.7-pro" {
+		t.Fatalf("override model = %q, want MiniMax-M2.7-pro", got)
 	}
 }

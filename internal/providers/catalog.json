@@ -82,9 +82,18 @@
       "auth_mode": "secret",
       "key_var": "MINIMAX_API_KEY",
       "base_url": "https://api.minimax.io/anthropic",
-      "default_model": "MiniMax-M2.5",
-      "model_tiers": {},
+      "default_model": "MiniMax-M2.7",
+      "model_tiers": {
+        "haiku": "MiniMax-M2.7",
+        "sonnet": "MiniMax-M2.7",
+        "opus": "MiniMax-M2.7",
+        "small": "MiniMax-M2.7"
+      },
       "model_choices": [
+        {
+          "id": "MiniMax-M2.7",
+          "description": "MiniMax M2.7"
+        },
         {
           "id": "MiniMax-M2.5",
           "description": "MiniMax M2.5"
@@ -119,9 +128,18 @@
       "auth_mode": "secret",
       "key_var": "MINIMAX_CN_API_KEY",
       "base_url": "https://api.minimaxi.com/anthropic",
-      "default_model": "MiniMax-M2.5",
-      "model_tiers": {},
+      "default_model": "MiniMax-M2.7",
+      "model_tiers": {
+        "haiku": "MiniMax-M2.7",
+        "sonnet": "MiniMax-M2.7",
+        "opus": "MiniMax-M2.7",
+        "small": "MiniMax-M2.7"
+      },
       "model_choices": [
+        {
+          "id": "MiniMax-M2.7",
+          "description": "MiniMax M2.7"
+        },
         {
           "id": "MiniMax-M2.5",
           "description": "MiniMax M2.5"
