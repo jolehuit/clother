@@ -84,7 +84,28 @@
       "base_url": "https://api.minimax.io/anthropic",
       "default_model": "MiniMax-M2.5",
       "model_tiers": {},
-      "model_choices": [],
+      "model_choices": [
+        {
+          "id": "MiniMax-M2.5",
+          "description": "MiniMax M2.5"
+        },
+        {
+          "id": "MiniMax-M2.5-highspeed",
+          "description": "MiniMax M2.5 Highspeed"
+        },
+        {
+          "id": "MiniMax-M2.1",
+          "description": "MiniMax M2.1"
+        },
+        {
+          "id": "MiniMax-M2.1-highspeed",
+          "description": "MiniMax M2.1 Highspeed"
+        },
+        {
+          "id": "MiniMax-M2",
+          "description": "MiniMax M2"
+        }
+      ],
       "test_url": "https://api.minimax.io/anthropic",
       "setup": [],
       "usage": []
@@ -100,7 +121,28 @@
       "base_url": "https://api.minimaxi.com/anthropic",
       "default_model": "MiniMax-M2.5",
       "model_tiers": {},
-      "model_choices": [],
+      "model_choices": [
+        {
+          "id": "MiniMax-M2.5",
+          "description": "MiniMax M2.5"
+        },
+        {
+          "id": "MiniMax-M2.5-highspeed",
+          "description": "MiniMax M2.5 Highspeed"
+        },
+        {
+          "id": "MiniMax-M2.1",
+          "description": "MiniMax M2.1"
+        },
+        {
+          "id": "MiniMax-M2.1-highspeed",
+          "description": "MiniMax M2.1 Highspeed"
+        },
+        {
+          "id": "MiniMax-M2",
+          "description": "MiniMax M2"
+        }
+      ],
       "test_url": "https://api.minimaxi.com/anthropic",
       "setup": [],
       "usage": []

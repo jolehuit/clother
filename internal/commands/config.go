@@ -91,7 +91,7 @@ func configBuiltin(c Context, provider providers.Provider) (int, error) {
 		}
 	}
 
-	if len(provider.ModelChoices) > 0 {
+	if provider.DefaultModel != "" {
 		fmt.Fprintln(c.Output.Stdout, "Choose model:")
 		for idx, choice := range provider.ModelChoices {
 			fmt.Fprintf(c.Output.Stdout, "  %d. %-24s %s\n", idx+1, choice.ID, choice.Description)
