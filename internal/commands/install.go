@@ -9,9 +9,21 @@ import (
 	"github.com/jolehuit/clother/internal/config"
 	"github.com/jolehuit/clother/internal/launchers"
 	"github.com/jolehuit/clother/internal/runtime"
+	"github.com/jolehuit/clother/internal/update"
+	"github.com/jolehuit/clother/internal/version"
 )
 
-func runInstall(_ context.Context, c Context) (int, error) {
+var downloadLatestBinary = update.DownloadLatestIfNewer
+
+func runInstall(ctx context.Context, c Context) (int, error) {
+	execPath, installedVersion, cleanup, err := resolveInstallBinary(ctx)
+	if cleanup != nil {
+		defer cleanup()
+	}
+	if err != nil {
+		c.Output.Warn("could not fetch latest release; installing current binary instead: %v", err)
+	}
+
 	realClaude, err := runtime.FindRealClaude(c.Paths)
 	if err != nil {
 		return 1, errors.New("claude command not found; install Claude Code first")
@@ -29,10 +41,6 @@ func runInstall(_ context.Context, c Context) (int, error) {
 	if err := config.SaveSecrets(c.Paths.SecretsFile, c.Secrets); err != nil {
 		return 1, err
 	}
-	execPath, err := os.Executable()
-	if err != nil {
-		return 1, err
-	}
 	if err := launchers.Sync(execPath, c.Paths, c.Catalog, c.Config); err != nil {
 		return 1, err
 	}
@@ -42,6 +50,24 @@ func runInstall(_ context.Context, c Context) (int, error) {
 	} {
 		_ = os.Remove(legacy)
 	}
-	c.Output.Success("installed Clother to %s", c.Paths.BinDir)
+	c.Output.Success("installed Clother %s to %s", installedVersion, c.Paths.BinDir)
 	return 0, nil
+}
+
+func resolveInstallBinary(ctx context.Context) (string, string, func(), error) {
+	if path, latest, cleanup, err := downloadLatestBinary(ctx, version.Value); err == nil && path != "" {
+		return path, latest, cleanup, nil
+	} else if err != nil {
+		current, currentErr := os.Executable()
+		if currentErr != nil {
+			return "", "", nil, currentErr
+		}
+		return current, update.DisplayVersion(version.Value), nil, err
+	}
+
+	current, err := os.Executable()
+	if err != nil {
+		return "", "", nil, err
+	}
+	return current, update.DisplayVersion(version.Value), nil, nil
 }

@@ -208,6 +208,10 @@ func displayVersion(version string) string {
 	return "v" + version
 }
 
+func DisplayVersion(version string) string {
+	return displayVersion(version)
+}
+
 func normalizeVersion(version string) string {
 	version = strings.TrimSpace(version)
 	version = strings.TrimPrefix(strings.ToLower(version), "v")
