@@ -72,23 +72,6 @@ func Run(ctx context.Context, args []string, argv0 string) (int, error) {
 	}
 
 	if profile, isLauncher := profiles.Invocation(argv0); isLauncher {
-		// Gateway invocations: clother-or <alias> and clother-custom <name>
-		// let the user invoke any dynamic provider without a dedicated symlink.
-		if profile == "or" {
-			if len(args) == 0 || strings.HasPrefix(args[0], "-") {
-				fmt.Fprintln(os.Stderr, "usage: clother-or <alias> [args...]\n\nRun `clother config openrouter` to configure aliases.")
-				return 1, nil
-			}
-			profile = "or-" + args[0]
-			args = args[1:]
-		} else if profile == "custom" {
-			if len(args) == 0 || strings.HasPrefix(args[0], "-") {
-				fmt.Fprintln(os.Stderr, "usage: clother-custom <provider-name> [args...]\n\nRun `clother config custom` to configure a custom provider.")
-				return 1, nil
-			}
-			profile = args[0]
-			args = args[1:]
-		}
 		launcherOptions, forwarded := cli.ParseLauncher(args)
 		paths, err := config.Detect("")
 		if err != nil {
@@ -108,6 +91,30 @@ func Run(ctx context.Context, args []string, argv0 string) (int, error) {
 		}
 		cfg.ApplyLegacySecrets(secrets, catalog)
 		cfg.Normalize(catalog)
+
+		// Gateway invocations: clother-or <alias> and clother-custom <name>
+		// let the user invoke any dynamic provider without a dedicated symlink.
+		// Config is loaded first so we can validate the name against known providers.
+		if profile == "or" {
+			if len(forwarded) == 0 || strings.HasPrefix(forwarded[0], "-") {
+				fmt.Fprintln(os.Stderr, "usage: clother-or <alias> [args...]\n\nRun `clother config openrouter` to configure aliases.")
+				return 1, nil
+			}
+			profile = "or-" + forwarded[0]
+			forwarded = forwarded[1:]
+		} else if profile == "custom" {
+			if len(forwarded) == 0 || strings.HasPrefix(forwarded[0], "-") {
+				fmt.Fprintln(os.Stderr, "usage: clother-custom <provider-name> [args...]\n\nRun `clother config custom` to configure a custom provider.")
+				return 1, nil
+			}
+			name := forwarded[0]
+			if _, ok := cfg.CustomProviders[name]; !ok {
+				return 1, fmt.Errorf("unknown custom provider %q — run `clother config custom` to configure one", name)
+			}
+			profile = name
+			forwarded = forwarded[1:]
+		}
+
 		target, err := profiles.Resolve(profile, catalog, cfg)
 		if err != nil {
 			return 1, err

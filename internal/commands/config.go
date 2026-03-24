@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	validName = regexp.MustCompile(`^[a-z0-9_-]+$`)
+	validName = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)
 )
 
 func runConfig(_ context.Context, c Context, args []string) (int, error) {
@@ -155,26 +155,60 @@ func configCustom(c Context) (int, error) {
 	if !validName.MatchString(name) {
 		return 1, fmt.Errorf("invalid provider name %q", name)
 	}
-	baseURL, err := c.Prompt.Prompt("Base URL", "")
+
+	existing := c.Config.CustomProviders[name]
+
+	urlLabel := "Base URL"
+	if existing.BaseURL != "" {
+		fmt.Fprintf(c.Output.Stdout, "Current URL: %s\n", existing.BaseURL)
+		urlLabel = "Base URL (empty to keep current)"
+	}
+	baseURL, err := c.Prompt.Prompt(urlLabel, "")
 	if err != nil {
 		return 1, err
 	}
-	defaultModel, err := c.Prompt.Prompt("Default model (optional)", "")
+	baseURL = strings.TrimSpace(baseURL)
+	if baseURL == "" {
+		baseURL = existing.BaseURL
+	}
+	if baseURL == "" {
+		return 1, fmt.Errorf("base URL is required")
+	}
+
+	modelLabel := "Default model (optional)"
+	if existing.DefaultModel != "" {
+		modelLabel = fmt.Sprintf("Default model (empty to keep %q)", existing.DefaultModel)
+	}
+	defaultModel, err := c.Prompt.Prompt(modelLabel, "")
 	if err != nil {
 		return 1, err
 	}
-	apiKey, err := c.Prompt.PromptSecret("API key")
-	if err != nil {
-		return 1, err
+	defaultModel = strings.TrimSpace(defaultModel)
+	if defaultModel == "" {
+		defaultModel = existing.DefaultModel
 	}
+
 	keyVar := strings.ToUpper(strings.ReplaceAll(name, "-", "_")) + "_API_KEY"
-	c.Secrets[keyVar] = apiKey
+	current := c.Secrets[keyVar]
+	keyLabel := "API key"
+	if current != "" {
+		fmt.Fprintf(c.Output.Stdout, "Current key: %s\n", config.MaskSecret(current))
+		keyLabel = "API key (empty to keep current)"
+	}
+	apiKey, err := c.Prompt.PromptSecret(keyLabel)
+	if err != nil {
+		return 1, err
+	}
+	if strings.TrimSpace(apiKey) != "" {
+		c.Secrets[keyVar] = apiKey
+	}
+
 	c.Config.CustomProviders[name] = config.CustomProvider{
 		Name:         name,
 		DisplayName:  name,
 		BaseURL:      baseURL,
 		APIKeyEnv:    keyVar,
-		DefaultModel: strings.TrimSpace(defaultModel),
+		DefaultModel: defaultModel,
 	}
 	return persistConfig(c)
 }

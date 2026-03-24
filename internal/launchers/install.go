@@ -51,8 +51,9 @@ func Sync(execPath string, paths config.Paths, catalog providers.Catalog, cfg *c
 		}
 		desired[launcherName(target.Profile)] = struct{}{}
 	}
-	// Always create gateway symlinks so clother-or <alias> and
-	// clother-custom <name> work regardless of install method.
+	// Always create gateway symlinks regardless of install method or whether
+	// any dynamic providers are configured. The isDynamicProfile skip above
+	// only applies to per-alias/per-provider symlinks, never to these gateways.
 	desired["clother-or"] = struct{}{}
 	desired["clother-custom"] = struct{}{}
 
@@ -113,6 +114,9 @@ func launcherName(profile string) string {
 func isDynamicProfile(profile string, cfg *config.File) bool {
 	if strings.HasPrefix(profile, "or-") {
 		return true
+	}
+	if cfg == nil {
+		return false
 	}
 	_, isCustom := cfg.CustomProviders[profile]
 	return isCustom

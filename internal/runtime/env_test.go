@@ -42,6 +42,30 @@ func TestBuildEnvForOpenRouter(t *testing.T) {
 	}
 }
 
+func TestBuildEnvCustomProviderClearsAPIKey(t *testing.T) {
+	t.Parallel()
+
+	target := profiles.Target{
+		Profile:   "myprovider",
+		Family:    providers.FamilyCustomUnknown,
+		BaseURL:   "https://api.example.com/anthropic",
+		AuthMode:  providers.AuthSecret,
+		SecretKey: "MYPROVIDER_API_KEY",
+	}
+
+	env, err := BuildEnv(target, config.Secrets{"MYPROVIDER_API_KEY": "sk-custom"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := envToMap(env)
+	if got["ANTHROPIC_AUTH_TOKEN"] != "sk-custom" {
+		t.Fatalf("ANTHROPIC_AUTH_TOKEN = %q, want sk-custom", got["ANTHROPIC_AUTH_TOKEN"])
+	}
+	if v, ok := got["ANTHROPIC_API_KEY"]; !ok || v != "" {
+		t.Fatalf("ANTHROPIC_API_KEY should be cleared for custom providers, got %q (present=%v)", v, ok)
+	}
+}
+
 func TestBuildEnvFailsWhenSecretMissing(t *testing.T) {
 	t.Parallel()
 
