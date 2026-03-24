@@ -25,6 +25,13 @@ type RunOptions struct {
 
 func Launch(ctx context.Context, paths config.Paths, target profiles.Target, args []string, env []string, options RunOptions) (int, error) {
 	args = NormalizeClaudeArgs(args)
+	var cleanup func()
+	var err error
+	env, cleanup, err = PrepareClaudeConfigOverlay(target, args, env)
+	if err != nil {
+		return 1, err
+	}
+	defer cleanup()
 	if isTTY(os.Stderr) {
 		if message, err := update.MaybeMessage(paths, version.Value, time.Now()); err == nil && message != "" {
 			fmt.Fprintln(os.Stderr, message)
