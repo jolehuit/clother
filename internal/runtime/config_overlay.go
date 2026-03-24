@@ -59,6 +59,10 @@ func PrepareClaudeConfigOverlay(target profiles.Target, args []string, env []str
 		cleanup()
 		return nil, nil, err
 	}
+	if err := mirrorClaudeStateFile(sourceDir, overlayDir); err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	if err := writePatchedClaudeSettings(sourceDir, overlayDir, sessionModel, claudeEnv); err != nil {
 		cleanup()
 		return nil, nil, err
@@ -132,6 +136,16 @@ func mirrorClaudeConfigDir(sourceDir, overlayDir string) error {
 		}
 	}
 	return nil
+}
+
+func mirrorClaudeStateFile(sourceDir, overlayDir string) error {
+	statePath := filepath.Join(filepath.Dir(sourceDir), ".claude.json")
+	if _, err := os.Stat(statePath); os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	return os.Symlink(statePath, filepath.Join(overlayDir, ".claude.json"))
 }
 
 func writePatchedClaudeSettings(sourceDir, overlayDir, sessionModel string, envMap map[string]string) error {

@@ -25,6 +25,9 @@ func TestPrepareClaudeConfigOverlayMirrorsConfigAndPinsModel(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(claudeDir, "teams", "marker.txt"), []byte("ok"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	if err := os.WriteFile(filepath.Join(home, ".claude.json"), []byte("{\"theme\":\"light\"}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
 
 	target := profiles.Target{
 		Family: providers.FamilyAnthropicCompatibleNonClaude,
@@ -81,6 +84,14 @@ func TestPrepareClaudeConfigOverlayMirrorsConfigAndPinsModel(t *testing.T) {
 	}
 	if info.Mode()&os.ModeSymlink == 0 {
 		t.Fatalf("expected %s to be a symlink", markerPath)
+	}
+	statePath := filepath.Join(overlayDir, ".claude.json")
+	stateInfo, err := os.Lstat(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stateInfo.Mode()&os.ModeSymlink == 0 {
+		t.Fatalf("expected %s to be a symlink", statePath)
 	}
 
 	cleanup()
