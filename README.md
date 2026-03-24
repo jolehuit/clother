@@ -36,6 +36,38 @@ Clother gives you one install and one command pattern across Claude, Z.AI, Kimi,
 
 ## Installation
 
+### Homebrew (macOS recommended)
+
+```bash
+# 1. Install Claude Code CLI
+curl -fsSL https://claude.ai/install.sh | bash
+
+# 2. Install Clother via tap
+brew tap jolehuit/tap
+brew install clother
+
+# 3. Create provider symlinks
+clother install
+
+# 4. Start using it
+clother-native                          # Use your Claude Pro/Max/Team subscription
+clother-zai                             # Z.AI (GLM-5)
+clother-zai --yolo                      # Skip permission prompts
+clother-kimi                            # Kimi (kimi-k2.5)
+clother config                          # Configure providers
+```
+
+`clother install` creates the `clother-*` provider launchers in `~/bin`. Symlinks point directly to the Homebrew-managed binary, so `brew upgrade clother` propagates to all launchers automatically.
+
+**Update:**
+```bash
+clother update          # routes to brew upgrade under Homebrew
+# or equivalently:
+brew upgrade clother
+```
+
+### curl (macOS / Linux)
+
 ```bash
 # 1. Install Claude Code CLI
 curl -fsSL https://claude.ai/install.sh | bash
@@ -50,6 +82,11 @@ clother-zai --yolo                      # Skip permission prompts
 clother-kimi                            # Kimi (kimi-k2.5)
 clother-ollama --model qwen3-coder      # Local with Ollama
 clother config                          # Configure providers
+```
+
+**Update:**
+```bash
+clother update          # downloads and installs latest release
 ```
 
 This installs:
@@ -87,16 +124,17 @@ Clother keeps `claude --resume ...` working with Clother features after install.
 | `clother info <provider>` | Show provider details |
 | `clother test` | Test connectivity |
 | `clother status` | Installation status |
-| `clother install` | Install/update Clother |
+| `clother install` | Install/update Clother (create/refresh symlinks) |
+| `clother update` | Update to latest version |
 | `clother uninstall` | Remove everything |
 
 ### Update
 
 ```bash
-clother install
+clother update
 ```
 
-This updates Clother in place and refreshes the installed launchers.
+Routes to `brew upgrade clother` under Homebrew, or downloads the latest release for curl installs. Also refreshes provider symlinks.
 
 ### Changing the Default Model
 
@@ -139,7 +177,7 @@ single launch, then restores the original session file afterwards.
 | `clother-kimi` | Kimi | kimi-k2.5 | [kimi.com](https://kimi.com) |
 | `clother-moonshot` | Moonshot AI | kimi-k2.5 | [moonshot.ai](https://moonshot.ai) |
 | `clother-deepseek` | DeepSeek | deepseek-chat | [deepseek.com](https://platform.deepseek.com) |
-| `clother-mimo` | Xiaomi MiMo | mimo-v2-flash | [xiaomimimo.com](https://platform.xiaomimimo.com) |
+| `clother-mimo` | Xiaomi MiMo | mimo-v2-pro | [xiaomimimo.com](https://platform.xiaomimimo.com) |
 | `clother-alibaba` | Alibaba Coding Plan | qwen3.5-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
 | `clother-alibaba-us` | Alibaba Coding Plan (US) | qwen3.5-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
 
