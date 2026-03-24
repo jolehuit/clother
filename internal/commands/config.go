@@ -11,6 +11,7 @@ import (
 	"github.com/jolehuit/clother/internal/config"
 	"github.com/jolehuit/clother/internal/launchers"
 	"github.com/jolehuit/clother/internal/providers"
+	"github.com/jolehuit/clother/internal/runtime"
 )
 
 var (
@@ -182,11 +183,11 @@ func persistConfig(c Context) (int, error) {
 	if err := config.SaveSecrets(c.Paths.SecretsFile, c.Secrets); err != nil {
 		return 1, err
 	}
-	execPath, err := os.Executable()
-	if err != nil {
-		return 1, err
+	execPath, execErr := os.Executable()
+	if execErr != nil {
+		return 1, execErr
 	}
-	if err := launchers.Sync(execPath, c.Paths, c.Catalog, c.Config); err != nil {
+	if err := launchers.Sync(execPath, c.Paths, c.Catalog, c.Config, runtime.IsHomebrew()); err != nil {
 		return 1, err
 	}
 	c.Output.Success("configuration saved")

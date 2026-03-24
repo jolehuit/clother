@@ -16,7 +16,7 @@ import (
 
 func RunClaudeShim(ctx context.Context, paths config.Paths, args []string) (int, error) {
 	args = NormalizeClaudeArgs(args)
-	if isTTY(os.Stderr) {
+	if isTTY(os.Stderr) && !IsHomebrew() {
 		if message, err := update.MaybeMessage(paths, version.Value, time.Now()); err == nil && message != "" {
 			fmt.Fprintln(os.Stderr, message)
 		}

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"os"
 	"path/filepath"
 
@@ -16,17 +15,35 @@ import (
 var downloadLatestBinary = update.DownloadLatestIfNewer
 
 func runInstall(ctx context.Context, c Context) (int, error) {
-	execPath, installedVersion, cleanup, err := resolveInstallBinary(ctx)
-	if cleanup != nil {
-		defer cleanup()
-	}
-	if err != nil {
-		c.Output.Warn("could not fetch latest release; installing current binary instead: %v", err)
+	isHomebrew := runtime.IsHomebrew()
+
+	var execPath, installedVersion string
+	var cleanup func()
+	var err error
+
+	if isHomebrew {
+		// Homebrew manages the binary lifecycle; skip downloading and copying.
+		// os.Executable() returns the stable /opt/homebrew/bin/clother symlink
+		// path, so symlinks remain valid after `brew upgrade` without re-running
+		// `clother install`.
+		execPath, err = os.Executable()
+		if err != nil {
+			return 1, err
+		}
+		installedVersion = update.DisplayVersion(version.Value)
+	} else {
+		execPath, installedVersion, cleanup, err = resolveInstallBinary(ctx)
+		if cleanup != nil {
+			defer cleanup()
+		}
+		if err != nil {
+			c.Output.Warn("could not fetch latest release; installing current binary instead: %v", err)
+		}
 	}
 
-	realClaude, err := runtime.FindRealClaude(c.Paths)
-	if err != nil {
-		return 1, errors.New("claude command not found; install Claude Code first")
+	realClaude, claudeErr := runtime.FindRealClaude(c.Paths)
+	if claudeErr != nil {
+		c.Output.Warn("claude not found; provider symlinks will be created but the `claude` shim will be skipped — run `clother install` again after installing Claude Code")
 	}
 	if err := runtime.PreserveRealClaude(c.Paths, realClaude); err != nil {
 		return 1, err
@@ -41,7 +58,7 @@ func runInstall(ctx context.Context, c Context) (int, error) {
 	if err := config.SaveSecrets(c.Paths.SecretsFile, c.Secrets); err != nil {
 		return 1, err
 	}
-	if err := launchers.Sync(execPath, c.Paths, c.Catalog, c.Config); err != nil {
+	if err := launchers.Sync(execPath, c.Paths, c.Catalog, c.Config, isHomebrew); err != nil {
 		return 1, err
 	}
 	for _, legacy := range []string{

@@ -95,6 +95,10 @@
           "description": "MiniMax M2.7"
         },
         {
+          "id": "MiniMax-M2.7-highspeed",
+          "description": "MiniMax M2.7 Highspeed"
+        },
+        {
           "id": "MiniMax-M2.5",
           "description": "MiniMax M2.5"
         },
@@ -139,6 +143,10 @@
         {
           "id": "MiniMax-M2.7",
           "description": "MiniMax M2.7"
+        },
+        {
+          "id": "MiniMax-M2.7-highspeed",
+          "description": "MiniMax M2.7 Highspeed"
         },
         {
           "id": "MiniMax-M2.5",
@@ -242,13 +250,26 @@
       "auth_mode": "secret",
       "key_var": "MIMO_API_KEY",
       "base_url": "https://api.xiaomimimo.com/anthropic",
-      "default_model": "mimo-v2-flash",
+      "default_model": "mimo-v2-pro",
       "model_tiers": {
         "haiku": "mimo-v2-flash",
-        "sonnet": "mimo-v2-flash",
-        "opus": "mimo-v2-flash"
+        "sonnet": "mimo-v2-pro",
+        "opus": "mimo-v2-pro"
       },
-      "model_choices": [],
+      "model_choices": [
+        {
+          "id": "mimo-v2-pro",
+          "description": "MiMo V2 Pro"
+        },
+        {
+          "id": "mimo-v2-omni",
+          "description": "MiMo V2 Omni"
+        },
+        {
+          "id": "mimo-v2-flash",
+          "description": "MiMo V2 Flash"
+        }
+      ],
       "test_url": "https://api.xiaomimimo.com/anthropic",
       "setup": [],
       "usage": []

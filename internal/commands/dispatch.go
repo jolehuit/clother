@@ -24,6 +24,8 @@ func Dispatch(ctx context.Context, c Context, command string, args []string) (in
 		return runStatus(ctx, c)
 	case "install":
 		return runInstall(ctx, c)
+	case "update":
+		return runUpdate(ctx, c)
 	case "uninstall":
 		return runUninstall(ctx, c)
 	case "help":

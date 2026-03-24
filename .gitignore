@@ -1,2 +1,3 @@
 .osgrep
 .DS_Store
+dist/

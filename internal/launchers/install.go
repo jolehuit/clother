@@ -15,14 +15,27 @@ type Manifest struct {
 	Launchers []string `json:"launchers"`
 }
 
-func Sync(execPath string, paths config.Paths, catalog providers.Catalog, cfg *config.File) error {
+// Sync installs the clother binary and provider symlinks into paths.BinDir.
+//
+// When skipCopy is false (normal install), the binary at execPath is copied to
+// paths.BinDir/clother and symlinks are created relative to it.
+//
+// When skipCopy is true (Homebrew install), no binary is copied; symlinks are
+// created as absolute references to execPath so that a Homebrew-managed binary
+// upgrade is reflected automatically without running `clother install` again.
+func Sync(execPath string, paths config.Paths, catalog providers.Catalog, cfg *config.File, skipCopy bool) error {
 	if err := paths.EnsureBaseDirs(); err != nil {
 		return err
 	}
 
-	destBinary := filepath.Join(paths.BinDir, "clother")
-	if err := copyExecutable(execPath, destBinary); err != nil {
-		return err
+	symlinkTarget := "clother" // relative — works when binary lives in the same dir
+	if skipCopy {
+		symlinkTarget = execPath // absolute — points directly to the Homebrew binary
+	} else {
+		destBinary := filepath.Join(paths.BinDir, "clother")
+		if err := copyExecutable(execPath, destBinary); err != nil {
+			return err
+		}
 	}
 
 	previous, _ := LoadManifest(paths.ManifestFile)
@@ -46,13 +59,13 @@ func Sync(execPath string, paths config.Paths, catalog providers.Catalog, cfg *c
 	for _, name := range launchers {
 		link := filepath.Join(paths.BinDir, name)
 		_ = os.Remove(link)
-		if err := os.Symlink("clother", link); err != nil {
+		if err := os.Symlink(symlinkTarget, link); err != nil {
 			return err
 		}
 	}
 	claudeShim := filepath.Join(paths.BinDir, "claude")
 	_ = os.Remove(claudeShim)
-	if err := os.Symlink("clother", claudeShim); err != nil {
+	if err := os.Symlink(symlinkTarget, claudeShim); err != nil {
 		return err
 	}
 	return SaveManifest(paths.ManifestFile, Manifest{Launchers: launchers})
