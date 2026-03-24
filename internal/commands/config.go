@@ -159,6 +159,10 @@ func configCustom(c Context) (int, error) {
 	if err != nil {
 		return 1, err
 	}
+	defaultModel, err := c.Prompt.Prompt("Default model (optional)", "")
+	if err != nil {
+		return 1, err
+	}
 	apiKey, err := c.Prompt.PromptSecret("API key")
 	if err != nil {
 		return 1, err
@@ -166,12 +170,12 @@ func configCustom(c Context) (int, error) {
 	keyVar := strings.ToUpper(strings.ReplaceAll(name, "-", "_")) + "_API_KEY"
 	c.Secrets[keyVar] = apiKey
 	c.Config.CustomProviders[name] = config.CustomProvider{
-		Name:        name,
-		DisplayName: name,
-		BaseURL:     baseURL,
-		APIKeyEnv:   keyVar,
+		Name:         name,
+		DisplayName:  name,
+		BaseURL:      baseURL,
+		APIKeyEnv:    keyVar,
+		DefaultModel: strings.TrimSpace(defaultModel),
 	}
-	c.Secrets["CLOTHER_"+keyVar+"_BASE_URL"] = baseURL
 	return persistConfig(c)
 }
 

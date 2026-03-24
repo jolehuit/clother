@@ -72,7 +72,7 @@ func BuildEnv(target profiles.Target, secrets config.Secrets) ([]string, error) 
 			return nil, fmt.Errorf("%s not configured", target.SecretKey)
 		}
 		envMap["ANTHROPIC_AUTH_TOKEN"] = value
-		if target.Family == providers.FamilyOpenRouter || target.Family == providers.FamilyLocal {
+		if target.Family == providers.FamilyOpenRouter || target.Family == providers.FamilyLocal || target.Family == providers.FamilyCustomUnknown {
 			envMap["ANTHROPIC_API_KEY"] = ""
 		}
 	default:

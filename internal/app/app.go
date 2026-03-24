@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/jolehuit/clother/internal/cli"
@@ -71,6 +72,23 @@ func Run(ctx context.Context, args []string, argv0 string) (int, error) {
 	}
 
 	if profile, isLauncher := profiles.Invocation(argv0); isLauncher {
+		// Gateway invocations: clother-or <alias> and clother-custom <name>
+		// let the user invoke any dynamic provider without a dedicated symlink.
+		if profile == "or" {
+			if len(args) == 0 || strings.HasPrefix(args[0], "-") {
+				fmt.Fprintln(os.Stderr, "usage: clother-or <alias> [args...]\n\nRun `clother config openrouter` to configure aliases.")
+				return 1, nil
+			}
+			profile = "or-" + args[0]
+			args = args[1:]
+		} else if profile == "custom" {
+			if len(args) == 0 || strings.HasPrefix(args[0], "-") {
+				fmt.Fprintln(os.Stderr, "usage: clother-custom <provider-name> [args...]\n\nRun `clother config custom` to configure a custom provider.")
+				return 1, nil
+			}
+			profile = args[0]
+			args = args[1:]
+		}
 		launcherOptions, forwarded := cli.ParseLauncher(args)
 		paths, err := config.Detect("")
 		if err != nil {

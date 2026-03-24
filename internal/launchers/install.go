@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/jolehuit/clother/internal/config"
 	"github.com/jolehuit/clother/internal/profiles"
@@ -41,8 +42,19 @@ func Sync(execPath string, paths config.Paths, catalog providers.Catalog, cfg *c
 	previous, _ := LoadManifest(paths.ManifestFile)
 	desired := map[string]struct{}{}
 	for _, target := range profiles.All(catalog, cfg) {
+		// Under Homebrew the formula already installs static provider symlinks in
+		// the Homebrew prefix, and clother-or / clother-custom cover dynamic
+		// providers via gateway invocation. Skip individual dynamic symlinks to
+		// keep ~/bin clean for Homebrew users.
+		if skipCopy && isDynamicProfile(target.Profile, cfg) {
+			continue
+		}
 		desired[launcherName(target.Profile)] = struct{}{}
 	}
+	// Always create gateway symlinks so clother-or <alias> and
+	// clother-custom <name> work regardless of install method.
+	desired["clother-or"] = struct{}{}
+	desired["clother-custom"] = struct{}{}
 
 	for _, old := range previous.Launchers {
 		if _, ok := desired[old]; ok {
@@ -94,6 +106,16 @@ func SaveManifest(path string, manifest Manifest) error {
 
 func launcherName(profile string) string {
 	return "clother-" + profile
+}
+
+// isDynamicProfile reports whether a profile is user-defined (OpenRouter alias
+// or custom provider) rather than a catalog-builtin static provider.
+func isDynamicProfile(profile string, cfg *config.File) bool {
+	if strings.HasPrefix(profile, "or-") {
+		return true
+	}
+	_, isCustom := cfg.CustomProviders[profile]
+	return isCustom
 }
 
 func copyExecutable(src, dst string) error {
