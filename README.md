@@ -46,10 +46,7 @@ curl -fsSL https://claude.ai/install.sh | bash
 brew tap jolehuit/tap
 brew install clother
 
-# 3. Create provider symlinks
-clother install
-
-# 4. Start using it
+# 3. Start using it — all launchers are ready immediately
 clother-native                          # Use your Claude Pro/Max/Team subscription
 clother-zai                             # Z.AI (GLM-5)
 clother-zai --yolo                      # Skip permission prompts
@@ -57,7 +54,7 @@ clother-kimi                            # Kimi (kimi-k2.5)
 clother config                          # Configure providers
 ```
 
-`clother install` creates the `clother-*` provider launchers in `~/bin`. Symlinks point directly to the Homebrew-managed binary, so `brew upgrade clother` propagates to all launchers automatically.
+All `clother-*` provider launchers are installed directly into `$(brew --prefix)/bin` by the formula — no extra setup needed. `brew upgrade clother` keeps everything up to date.
 
 **Update:**
 ```bash
