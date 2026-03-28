@@ -68,6 +68,9 @@ func runInstall(ctx context.Context, c Context) (int, error) {
 		_ = os.Remove(legacy)
 	}
 	c.Output.Success("installed Clother %s to %s", installedVersion, c.Paths.BinDir)
+	if !pathContainsDir(os.Getenv("PATH"), c.Paths.BinDir) {
+		c.Output.Warn("%s is not on PATH; add `export PATH=\"%s:$PATH\"` to your shell profile and restart your shell", c.Paths.BinDir, c.Paths.BinDir)
+	}
 	return 0, nil
 }
 
@@ -87,4 +90,30 @@ func resolveInstallBinary(ctx context.Context) (string, string, func(), error) {
 		return "", "", nil, err
 	}
 	return current, update.DisplayVersion(version.Value), nil, nil
+}
+
+func pathContainsDir(pathEnv, dir string) bool {
+	target := normalizePathDir(dir)
+	if target == "" {
+		return false
+	}
+	for _, entry := range filepath.SplitList(pathEnv) {
+		if normalizePathDir(entry) == target {
+			return true
+		}
+	}
+	return false
+}
+
+func normalizePathDir(dir string) string {
+	if dir == "" {
+		return ""
+	}
+	if resolved, err := filepath.EvalSymlinks(dir); err == nil {
+		dir = resolved
+	}
+	if abs, err := filepath.Abs(dir); err == nil {
+		dir = abs
+	}
+	return filepath.Clean(dir)
 }

@@ -94,8 +94,11 @@ This installs:
 ### Install Options
 
 By default, Clother installs launchers to:
-- **macOS**: `~/bin`
-- **Linux**: `~/.local/bin` (XDG standard)
+- the same directory as your existing `claude` binary, when `claude` is already on `PATH`
+- otherwise **macOS**: `~/bin`
+- otherwise **Linux**: `~/.local/bin` (XDG standard)
+
+If the chosen bin directory is not on `PATH`, `clother install` prints a warning with the exact directory to add.
 
 You can override this with `--bin-dir` or the `CLOTHER_BIN` environment variable:
 
@@ -258,7 +261,7 @@ clother-alibaba-cn --model qwen3-coder-next
 | Problem | Solution |
 |---------|----------|
 | `claude: command not found` | Install Claude CLI first |
-| `clother: command not found` | Add your bin directory to PATH (see [Installation](#installation)) |
+| `clother: command not found` | Run `clother status` to see the installed bin dir, then add that directory to `PATH` and restart your shell |
 | `claude --resume ...` does not behave like Clother | Restart your shell, then run `clother install` again |
 | `--yolo` is not recognized | Restart your shell, then run `clother install` again |
 | `API key not set` | Run `clother config` |

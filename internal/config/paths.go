@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 )
@@ -37,11 +38,7 @@ func Detect(binOverride string) (Paths, error) {
 		binDir = binOverride
 	}
 	if binDir == "" {
-		if runtime.GOOS == "darwin" {
-			binDir = filepath.Join(home, "bin")
-		} else {
-			binDir = filepath.Join(home, ".local", "bin")
-		}
+		binDir = defaultBinDir(home)
 	}
 
 	return Paths{
@@ -64,6 +61,27 @@ func (p Paths) EnsureBaseDirs() error {
 		}
 	}
 	return nil
+}
+
+func defaultBinDir(home string) string {
+	if dir := claudeBinDir(); dir != "" {
+		return dir
+	}
+	if runtime.GOOS == "darwin" {
+		return filepath.Join(home, "bin")
+	}
+	return filepath.Join(home, ".local", "bin")
+}
+
+func claudeBinDir() string {
+	claudePath, err := exec.LookPath("claude")
+	if err != nil || claudePath == "" {
+		return ""
+	}
+	if abs, err := filepath.Abs(claudePath); err == nil {
+		claudePath = abs
+	}
+	return filepath.Dir(claudePath)
 }
 
 func getenv(key, fallback string) string {
