@@ -24,13 +24,17 @@
       "auth_mode": "secret",
       "key_var": "ZAI_API_KEY",
       "base_url": "https://api.z.ai/api/anthropic",
-      "default_model": "glm-5",
+      "default_model": "glm-5.1",
       "model_tiers": {
-        "haiku": "glm-5",
-        "sonnet": "glm-5",
-        "opus": "glm-5"
+        "haiku": "glm-5.1",
+        "sonnet": "glm-5.1",
+        "opus": "glm-5.1"
       },
       "model_choices": [
+        {
+          "id": "glm-5.1",
+          "description": "GLM-5.1"
+        },
         {
           "id": "glm-5",
           "description": "GLM-5"
@@ -53,13 +57,17 @@
       "auth_mode": "secret",
       "key_var": "ZAI_CN_API_KEY",
       "base_url": "https://open.bigmodel.cn/api/anthropic",
-      "default_model": "glm-5",
+      "default_model": "glm-5.1",
       "model_tiers": {
-        "haiku": "glm-5",
-        "sonnet": "glm-5",
-        "opus": "glm-5"
+        "haiku": "glm-5.1",
+        "sonnet": "glm-5.1",
+        "opus": "glm-5.1"
       },
       "model_choices": [
+        {
+          "id": "glm-5.1",
+          "description": "GLM-5.1"
+        },
         {
           "id": "glm-5",
           "description": "GLM-5"
@@ -299,6 +307,10 @@
           "description": "Kimi K2.5"
         },
         {
+          "id": "glm-5.1",
+          "description": "GLM-5.1"
+        },
+        {
           "id": "glm-5",
           "description": "GLM-5"
         },
@@ -352,6 +364,10 @@
           "description": "Kimi K2.5"
         },
         {
+          "id": "glm-5.1",
+          "description": "GLM-5.1"
+        },
+        {
           "id": "glm-5",
           "description": "GLM-5"
         },
@@ -403,6 +419,10 @@
         {
           "id": "kimi-k2.5",
           "description": "Kimi K2.5"
+        },
+        {
+          "id": "glm-5.1",
+          "description": "GLM-5.1"
         },
         {
           "id": "glm-5",

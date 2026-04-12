@@ -48,7 +48,7 @@ brew install clother
 
 # 3. Start using it — all launchers are ready immediately
 clother-native                          # Use your Claude Pro/Max/Team subscription
-clother-zai                             # Z.AI (GLM-5)
+clother-zai                             # Z.AI (GLM-5.1)
 clother-zai --yolo                      # Skip permission prompts
 clother-kimi                            # Kimi (kimi-k2.5)
 clother config                          # Configure providers
@@ -74,7 +74,7 @@ curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/insta
 
 # 3. Start using it
 clother-native                          # Use your Claude Pro/Max/Team subscription
-clother-zai                             # Z.AI (GLM-5)
+clother-zai                             # Z.AI (GLM-5.1)
 clother-zai --yolo                      # Skip permission prompts
 clother-kimi                            # Kimi (kimi-k2.5)
 clother-ollama --model qwen3-coder      # Local with Ollama
@@ -138,7 +138,7 @@ Routes to `brew upgrade clother` under Homebrew, or downloads the latest release
 
 ### Changing the Default Model
 
-Each provider launcher comes with a default model (for example `glm-5` for Z.AI). You can override it in two ways:
+Each provider launcher comes with a default model (for example `glm-5.1` for Z.AI). You can override it in two ways:
 
 ```bash
 # One-time: pass --model through to Claude CLI
@@ -172,7 +172,7 @@ single launch, then restores the original session file afterwards.
 | Command | Provider | Model | API Key |
 |---------|----------|-------|---------|
 | `clother-native` | Anthropic | Claude | Your subscription |
-| `clother-zai` | Z.AI | GLM-5 | [z.ai](https://z.ai) |
+| `clother-zai` | Z.AI | GLM-5.1 | [z.ai](https://z.ai) |
 | `clother-minimax` | MiniMax | MiniMax-M2.7 | [minimax.io](https://minimax.io) |
 | `clother-kimi` | Kimi | kimi-k2.5 | [kimi.com](https://kimi.com) |
 | `clother-moonshot` | Moonshot AI | kimi-k2.5 | [moonshot.ai](https://moonshot.ai) |
@@ -241,6 +241,7 @@ All Alibaba variants (`alibaba`, `alibaba-us`, `alibaba-cn`) share the same API 
 |-------|
 | `qwen3.5-plus` (default) |
 | `kimi-k2.5` |
+| `glm-5.1` |
 | `glm-5` |
 | `MiniMax-M2.5` |
 | `qwen3-coder-next` |
