@@ -25,6 +25,7 @@ Clother gives you one install and one command pattern across Claude, Z.AI, Kimi,
 
 - [Installation](#installation)
 - [Core Usage](#core-usage)
+  - [Benchmarking](#benchmarking)
 - [Provider Reference](#provider-reference)
 - [Troubleshooting](#troubleshooting)
 - [VS Code Integration](#vs-code-integration)
@@ -123,6 +124,7 @@ Clother keeps `claude --resume ...` working with Clother features after install.
 | `clother list` | List profiles |
 | `clother info <provider>` | Show provider details |
 | `clother test` | Test connectivity |
+| `clother bench [provider...] [--prompt "..."]` | Benchmark provider latency |
 | `clother status` | Installation status |
 | `clother install` | Install/update Clother (create/refresh symlinks) |
 | `clother update` | Update to latest version |
@@ -149,6 +151,28 @@ clother config zai
 ```
 
 Use `clother info <provider>` to inspect the resolved model.
+
+### Benchmarking
+
+Compare latency across all configured providers at once:
+
+```bash
+clother bench                              # all configured providers
+clother bench zai kimi                     # specific providers only
+clother bench --prompt "Write a haiku"     # custom prompt
+```
+
+Output shows **TTFT** (time to first token) and total response time, sorted fastest first:
+
+```
+  Provider           Model                      TTFT    Total   Preview
+  ──────────────────────────────────────────────────────────────────────────────
+  kimi               kimi-k2.5                  180ms    0.9s   "Hello!"
+  zai                glm-5.1                    312ms    1.2s   "Hello!"
+  deepseek           deepseek-chat              890ms    3.1s   "Hello!"
+```
+
+Only providers with a configured API key are included. Local providers are skipped.
 
 ### Resume
 
