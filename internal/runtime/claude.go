@@ -52,12 +52,59 @@ func FindRealClaude(paths config.Paths) (string, error) {
 		return candidate, nil
 	}
 	fallback := filepath.Join(paths.BinDir, "claude-real")
-	if info, err := os.Stat(fallback); err == nil && !info.IsDir() {
-		if selfResolved == "" || !samePath(fallback, selfResolved) {
-			return fallback, nil
+	// Validate claude-real before using it:
+	//   - Symlink:   verify target exists (detects broken symlinks from stale Claude updates)
+	//   - Plain file: use it directly (backward-compatible with existing test)
+	if linfo, err := os.Lstat(fallback); err == nil && !linfo.IsDir() {
+		if linfo.Mode()&os.ModeSymlink != 0 {
+			// Symlink — Stat fails if target is missing (broken).
+			if _, err := os.Stat(fallback); err == nil {
+				if selfResolved == "" || !samePath(fallback, selfResolved) {
+					return fallback, nil
+				}
+			}
+			// Broken symlink; fall through to version directory scan.
+		} else {
+			// Plain file — use it as-is.
+			if selfResolved == "" || !samePath(fallback, selfResolved) {
+				return fallback, nil
+			}
 		}
 	}
-	return "", fmt.Errorf("could not locate real claude; ensure `claude` is in PATH or `%s` exists", fallback)
+	// Scan the Claude Code version directory for any installed binary as a
+	// last resort. This handles auto-update scenarios where the symlink target
+	// was uninstalled but a newer version exists.
+	//
+	// Note: We intentionally use $HOME/.local/share rather than XDG_DATA_HOME
+	// here, because Claude Code's install path (set by its own installer) lives
+	// under $HOME/.local/share — it does not follow XDG_DATA_HOME.
+	home := os.Getenv("HOME")
+	if home == "" {
+		// Fall back if HOME is unset (unusual but defensible).
+		if home = os.Getenv("USERPROFILE"); home == "" {
+			return "", fmt.Errorf("could not locate real claude; HOME is not set and claude-real is broken")
+		}
+	}
+	versionsDir := filepath.Join(home, ".local", "share", "claude", "versions")
+	entries, err := os.ReadDir(versionsDir)
+	if err == nil && len(entries) > 0 {
+		var newest string
+		var newestTime int64
+		for _, entry := range entries {
+			// Each version entry is a file named by version (e.g. "2.1.114"), not a directory.
+			if entry.IsDir() {
+				continue
+			}
+			path := filepath.Join(versionsDir, entry.Name())
+			if info, err := os.Stat(path); err == nil && !info.IsDir() && info.Mode().IsRegular() && info.ModTime().Unix() > newestTime {
+				newest, newestTime = path, info.ModTime().Unix()
+			}
+		}
+		if newest != "" && (selfResolved == "" || !samePath(newest, selfResolved)) {
+			return newest, nil
+		}
+	}
+	return "", fmt.Errorf("could not locate real claude; ensure `claude` is in PATH or `%s` points to a valid Claude Code binary", fallback)
 }
 
 func PreserveRealClaude(paths config.Paths, realClaudePath string) error {
