@@ -24,13 +24,17 @@
       "auth_mode": "secret",
       "key_var": "ZAI_API_KEY",
       "base_url": "https://api.z.ai/api/anthropic",
-      "default_model": "glm-5",
+      "default_model": "glm-5.2",
       "model_tiers": {
-        "haiku": "glm-5",
-        "sonnet": "glm-5",
-        "opus": "glm-5"
+        "haiku": "glm-5.2",
+        "sonnet": "glm-5.2",
+        "opus": "glm-5.2"
       },
       "model_choices": [
+        {
+          "id": "glm-5.2",
+          "description": "GLM-5.2"
+        },
         {
           "id": "glm-5",
           "description": "GLM-5"

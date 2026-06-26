@@ -48,7 +48,7 @@ brew install clother
 
 # 3. Start using it — all launchers are ready immediately
 clother-native                          # Use your Claude Pro/Max/Team subscription
-clother-zai                             # Z.AI (GLM-5)
+clother-zai                             # Z.AI (GLM-5.2)
 clother-zai --yolo                      # Skip permission prompts
 clother-kimi                            # Kimi (kimi-k2.5)
 clother config                          # Configure providers
@@ -74,7 +74,7 @@ curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/insta
 
 # 3. Start using it
 clother-native                          # Use your Claude Pro/Max/Team subscription
-clother-zai                             # Z.AI (GLM-5)
+clother-zai                             # Z.AI (GLM-5.2)
 clother-zai --yolo                      # Skip permission prompts
 clother-kimi                            # Kimi (kimi-k2.5)
 clother-ollama --model qwen3-coder      # Local with Ollama
@@ -138,7 +138,7 @@ Routes to `brew upgrade clother` under Homebrew, or downloads the latest release
 
 ### Changing the Default Model
 
-Each provider launcher comes with a default model (for example `glm-5` for Z.AI). You can override it in two ways:
+Each provider launcher comes with a default model (for example `glm-5.2` for Z.AI). You can override it in two ways:
 
 ```bash
 # One-time: pass --model through to Claude CLI
