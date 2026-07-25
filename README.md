@@ -202,8 +202,8 @@ single launch, then restores the original session file afterwards.
 | `clother-moonshot` | Moonshot AI | kimi-k3 | [moonshot.ai](https://moonshot.ai) |
 | `clother-deepseek` | DeepSeek | deepseek-chat | [deepseek.com](https://platform.deepseek.com) |
 | `clother-mimo` | Xiaomi MiMo | mimo-v2.5-pro | [xiaomimimo.com](https://platform.xiaomimimo.com) |
-| `clother-alibaba` | Alibaba Coding Plan | qwen3.6-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
-| `clother-alibaba-us` | Alibaba Coding Plan (US) | qwen3.6-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
+| `clother-alibaba` | Alibaba Coding Plan | qwen3.7-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
+| `clother-alibaba-us` | Alibaba Coding Plan (US) | qwen3.7-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
 
 ### OpenRouter (100+ Models)
 
@@ -282,14 +282,14 @@ created on curl installs — under Homebrew, use `clother-custom <name>`.
 
 ### Alibaba Coding Plan Models
 
-All Alibaba variants (`alibaba`, `alibaba-us`, `alibaba-cn`) share the same API key and support these models:
+All Alibaba variants (`alibaba`, `alibaba-us`, `alibaba-cn`) share the same API key. The Coding Plan enforces an exact-string model allowlist; the currently supported IDs are:
 
 | Model |
 |-------|
-| `qwen3.6-plus` (default) |
+| `qwen3.7-plus` (default) |
+| `qwen3.6-plus` |
 | `qwen3.5-plus` |
 | `kimi-k2.5` |
-| `glm-5.1` |
 | `glm-5` |
 | `MiniMax-M2.5` |
 | `qwen3-coder-next` |

@@ -199,8 +199,8 @@
     },
     {
       "id": "kimi",
-      "display_name": "Kimi K2",
-      "description": "Kimi K2",
+      "display_name": "Kimi",
+      "description": "Kimi Code plan",
       "category": "international",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
@@ -321,13 +321,17 @@
       "auth_mode": "secret",
       "key_var": "ALIBABA_API_KEY",
       "base_url": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic",
-      "default_model": "qwen3.6-plus",
+      "default_model": "qwen3.7-plus",
       "model_tiers": {
-        "haiku": "qwen3-coder-flash",
-        "sonnet": "qwen3.6-plus",
-        "opus": "qwen3.6-plus"
+        "haiku": "qwen3.7-plus",
+        "sonnet": "qwen3.7-plus",
+        "opus": "qwen3.7-plus"
       },
       "model_choices": [
+        {
+          "id": "qwen3.7-plus",
+          "description": "Qwen 3.7 Plus"
+        },
         {
           "id": "qwen3.6-plus",
           "description": "Qwen 3.6 Plus"
@@ -339,10 +343,6 @@
         {
           "id": "kimi-k2.5",
           "description": "Kimi K2.5"
-        },
-        {
-          "id": "glm-5.1",
-          "description": "GLM-5.1"
         },
         {
           "id": "glm-5",
@@ -382,13 +382,17 @@
       "auth_mode": "secret",
       "key_var": "ALIBABA_API_KEY",
       "base_url": "https://coding-us.dashscope.aliyuncs.com/apps/anthropic",
-      "default_model": "qwen3.6-plus",
+      "default_model": "qwen3.7-plus",
       "model_tiers": {
-        "haiku": "qwen3-coder-flash",
-        "sonnet": "qwen3.6-plus",
-        "opus": "qwen3.6-plus"
+        "haiku": "qwen3.7-plus",
+        "sonnet": "qwen3.7-plus",
+        "opus": "qwen3.7-plus"
       },
       "model_choices": [
+        {
+          "id": "qwen3.7-plus",
+          "description": "Qwen 3.7 Plus"
+        },
         {
           "id": "qwen3.6-plus",
           "description": "Qwen 3.6 Plus"
@@ -400,10 +404,6 @@
         {
           "id": "kimi-k2.5",
           "description": "Kimi K2.5"
-        },
-        {
-          "id": "glm-5.1",
-          "description": "GLM-5.1"
         },
         {
           "id": "glm-5",
@@ -443,13 +443,17 @@
       "auth_mode": "secret",
       "key_var": "ALIBABA_API_KEY",
       "base_url": "https://coding.dashscope.aliyuncs.com/apps/anthropic",
-      "default_model": "qwen3.6-plus",
+      "default_model": "qwen3.7-plus",
       "model_tiers": {
-        "haiku": "qwen3-coder-flash",
-        "sonnet": "qwen3.6-plus",
-        "opus": "qwen3.6-plus"
+        "haiku": "qwen3.7-plus",
+        "sonnet": "qwen3.7-plus",
+        "opus": "qwen3.7-plus"
       },
       "model_choices": [
+        {
+          "id": "qwen3.7-plus",
+          "description": "Qwen 3.7 Plus"
+        },
         {
           "id": "qwen3.6-plus",
           "description": "Qwen 3.6 Plus"
@@ -461,10 +465,6 @@
         {
           "id": "kimi-k2.5",
           "description": "Kimi K2.5"
-        },
-        {
-          "id": "glm-5.1",
-          "description": "GLM-5.1"
         },
         {
           "id": "glm-5",
