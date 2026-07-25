@@ -40,6 +40,28 @@ func TestResolveModelChoiceKeepsCustomModelID(t *testing.T) {
 	}
 }
 
+func TestDefaultAliasNameProducesValidAliases(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]string{
+		"minimax/minimax-m2.5:free":      "minimax-m2-5-free",
+		"qwen/qwen3.6-plus":              "qwen3-6-plus",
+		"moonshotai/kimi-k2-0905:exacto": "kimi-k2-0905-exacto",
+		"openai/gpt-4o":                  "gpt-4o",
+		"Vendor/Model__Name":             "model__name",
+		"weird/:::":                      "",
+	}
+	for model, want := range cases {
+		got := defaultAliasName(model)
+		if got != want {
+			t.Fatalf("defaultAliasName(%q) = %q, want %q", model, got, want)
+		}
+		if got != "" && !validName.MatchString(got) {
+			t.Fatalf("defaultAliasName(%q) = %q does not match validName", model, got)
+		}
+	}
+}
+
 func TestConfigBuiltinAllowsModelOverrideWithoutCatalogChoices(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("HOME", root)

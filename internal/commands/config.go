@@ -140,7 +140,7 @@ func configOpenRouter(c Context) (int, error) {
 			return 1, err
 		}
 		if !validName.MatchString(name) {
-			return 1, fmt.Errorf("invalid alias %q", name)
+			return 1, fmt.Errorf("invalid alias %q (use lowercase letters, digits, \"-\" or \"_\")", name)
 		}
 		c.Config.OpenRouterAliases[name] = model
 	}
@@ -237,9 +237,24 @@ func defaultAliasName(model string) string {
 	if slash := strings.LastIndex(model, "/"); slash >= 0 {
 		model = model[slash+1:]
 	}
-	model = strings.ReplaceAll(model, ".", "-")
-	model = strings.ReplaceAll(model, "_", "-")
-	return model
+	// Model IDs may carry characters that are invalid in an alias (used as
+	// launcher name), e.g. the ":free"/":exacto" variant suffixes. Map anything
+	// outside the alias charset to "-" so the suggested default always passes
+	// validName.
+	var b strings.Builder
+	for _, r := range model {
+		switch {
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9', r == '_', r == '-':
+			b.WriteRune(r)
+		default:
+			b.WriteRune('-')
+		}
+	}
+	name := b.String()
+	for strings.Contains(name, "--") {
+		name = strings.ReplaceAll(name, "--", "-")
+	}
+	return strings.Trim(name, "-")
 }
 
 func resolveModelChoice(answer string, choices []providers.ModelChoice) string {
