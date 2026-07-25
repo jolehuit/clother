@@ -98,14 +98,18 @@
       "auth_mode": "secret",
       "key_var": "MINIMAX_API_KEY",
       "base_url": "https://api.minimax.io/anthropic",
-      "default_model": "MiniMax-M2.7",
+      "default_model": "MiniMax-M3",
       "model_tiers": {
-        "haiku": "MiniMax-M2.7",
-        "sonnet": "MiniMax-M2.7",
-        "opus": "MiniMax-M2.7",
-        "small": "MiniMax-M2.7"
+        "haiku": "MiniMax-M3",
+        "sonnet": "MiniMax-M3",
+        "opus": "MiniMax-M3",
+        "small": "MiniMax-M3"
       },
       "model_choices": [
+        {
+          "id": "MiniMax-M3",
+          "description": "MiniMax M3"
+        },
         {
           "id": "MiniMax-M2.7",
           "description": "MiniMax M2.7"
@@ -148,14 +152,18 @@
       "auth_mode": "secret",
       "key_var": "MINIMAX_CN_API_KEY",
       "base_url": "https://api.minimaxi.com/anthropic",
-      "default_model": "MiniMax-M2.7",
+      "default_model": "MiniMax-M3",
       "model_tiers": {
-        "haiku": "MiniMax-M2.7",
-        "sonnet": "MiniMax-M2.7",
-        "opus": "MiniMax-M2.7",
-        "small": "MiniMax-M2.7"
+        "haiku": "MiniMax-M3",
+        "sonnet": "MiniMax-M3",
+        "opus": "MiniMax-M3",
+        "small": "MiniMax-M3"
       },
       "model_choices": [
+        {
+          "id": "MiniMax-M3",
+          "description": "MiniMax M3"
+        },
         {
           "id": "MiniMax-M2.7",
           "description": "MiniMax M2.7"
@@ -198,11 +206,20 @@
       "auth_mode": "secret",
       "key_var": "KIMI_API_KEY",
       "base_url": "https://api.kimi.com/coding/",
-      "default_model": "kimi-k2.5",
+      "default_model": "k3-256k",
       "model_tiers": {
-        "small": "kimi-k2.5"
+        "small": "k3-256k"
       },
-      "model_choices": [],
+      "model_choices": [
+        {
+          "id": "k3-256k",
+          "description": "Kimi K3 (256K)"
+        },
+        {
+          "id": "kimi-for-coding",
+          "description": "Kimi coding alias (tracks latest)"
+        }
+      ],
       "test_url": "https://api.kimi.com/coding/",
       "setup": [],
       "usage": []
@@ -216,9 +233,22 @@
       "auth_mode": "secret",
       "key_var": "MOONSHOT_API_KEY",
       "base_url": "https://api.moonshot.ai/anthropic",
-      "default_model": "kimi-k2.5",
+      "default_model": "kimi-k3",
       "model_tiers": {},
-      "model_choices": [],
+      "model_choices": [
+        {
+          "id": "kimi-k3",
+          "description": "Kimi K3"
+        },
+        {
+          "id": "kimi-k2.7-code",
+          "description": "Kimi K2.7 Code"
+        },
+        {
+          "id": "kimi-k2.6",
+          "description": "Kimi K2.6"
+        }
+      ],
       "test_url": "https://api.moonshot.ai/anthropic",
       "setup": [],
       "usage": []
@@ -266,24 +296,16 @@
       "auth_mode": "secret",
       "key_var": "MIMO_API_KEY",
       "base_url": "https://api.xiaomimimo.com/anthropic",
-      "default_model": "mimo-v2-pro",
+      "default_model": "mimo-v2.5-pro",
       "model_tiers": {
-        "haiku": "mimo-v2-flash",
-        "sonnet": "mimo-v2-pro",
-        "opus": "mimo-v2-pro"
+        "haiku": "mimo-v2.5-pro",
+        "sonnet": "mimo-v2.5-pro",
+        "opus": "mimo-v2.5-pro"
       },
       "model_choices": [
         {
-          "id": "mimo-v2-pro",
-          "description": "MiMo V2 Pro"
-        },
-        {
-          "id": "mimo-v2-omni",
-          "description": "MiMo V2 Omni"
-        },
-        {
-          "id": "mimo-v2-flash",
-          "description": "MiMo V2 Flash"
+          "id": "mimo-v2.5-pro",
+          "description": "MiMo V2.5 Pro"
         }
       ],
       "test_url": "https://api.xiaomimimo.com/anthropic",
@@ -299,13 +321,17 @@
       "auth_mode": "secret",
       "key_var": "ALIBABA_API_KEY",
       "base_url": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic",
-      "default_model": "qwen3.5-plus",
+      "default_model": "qwen3.6-plus",
       "model_tiers": {
         "haiku": "qwen3-coder-flash",
-        "sonnet": "qwen3.5-plus",
-        "opus": "qwen3.5-plus"
+        "sonnet": "qwen3.6-plus",
+        "opus": "qwen3.6-plus"
       },
       "model_choices": [
+        {
+          "id": "qwen3.6-plus",
+          "description": "Qwen 3.6 Plus"
+        },
         {
           "id": "qwen3.5-plus",
           "description": "Qwen 3.5 Plus"
@@ -356,13 +382,17 @@
       "auth_mode": "secret",
       "key_var": "ALIBABA_API_KEY",
       "base_url": "https://coding-us.dashscope.aliyuncs.com/apps/anthropic",
-      "default_model": "qwen3.5-plus",
+      "default_model": "qwen3.6-plus",
       "model_tiers": {
         "haiku": "qwen3-coder-flash",
-        "sonnet": "qwen3.5-plus",
-        "opus": "qwen3.5-plus"
+        "sonnet": "qwen3.6-plus",
+        "opus": "qwen3.6-plus"
       },
       "model_choices": [
+        {
+          "id": "qwen3.6-plus",
+          "description": "Qwen 3.6 Plus"
+        },
         {
           "id": "qwen3.5-plus",
           "description": "Qwen 3.5 Plus"
@@ -413,13 +443,17 @@
       "auth_mode": "secret",
       "key_var": "ALIBABA_API_KEY",
       "base_url": "https://coding.dashscope.aliyuncs.com/apps/anthropic",
-      "default_model": "qwen3.5-plus",
+      "default_model": "qwen3.6-plus",
       "model_tiers": {
         "haiku": "qwen3-coder-flash",
-        "sonnet": "qwen3.5-plus",
-        "opus": "qwen3.5-plus"
+        "sonnet": "qwen3.6-plus",
+        "opus": "qwen3.6-plus"
       },
       "model_choices": [
+        {
+          "id": "qwen3.6-plus",
+          "description": "Qwen 3.6 Plus"
+        },
         {
           "id": "qwen3.5-plus",
           "description": "Qwen 3.5 Plus"

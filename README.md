@@ -51,7 +51,7 @@ brew install clother
 clother-native                          # Use your Claude Pro/Max/Team subscription
 clother-zai                             # Z.AI (GLM-5.2)
 clother-zai --yolo                      # Skip permission prompts
-clother-kimi                            # Kimi (kimi-k2.5)
+clother-kimi                            # Kimi (K3)
 clother config                          # Configure providers
 ```
 
@@ -77,7 +77,7 @@ curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/insta
 clother-native                          # Use your Claude Pro/Max/Team subscription
 clother-zai                             # Z.AI (GLM-5.2)
 clother-zai --yolo                      # Skip permission prompts
-clother-kimi                            # Kimi (kimi-k2.5)
+clother-kimi                            # Kimi (K3)
 clother-ollama --model qwen3-coder      # Local with Ollama
 clother config                          # Configure providers
 ```
@@ -167,7 +167,7 @@ Output shows **TTFT** (time to first token) and total response time, sorted fast
 ```
   Provider           Model                      TTFT    Total   Preview
   ──────────────────────────────────────────────────────────────────────────────
-  kimi               kimi-k2.5                  180ms    0.9s   "Hello!"
+  kimi               k3-256k                    180ms    0.9s   "Hello!"
   zai                glm-5.1                    312ms    1.2s   "Hello!"
   deepseek           deepseek-chat              890ms    3.1s   "Hello!"
 ```
@@ -197,13 +197,13 @@ single launch, then restores the original session file afterwards.
 |---------|----------|-------|---------|
 | `clother-native` | Anthropic | Claude | Your subscription |
 | `clother-zai` | Z.AI | GLM-5.2 | [z.ai](https://z.ai) |
-| `clother-minimax` | MiniMax | MiniMax-M2.7 | [minimax.io](https://minimax.io) |
-| `clother-kimi` | Kimi | kimi-k2.5 | [kimi.com](https://kimi.com) |
-| `clother-moonshot` | Moonshot AI | kimi-k2.5 | [moonshot.ai](https://moonshot.ai) |
+| `clother-minimax` | MiniMax | MiniMax-M3 | [minimax.io](https://minimax.io) |
+| `clother-kimi` | Kimi | k3-256k | [kimi.com](https://kimi.com) |
+| `clother-moonshot` | Moonshot AI | kimi-k3 | [moonshot.ai](https://moonshot.ai) |
 | `clother-deepseek` | DeepSeek | deepseek-chat | [deepseek.com](https://platform.deepseek.com) |
-| `clother-mimo` | Xiaomi MiMo | mimo-v2-pro | [xiaomimimo.com](https://platform.xiaomimimo.com) |
-| `clother-alibaba` | Alibaba Coding Plan | qwen3.5-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
-| `clother-alibaba-us` | Alibaba Coding Plan (US) | qwen3.5-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
+| `clother-mimo` | Xiaomi MiMo | mimo-v2.5-pro | [xiaomimimo.com](https://platform.xiaomimimo.com) |
+| `clother-alibaba` | Alibaba Coding Plan | qwen3.6-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
+| `clother-alibaba-us` | Alibaba Coding Plan (US) | qwen3.6-plus | [modelstudio](https://modelstudio.console.alibabacloud.com) |
 
 ### OpenRouter (100+ Models)
 
@@ -263,7 +263,8 @@ All Alibaba variants (`alibaba`, `alibaba-us`, `alibaba-cn`) share the same API 
 
 | Model |
 |-------|
-| `qwen3.5-plus` (default) |
+| `qwen3.6-plus` (default) |
+| `qwen3.5-plus` |
 | `kimi-k2.5` |
 | `glm-5.1` |
 | `glm-5` |
