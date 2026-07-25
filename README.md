@@ -250,6 +250,20 @@ clother-lmstudio --model <model>
 clother-llamacpp --model <model>
 ```
 
+#### Remote servers
+
+Local launchers default to `localhost`, but the backend can run on another
+machine. Point a launcher at a remote base URL with `clother config`:
+
+```bash
+clother config lmstudio
+# Base URL [http://localhost:1234]: http://192.168.123.123:1234
+clother-lmstudio --model <model>
+```
+
+Works the same for `ollama` and `llamacpp`. Enter the default localhost URL
+again to switch back.
+
 ### Custom
 
 ```bash

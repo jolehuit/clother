@@ -40,7 +40,10 @@ func Resolve(profile string, catalog providers.Catalog, cfg *config.File) (Targe
 	if provider, ok := catalog.Get(profile); ok {
 		model := provider.DefaultModel
 		modelTiers := copyMap(provider.ModelTiers)
-		if override := cfg.ProviderOverrides[profile]; override.Model != "" {
+		baseURL := provider.BaseURL
+		testURL := provider.TestURL
+		override := cfg.ProviderOverrides[profile]
+		if override.Model != "" {
 			model = override.Model
 			modelTiers = map[string]string{
 				"haiku":  override.Model,
@@ -49,19 +52,23 @@ func Resolve(profile string, catalog providers.Catalog, cfg *config.File) (Targe
 				"small":  override.Model,
 			}
 		}
+		if override.BaseURL != "" {
+			baseURL = override.BaseURL
+			testURL = override.BaseURL
+		}
 		return Target{
 			Profile:          profile,
 			DisplayName:      provider.DisplayName,
 			Description:      provider.Description,
 			Category:         provider.Category,
 			Family:           provider.Family,
-			BaseURL:          provider.BaseURL,
+			BaseURL:          baseURL,
 			Model:            model,
 			ModelTiers:       compactModelTiers(modelTiers),
 			AuthMode:         provider.AuthMode,
 			SecretKey:        provider.KeyVar,
 			LiteralAuthToken: provider.LiteralAuthToken,
-			TestURL:          provider.TestURL,
+			TestURL:          testURL,
 		}, nil
 	}
 	if strings.HasPrefix(profile, "or-") {

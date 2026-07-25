@@ -13,7 +13,8 @@ import (
 )
 
 type ProviderOverride struct {
-	Model string `json:"model,omitempty"`
+	Model   string `json:"model,omitempty"`
+	BaseURL string `json:"base_url,omitempty"`
 }
 
 type CustomProvider struct {
@@ -121,20 +122,23 @@ func (cfg *File) Normalize(catalog providers.Catalog) {
 	}
 
 	for id, override := range cfg.ProviderOverrides {
-		if strings.TrimSpace(override.Model) == "" {
-			delete(cfg.ProviderOverrides, id)
-			continue
-		}
+		override.Model = strings.TrimSpace(override.Model)
+		override.BaseURL = strings.TrimSpace(override.BaseURL)
 		provider, ok := catalog.Get(id)
-		if !ok {
-			continue
+		if ok {
+			override.Model = normalizeProviderOverrideModel(provider, override.Model)
+			if override.Model == provider.DefaultModel {
+				override.Model = ""
+			}
+			if override.BaseURL == provider.BaseURL {
+				override.BaseURL = ""
+			}
 		}
-		model := normalizeProviderOverrideModel(provider, override.Model)
-		if model == "" || model == provider.DefaultModel {
+		if override == (ProviderOverride{}) {
 			delete(cfg.ProviderOverrides, id)
 			continue
 		}
-		cfg.ProviderOverrides[id] = ProviderOverride{Model: model}
+		cfg.ProviderOverrides[id] = override
 	}
 
 	normalizedAliases := map[string]string{}

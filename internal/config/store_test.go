@@ -39,6 +39,39 @@ func TestNormalizeRepairsLegacyProviderOverridesAndOpenRouterAliases(t *testing.
 	}
 }
 
+func TestNormalizeKeepsBaseURLOnlyOverridesAndDropsCatalogDefaults(t *testing.T) {
+	t.Parallel()
+
+	catalog, err := providers.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := &File{
+		Version: 1,
+		ProviderOverrides: map[string]ProviderOverride{
+			"lmstudio": {BaseURL: "http://192.168.123.123:1234"},
+			"ollama":   {BaseURL: "http://localhost:11434"}, // catalog default
+			"zai":      {Model: "glm-4.7", BaseURL: "  "},
+		},
+		OpenRouterAliases: map[string]string{},
+		CustomProviders:   map[string]CustomProvider{},
+	}
+
+	cfg.Normalize(catalog)
+
+	if got := cfg.ProviderOverrides["lmstudio"].BaseURL; got != "http://192.168.123.123:1234" {
+		t.Fatalf("lmstudio base URL override = %q, want kept", got)
+	}
+	if _, ok := cfg.ProviderOverrides["ollama"]; ok {
+		t.Fatalf("expected catalog-default base URL override to be removed, got %+v", cfg.ProviderOverrides)
+	}
+	zai := cfg.ProviderOverrides["zai"]
+	if zai.Model != "glm-4.7" || zai.BaseURL != "" {
+		t.Fatalf("zai override = %+v, want model kept and blank base URL trimmed away", zai)
+	}
+}
+
 func TestApplyLegacySecretsIgnoresLauncherShapedOpenRouterValues(t *testing.T) {
 	t.Parallel()
 

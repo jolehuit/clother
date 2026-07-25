@@ -92,13 +92,15 @@ func configBuiltin(c Context, provider providers.Provider) (int, error) {
 		}
 	}
 
+	override := c.Config.ProviderOverrides[provider.ID]
+
 	if provider.DefaultModel != "" {
 		fmt.Fprintln(c.Output.Stdout, "Choose model:")
 		for idx, choice := range provider.ModelChoices {
 			fmt.Fprintf(c.Output.Stdout, "  %d. %-24s %s\n", idx+1, choice.ID, choice.Description)
 		}
 		defaultValue := provider.DefaultModel
-		if override := c.Config.ProviderOverrides[provider.ID]; override.Model != "" {
+		if override.Model != "" {
 			defaultValue = override.Model
 		}
 		answer, err := c.Prompt.Prompt("Model", defaultValue)
@@ -107,10 +109,38 @@ func configBuiltin(c Context, provider providers.Provider) (int, error) {
 		}
 		answer = resolveModelChoice(answer, provider.ModelChoices)
 		if answer != "" && answer != provider.DefaultModel {
-			c.Config.ProviderOverrides[provider.ID] = config.ProviderOverride{Model: answer}
+			override.Model = answer
 		} else {
-			delete(c.Config.ProviderOverrides, provider.ID)
+			override.Model = ""
 		}
+	}
+
+	// Local backends may run on another machine (e.g. LM Studio on a LAN
+	// host), so let the user point the launcher at a remote base URL.
+	if provider.Family == providers.FamilyLocal {
+		defaultURL := provider.BaseURL
+		if override.BaseURL != "" {
+			defaultURL = override.BaseURL
+		}
+		answer, err := c.Prompt.Prompt("Base URL", defaultURL)
+		if err != nil {
+			return 1, err
+		}
+		answer = strings.TrimSpace(answer)
+		if answer != "" && answer != provider.BaseURL {
+			if !strings.HasPrefix(answer, "http://") && !strings.HasPrefix(answer, "https://") {
+				return 1, fmt.Errorf("invalid base URL %q (must start with http:// or https://)", answer)
+			}
+			override.BaseURL = strings.TrimRight(answer, "/")
+		} else {
+			override.BaseURL = ""
+		}
+	}
+
+	if override == (config.ProviderOverride{}) {
+		delete(c.Config.ProviderOverrides, provider.ID)
+	} else {
+		c.Config.ProviderOverrides[provider.ID] = override
 	}
 	return persistConfig(c)
 }

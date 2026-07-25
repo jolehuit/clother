@@ -112,3 +112,76 @@ func TestConfigBuiltinAllowsModelOverrideWithoutCatalogChoices(t *testing.T) {
 		t.Fatalf("override model = %q, want MiniMax-M2.7-pro", got)
 	}
 }
+
+func TestConfigBuiltinLocalProviderStoresRemoteBaseURL(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("HOME", root)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, ".config"))
+	t.Setenv("XDG_DATA_HOME", filepath.Join(root, ".local", "share"))
+	t.Setenv("XDG_CACHE_HOME", filepath.Join(root, ".cache"))
+	t.Setenv("CLOTHER_BIN", filepath.Join(root, "bin"))
+
+	paths, err := config.Detect("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	catalog, err := providers.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	provider, ok := catalog.Get("lmstudio")
+	if !ok {
+		t.Fatal("lmstudio provider missing from catalog")
+	}
+
+	cfg := &config.File{
+		Version:           1,
+		ProviderOverrides: map[string]config.ProviderOverride{},
+		OpenRouterAliases: map[string]string{},
+		CustomProviders:   map[string]config.CustomProvider{},
+	}
+
+	ctx := Context{
+		Paths:   paths,
+		Config:  cfg,
+		Secrets: config.Secrets{},
+		Catalog: catalog,
+		Output:  &ui.Output{Stdout: io.Discard, Stderr: io.Discard, Format: ui.FormatHuman},
+		Prompt:  ui.NewPrompter(strings.NewReader("http://192.168.123.123:1234\n"), io.Discard),
+	}
+
+	code, err := configBuiltin(ctx, provider)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if code != 0 {
+		t.Fatalf("configBuiltin() code = %d, want 0", code)
+	}
+	if got := cfg.ProviderOverrides["lmstudio"].BaseURL; got != "http://192.168.123.123:1234" {
+		t.Fatalf("override base URL = %q, want http://192.168.123.123:1234", got)
+	}
+
+	// Re-running config and accepting the default keeps the override.
+	ctx.Prompt = ui.NewPrompter(strings.NewReader("\n"), io.Discard)
+	if _, err := configBuiltin(ctx, provider); err != nil {
+		t.Fatal(err)
+	}
+	if got := cfg.ProviderOverrides["lmstudio"].BaseURL; got != "http://192.168.123.123:1234" {
+		t.Fatalf("override base URL after reconfig = %q, want kept", got)
+	}
+
+	// Entering the catalog default clears the override.
+	ctx.Prompt = ui.NewPrompter(strings.NewReader("http://localhost:1234\n"), io.Discard)
+	if _, err := configBuiltin(ctx, provider); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := cfg.ProviderOverrides["lmstudio"]; ok {
+		t.Fatalf("expected override cleared, got %+v", cfg.ProviderOverrides)
+	}
+
+	// A non-HTTP value is rejected.
+	ctx.Prompt = ui.NewPrompter(strings.NewReader("192.168.1.4:1234\n"), io.Discard)
+	if code, err := configBuiltin(ctx, provider); err == nil || code == 0 {
+		t.Fatalf("expected invalid base URL error, got code=%d err=%v", code, err)
+	}
+}
