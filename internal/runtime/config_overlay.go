@@ -126,7 +126,11 @@ func mirrorClaudeConfigDir(sourceDir, overlayDir string) error {
 		return err
 	}
 	for _, entry := range entries {
-		if entry.Name() == "settings.json" {
+		// settings.json is rewritten with the patched copy; .claude.json is the
+		// state file, mirrored separately by mirrorClaudeStateFile. Skipping it
+		// here avoids a symlink collision when the config dir also contains its
+		// own .claude.json alongside the home-level one.
+		if entry.Name() == "settings.json" || entry.Name() == ".claude.json" {
 			continue
 		}
 		src := filepath.Join(sourceDir, entry.Name())

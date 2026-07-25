@@ -110,3 +110,57 @@ func TestPrepareClaudeConfigOverlaySkipsNativeClaude(t *testing.T) {
 		t.Fatalf("CLAUDE_CONFIG_DIR = %q, want empty", got)
 	}
 }
+
+func TestPrepareClaudeConfigOverlayHandlesStateFileInsideConfigDir(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("CLAUDE_CONFIG_DIR", "")
+	claudeDir := filepath.Join(home, ".claude")
+	if err := os.MkdirAll(claudeDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(claudeDir, "settings.json"), []byte("{}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// Some installs leave a .claude.json inside the config dir in addition to
+	// the canonical home-level one. Both previously mapped to the same overlay
+	// path and aborted the launch with "file exists".
+	if err := os.WriteFile(filepath.Join(claudeDir, ".claude.json"), []byte("{\"stale\":true}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	homeState := filepath.Join(home, ".claude.json")
+	if err := os.WriteFile(homeState, []byte("{\"home\":true}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	target := profiles.Target{Family: providers.FamilyAnthropicCompatibleNonClaude, Model: "glm-5.2"}
+	env, cleanup, err := PrepareClaudeConfigOverlay(target, nil, []string{
+		"PATH=/usr/bin",
+		"ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic",
+		"ANTHROPIC_AUTH_TOKEN=secret-token",
+		"ANTHROPIC_DEFAULT_SONNET_MODEL=glm-5.2",
+	})
+	if err != nil {
+		t.Fatalf("overlay failed with .claude.json inside config dir: %v", err)
+	}
+	t.Cleanup(cleanup)
+
+	overlayDir := envSliceToMap(env)["CLAUDE_CONFIG_DIR"]
+	if overlayDir == "" {
+		t.Fatal("expected CLAUDE_CONFIG_DIR override")
+	}
+	statePath := filepath.Join(overlayDir, ".claude.json")
+	if info, err := os.Lstat(statePath); err != nil {
+		t.Fatalf("overlay .claude.json missing: %v", err)
+	} else if info.Mode()&os.ModeSymlink == 0 {
+		t.Fatalf("expected %s to be a symlink", statePath)
+	}
+	// The canonical home-level state file must be mirrored, not the in-dir copy.
+	resolved, err := os.Readlink(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resolved != homeState {
+		t.Fatalf("overlay state points to %q, want home state %q", resolved, homeState)
+	}
+}
