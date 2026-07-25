@@ -61,13 +61,17 @@
       "auth_mode": "secret",
       "key_var": "ZAI_CN_API_KEY",
       "base_url": "https://open.bigmodel.cn/api/anthropic",
-      "default_model": "glm-5.1",
+      "default_model": "glm-5.2",
       "model_tiers": {
-        "haiku": "glm-5.1",
-        "sonnet": "glm-5.1",
-        "opus": "glm-5.1"
+        "haiku": "glm-5.2",
+        "sonnet": "glm-5.2",
+        "opus": "glm-5.2"
       },
       "model_choices": [
+        {
+          "id": "glm-5.2",
+          "description": "GLM-5.2"
+        },
         {
           "id": "glm-5.1",
           "description": "GLM-5.1"
