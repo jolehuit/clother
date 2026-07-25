@@ -25,6 +25,7 @@ Clother gives you one install and one command pattern across Claude, Z.AI, Kimi,
 
 - [Installation](#installation)
 - [Core Usage](#core-usage)
+  - [Benchmarking](#benchmarking)
 - [Provider Reference](#provider-reference)
 - [Troubleshooting](#troubleshooting)
 - [VS Code Integration](#vs-code-integration)
@@ -48,7 +49,7 @@ brew install clother
 
 # 3. Start using it — all launchers are ready immediately
 clother-native                          # Use your Claude Pro/Max/Team subscription
-clother-zai                             # Z.AI (GLM-5)
+clother-zai                             # Z.AI (GLM-5.1)
 clother-zai --yolo                      # Skip permission prompts
 clother-kimi                            # Kimi (kimi-k2.5)
 clother config                          # Configure providers
@@ -74,7 +75,7 @@ curl -fsSL https://raw.githubusercontent.com/jolehuit/clother/main/scripts/insta
 
 # 3. Start using it
 clother-native                          # Use your Claude Pro/Max/Team subscription
-clother-zai                             # Z.AI (GLM-5)
+clother-zai                             # Z.AI (GLM-5.1)
 clother-zai --yolo                      # Skip permission prompts
 clother-kimi                            # Kimi (kimi-k2.5)
 clother-ollama --model qwen3-coder      # Local with Ollama
@@ -123,6 +124,7 @@ Clother keeps `claude --resume ...` working with Clother features after install.
 | `clother list` | List profiles |
 | `clother info <provider>` | Show provider details |
 | `clother test` | Test connectivity |
+| `clother bench [provider...] [--prompt "..."]` | Benchmark provider latency |
 | `clother status` | Installation status |
 | `clother install` | Install/update Clother (create/refresh symlinks) |
 | `clother update` | Update to latest version |
@@ -138,7 +140,7 @@ Routes to `brew upgrade clother` under Homebrew, or downloads the latest release
 
 ### Changing the Default Model
 
-Each provider launcher comes with a default model (for example `glm-5` for Z.AI). You can override it in two ways:
+Each provider launcher comes with a default model (for example `glm-5.1` for Z.AI). You can override it in two ways:
 
 ```bash
 # One-time: pass --model through to Claude CLI
@@ -149,6 +151,28 @@ clother config zai
 ```
 
 Use `clother info <provider>` to inspect the resolved model.
+
+### Benchmarking
+
+Compare latency across all configured providers at once:
+
+```bash
+clother bench                              # all configured providers
+clother bench zai kimi                     # specific providers only
+clother bench --prompt "Write a haiku"     # custom prompt
+```
+
+Output shows **TTFT** (time to first token) and total response time, sorted fastest first:
+
+```
+  Provider           Model                      TTFT    Total   Preview
+  ──────────────────────────────────────────────────────────────────────────────
+  kimi               kimi-k2.5                  180ms    0.9s   "Hello!"
+  zai                glm-5.1                    312ms    1.2s   "Hello!"
+  deepseek           deepseek-chat              890ms    3.1s   "Hello!"
+```
+
+Only providers with a configured API key are included. Local providers are skipped.
 
 ### Resume
 
@@ -172,7 +196,7 @@ single launch, then restores the original session file afterwards.
 | Command | Provider | Model | API Key |
 |---------|----------|-------|---------|
 | `clother-native` | Anthropic | Claude | Your subscription |
-| `clother-zai` | Z.AI | GLM-5 | [z.ai](https://z.ai) |
+| `clother-zai` | Z.AI | GLM-5.1 | [z.ai](https://z.ai) |
 | `clother-minimax` | MiniMax | MiniMax-M2.7 | [minimax.io](https://minimax.io) |
 | `clother-kimi` | Kimi | kimi-k2.5 | [kimi.com](https://kimi.com) |
 | `clother-moonshot` | Moonshot AI | kimi-k2.5 | [moonshot.ai](https://moonshot.ai) |
@@ -241,6 +265,7 @@ All Alibaba variants (`alibaba`, `alibaba-us`, `alibaba-cn`) share the same API 
 |-------|
 | `qwen3.5-plus` (default) |
 | `kimi-k2.5` |
+| `glm-5.1` |
 | `glm-5` |
 | `MiniMax-M2.5` |
 | `qwen3-coder-next` |

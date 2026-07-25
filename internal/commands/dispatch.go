@@ -20,6 +20,8 @@ func Dispatch(ctx context.Context, c Context, command string, args []string) (in
 		return runInfo(ctx, c, args)
 	case "test":
 		return runTest(ctx, c, args)
+	case "bench":
+		return runBench(ctx, c, args)
 	case "status":
 		return runStatus(ctx, c)
 	case "install":
