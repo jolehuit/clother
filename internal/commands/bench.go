@@ -59,6 +59,9 @@ func runBench(ctx context.Context, c Context, args []string) (int, error) {
 		if t.AuthMode == providers.AuthSecret && c.Secrets[t.SecretKey] == "" {
 			continue // no API key configured
 		}
+		if benchModel(t) == "" {
+			continue // no model to request (e.g. custom provider without a default)
+		}
 		if len(providerFilter) > 0 {
 			found := false
 			for _, f := range providerFilter {
@@ -122,7 +125,8 @@ func runBench(ctx context.Context, c Context, args []string) (int, error) {
 }
 
 func doBench(ctx context.Context, target profiles.Target, secrets config.Secrets, prompt string) benchResult {
-	res := benchResult{Profile: target.Profile, Model: target.Model}
+	model := benchModel(target)
+	res := benchResult{Profile: target.Profile, Model: model}
 
 	var apiKey string
 	switch target.AuthMode {
@@ -135,7 +139,7 @@ func doBench(ctx context.Context, target profiles.Target, secrets config.Secrets
 	endpoint := strings.TrimRight(target.BaseURL, "/") + "/v1/messages"
 
 	body, err := json.Marshal(map[string]interface{}{
-		"model":      target.Model,
+		"model":      model,
 		"max_tokens": 64,
 		"stream":     true,
 		"messages": []map[string]string{
@@ -231,4 +235,19 @@ func benchShortErr(err error) string {
 		return s[:40] + "…"
 	}
 	return s
+}
+
+// benchModel resolves the model to request for a target: the explicit default
+// model when set, otherwise the first configured tier (OpenRouter aliases only
+// populate tiers, never Model).
+func benchModel(target profiles.Target) string {
+	if target.Model != "" {
+		return target.Model
+	}
+	for _, tier := range []string{"sonnet", "opus", "haiku", "small"} {
+		if model := target.ModelTiers[tier]; model != "" {
+			return model
+		}
+	}
+	return ""
 }
