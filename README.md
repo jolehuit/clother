@@ -168,7 +168,7 @@ Output shows **TTFT** (time to first token) and total response time, sorted fast
   Provider           Model                      TTFT    Total   Preview
   ──────────────────────────────────────────────────────────────────────────────
   kimi               k3-256k                    180ms    0.9s   "Hello!"
-  zai                glm-5.1                    312ms    1.2s   "Hello!"
+  zai                glm-5.2                    312ms    1.2s   "Hello!"
   deepseek           deepseek-chat              890ms    3.1s   "Hello!"
 ```
 
@@ -207,14 +207,17 @@ single launch, then restores the original session file afterwards.
 
 ### OpenRouter (100+ Models)
 
-OpenRouter launchers follow the `clother-or-<alias>` naming pattern.
-For example, if you alias `moonshotai/kimi-k2.5` to `kimi-k25`, the launcher becomes `clother-or-kimi-k25`.
-
 ```bash
 clother config openrouter               # Set API key + add models
 # Example: alias moonshotai/kimi-k2.5 as kimi-k25
-clother-or-kimi-k25                     # Use it
+clother-or kimi-k25                     # Works on every install
+clother-or-kimi-k25                     # Per-alias shortcut (curl installs)
 ```
+
+`clother-or <alias>` works on every install. curl installs additionally get a
+`clother-or-<alias>` symlink per alias when you run `clother config`; Homebrew
+installs skip per-alias symlinks (the formula owns its bin directory), so use
+the `clother-or <alias>` form there.
 
 > **Tip**: Find model IDs on [openrouter.ai/models](https://openrouter.ai/models) — click the copy icon next to any model name.
 
@@ -266,10 +269,16 @@ again to switch back.
 
 ### Custom
 
+Any Anthropic-compatible endpoint:
+
 ```bash
-clother config custom
-clother-myprovider                      # Ready
+clother config custom                   # e.g. name it "myprovider"
+clother-custom myprovider               # Works on every install
+clother-myprovider                      # Per-provider shortcut (curl installs)
 ```
+
+As with OpenRouter aliases, the per-provider `clother-<name>` symlink is only
+created on curl installs — under Homebrew, use `clother-custom <name>`.
 
 ### Alibaba Coding Plan Models
 
@@ -369,6 +378,9 @@ CLOTHER_RELEASE_BASE_URL=http://127.0.0.1:8000 \
 - [@sammcj](https://github.com/sammcj) — Security hardening
 - [@aprakasa](https://github.com/aprakasa) — Linux compatibility fixes in `load_secrets()`
 - [@luciano-fiandesio](https://github.com/luciano-fiandesio) — Install directory improvement (issue)
+- [@canberksinangil](https://github.com/canberksinangil) — Config overlay fix, GLM-5.2 default
+- [@yasaricli](https://github.com/yasaricli) — `clother bench` command, GLM-5.1 support
+- [@jeliseocd](https://github.com/jeliseocd) — Config overlay collision report and diagnosis
 
 ## Star History
 
