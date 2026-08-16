@@ -221,22 +221,3 @@ func TestRestoreStalePreservesAppendedMessages(t *testing.T) {
 		t.Fatalf("stale restore should keep appended data\nwant:\n%s\ngot:\n%s", want, string(restored))
 	}
 }
-
-func TestResumeIDParsesCommonForms(t *testing.T) {
-	t.Parallel()
-
-	cases := []struct {
-		args []string
-		want string
-	}{
-		{args: []string{"--resume", "abc"}, want: "abc"},
-		{args: []string{"-r", "xyz"}, want: "xyz"},
-		{args: []string{"--resume=foo"}, want: "foo"},
-		{args: []string{"hello"}, want: ""},
-	}
-	for _, tc := range cases {
-		if got := ResumeID(tc.args); got != tc.want {
-			t.Fatalf("ResumeID(%v) = %q, want %q", tc.args, got, tc.want)
-		}
-	}
-}

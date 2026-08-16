@@ -20,6 +20,9 @@ import (
 
 const benchDefaultPrompt = "Say hello in one word."
 
+// benchJSONErrorRunes bounds the provider error copied into the JSON envelope.
+const benchJSONErrorRunes = 200
+
 type benchResult struct {
 	Profile string
 	Model   string
@@ -78,12 +81,18 @@ func runBench(ctx context.Context, c Context, args []string) (int, error) {
 	}
 
 	if len(selected) == 0 {
+		if c.Output.Machine() {
+			// JSON mode prints exactly one object on stdout: the envelope.
+			return 0, writeBenchJSON(c, prompt, nil)
+		}
 		fmt.Fprintln(c.Output.Stdout, "No providers available for benchmarking.")
 		fmt.Fprintln(c.Output.Stdout, "Configure a provider first: clother config <provider>")
 		return 0, nil
 	}
 
-	fmt.Fprintf(c.Output.Stdout, "Benchmarking %d provider(s) — prompt: %q\n\n", len(selected), prompt)
+	if !c.Output.Machine() {
+		fmt.Fprintf(c.Output.Stdout, "Benchmarking %d provider(s) — prompt: %q\n\n", len(selected), prompt)
+	}
 
 	results := make([]benchResult, len(selected))
 	var wg sync.WaitGroup
@@ -106,12 +115,29 @@ func runBench(ctx context.Context, c Context, args []string) (int, error) {
 		return results[i].TTFT < results[j].TTFT
 	})
 
+	failed := 0
+	for _, r := range results {
+		if r.Err != nil {
+			failed++
+		}
+	}
+
+	if c.Output.Machine() {
+		if err := writeBenchJSON(c, prompt, results); err != nil {
+			return 1, err
+		}
+		if failed == len(results) {
+			return 1, nil
+		}
+		return 0, nil
+	}
+
 	fmt.Fprintf(c.Output.Stdout, "  %-18s %-22s %8s %8s   %s\n", "Provider", "Model", "TTFT", "Total", "Preview")
 	fmt.Fprintf(c.Output.Stdout, "  %s\n", strings.Repeat("─", 78))
 	for _, r := range results {
 		if r.Err != nil {
 			fmt.Fprintf(c.Output.Stdout, "  %-18s %-22s %8s %8s   ✗ %s\n",
-				r.Profile, r.Model, "-", "-", benchShortErr(r.Err))
+				r.Profile, r.Model, "-", "-", benchShortErr(r.Err, c.Secrets))
 		} else {
 			fmt.Fprintf(c.Output.Stdout, "  %-18s %-22s %8s %8s   %q\n",
 				r.Profile, r.Model,
@@ -121,22 +147,54 @@ func runBench(ctx context.Context, c Context, args []string) (int, error) {
 		}
 	}
 	fmt.Fprintln(c.Output.Stdout)
+	if failed == len(results) {
+		// Every provider failed: this is a failed benchmark, not a report.
+		return 1, nil
+	}
 	return 0, nil
+}
+
+func writeBenchJSON(c Context, prompt string, results []benchResult) error {
+	type item struct {
+		Profile string `json:"profile"`
+		Model   string `json:"model"`
+		TTFTms  int64  `json:"ttft_ms,omitempty"`
+		TotalMs int64  `json:"total_ms,omitempty"`
+		Preview string `json:"preview,omitempty"`
+		Error   string `json:"error,omitempty"`
+	}
+	payload := struct {
+		Prompt  string `json:"prompt"`
+		Results []item `json:"results"`
+	}{Prompt: prompt}
+	for _, r := range results {
+		entry := item{Profile: r.Profile, Model: r.Model}
+		if r.Err != nil {
+			// Second belt on the credential, and the only bound on this field:
+			// the machine envelope had no length limit at all, so a hostile
+			// endpoint could push 256 bytes of anything into a consumer's log.
+			entry.Error = truncateRunes(redactSecrets(r.Err.Error(), c.Secrets), benchJSONErrorRunes)
+		} else {
+			entry.TTFTms = r.TTFT.Milliseconds()
+			entry.TotalMs = r.Total.Milliseconds()
+			entry.Preview = r.Preview
+		}
+		payload.Results = append(payload.Results, entry)
+	}
+	return c.Output.Emit("bench", payload)
 }
 
 func doBench(ctx context.Context, target profiles.Target, secrets config.Secrets, prompt string) benchResult {
 	model := benchModel(target)
 	res := benchResult{Profile: target.Profile, Model: model}
 
-	var apiKey string
-	switch target.AuthMode {
-	case providers.AuthSecret:
-		apiKey = secrets[target.SecretKey]
-	case providers.AuthLiteral:
-		apiKey = target.LiteralAuthToken
+	header, headerValue, configured := authHeader(target, secrets)
+	if !configured {
+		res.Err = fmt.Errorf("%s not configured", target.SecretKey)
+		return res
 	}
 
-	endpoint := strings.TrimRight(target.BaseURL, "/") + "/v1/messages"
+	endpoint := messagesEndpoint(target.BaseURL)
 
 	body, err := json.Marshal(map[string]interface{}{
 		"model":      model,
@@ -158,13 +216,11 @@ func doBench(ctx context.Context, target profiles.Target, secrets config.Secrets
 	}
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("anthropic-version", "2023-06-01")
-	if target.Family == providers.FamilyOpenRouter {
-		req.Header.Set("Authorization", "Bearer "+apiKey)
-	} else {
-		req.Header.Set("x-api-key", apiKey)
+	if header != "" {
+		req.Header.Set(header, headerValue)
 	}
 
-	client := &http.Client{Timeout: 30 * time.Second}
+	client := credentialClient(30 * time.Second)
 	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
@@ -175,7 +231,10 @@ func doBench(ctx context.Context, target profiles.Target, secrets config.Secrets
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 256))
-		res.Err = fmt.Errorf("HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+		// The body is attacker-controlled and routinely quotes the Authorization
+		// header back at us: redact before it becomes an error string, because
+		// from there it reaches stdout unbounded in --json.
+		res.Err = fmt.Errorf("HTTP %d: %s", resp.StatusCode, redactSecrets(strings.TrimSpace(string(body)), secrets))
 		return res
 	}
 
@@ -214,11 +273,11 @@ func doBench(ctx context.Context, target profiles.Target, secrets config.Secrets
 	}
 
 	res.Total = time.Since(start)
-	p := strings.TrimSpace(preview.String())
-	if len(p) > 40 {
-		p = p[:40] + "…"
-	}
-	res.Preview = p
+	// Truncate on runes: the catalog is full of providers answering in CJK,
+	// where a byte offset lands in the middle of a character. The model's own
+	// text is redacted too — a provider that echoes the request headers into the
+	// completion would otherwise print the key as a benchmark "preview".
+	res.Preview = truncateRunes(redactSecrets(strings.TrimSpace(preview.String()), secrets), 40)
 	return res
 }
 
@@ -229,12 +288,11 @@ func benchFmtDur(d time.Duration) string {
 	return fmt.Sprintf("%.1fs", d.Seconds())
 }
 
-func benchShortErr(err error) string {
-	s := err.Error()
-	if len(s) > 40 {
-		return s[:40] + "…"
-	}
-	return s
+// benchShortErr renders a provider failure for the human table. Truncation is
+// not a redaction: where the credential lands in the body decides whether 40
+// runes hide it, so the value is masked first and shortened after.
+func benchShortErr(err error, secrets config.Secrets) string {
+	return truncateRunes(redactSecrets(err.Error(), secrets), 40)
 }
 
 // benchModel resolves the model to request for a target: the explicit default

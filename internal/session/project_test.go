@@ -11,8 +11,8 @@ func TestProjectDirMatchesClaudeLayout(t *testing.T) {
 	t.Parallel()
 
 	root := "/tmp/projects"
-	got := ProjectDir(root, "/Users/max/Downloads/clother")
-	want := filepath.Join(root, "-Users-max-Downloads-clother")
+	got := ProjectDir(root, "/Users/dev/Downloads/clother")
+	want := filepath.Join(root, "-Users-dev-Downloads-clother")
 	if got != want {
 		t.Fatalf("ProjectDir() = %q, want %q", got, want)
 	}
@@ -22,7 +22,7 @@ func TestLatestInProjectReturnsMostRecentSession(t *testing.T) {
 	t.Parallel()
 
 	root := t.TempDir()
-	projectDir := ProjectDir(root, "/Users/max/Downloads/clother")
+	projectDir := ProjectDir(root, "/Users/dev/Downloads/clother")
 	if err := os.MkdirAll(projectDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestLatestInProjectReturnsMostRecentSession(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err := LatestInProject(root, "/Users/max/Downloads/clother")
+	got, err := LatestInProject(root, "/Users/dev/Downloads/clother")
 	if err != nil {
 		t.Fatal(err)
 	}

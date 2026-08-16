@@ -21,19 +21,42 @@ type Output struct {
 	Format Format
 	Quiet  bool
 	Color  bool
+	// ErrColor tracks stderr separately: stdout may be a pipe while stderr is
+	// still a terminal, and the reverse.
+	ErrColor bool
+	// Verbose enables Verbosef diagnostics on stderr (-v).
+	Verbose bool
+	// Debug enables Debugf tracing on stderr (-d), and implies Verbose.
+	Debug bool
 }
 
+// New builds an Output on the process stdout/stderr.
 func New(format Format, quiet bool) *Output {
-	stdout := os.Stdout
-	stderr := os.Stderr
-	color := format == FormatHuman && os.Getenv("NO_COLOR") == "" && isTTY(stdout)
+	return NewOutput(os.Stdout, os.Stderr, format, quiet)
+}
+
+// NewOutput builds an Output on arbitrary writers. Color is enabled only for a
+// human-format terminal that has not opted out through NO_COLOR, and is decided
+// per stream so nothing colored is ever written into a pipe or a file.
+func NewOutput(stdout, stderr io.Writer, format Format, quiet bool) *Output {
+	noColor := os.Getenv("NO_COLOR") != ""
+	colorable := format == FormatHuman && !noColor
 	return &Output{
-		Stdout: stdout,
-		Stderr: stderr,
-		Format: format,
-		Quiet:  quiet,
-		Color:  color,
+		Stdout:   stdout,
+		Stderr:   stderr,
+		Format:   format,
+		Quiet:    quiet,
+		Color:    colorable && isTerminal(stdout),
+		ErrColor: colorable && isTerminal(stderr),
 	}
+}
+
+func isTerminal(w io.Writer) bool {
+	file, ok := w.(*os.File)
+	if !ok {
+		return false
+	}
+	return isTTY(file)
 }
 
 func isTTY(file *os.File) bool {
@@ -59,6 +82,25 @@ func (o *Output) ErrLine(format string, args ...any) {
 	fmt.Fprintf(o.Stderr, format+"\n", args...)
 }
 
+// Verbosef writes a diagnostic line on stderr when --verbose (or --debug, which
+// implies it) is on. Diagnostics never go to stdout: a script parsing stdout
+// must see exactly the same bytes with and without -v.
+func (o *Output) Verbosef(format string, args ...any) {
+	if !o.Verbose && !o.Debug {
+		return
+	}
+	fmt.Fprintf(o.Stderr, "clother: "+format+"\n", args...)
+}
+
+// Debugf writes a diagnostic line on stderr when --debug (or -d) is on. It is a
+// no-op otherwise, so callers do not have to guard it.
+func (o *Output) Debugf(format string, args ...any) {
+	if !o.Debug {
+		return
+	}
+	fmt.Fprintf(o.Stderr, "clother: debug: "+format+"\n", args...)
+}
+
 func (o *Output) Success(format string, args ...any) {
 	if o.Quiet {
 		return
@@ -72,7 +114,7 @@ func (o *Output) Success(format string, args ...any) {
 
 func (o *Output) Warn(format string, args ...any) {
 	label := "WARN"
-	if o.Color {
+	if o.ErrColor {
 		label = "\033[1;33m⚠\033[0m"
 	}
 	fmt.Fprintf(o.Stderr, "%s %s\n", label, fmt.Sprintf(format, args...))
@@ -80,7 +122,7 @@ func (o *Output) Warn(format string, args ...any) {
 
 func (o *Output) Error(format string, args ...any) {
 	label := "ERR"
-	if o.Color {
+	if o.ErrColor {
 		label = "\033[0;31m✗\033[0m"
 	}
 	fmt.Fprintf(o.Stderr, "%s %s\n", label, fmt.Sprintf(format, args...))

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -13,8 +12,11 @@ import (
 
 func runList(_ context.Context, c Context) (int, error) {
 	targets := profiles.All(c.Catalog, c.Config)
-	switch c.Options.Format {
-	case "json":
+	// The machine branch is keyed on the Output, which is the single authority
+	// on the rendering mode, so the envelope cannot be skipped by a Context
+	// whose Options and Output disagree.
+	switch {
+	case c.Output.Machine():
 		type item struct {
 			Name       string `json:"name"`
 			Command    string `json:"command"`
@@ -30,9 +32,10 @@ func runList(_ context.Context, c Context) (int, error) {
 				Configured: configured(target, c.Secrets),
 			})
 		}
-		data, _ := json.MarshalIndent(payload, "", "  ")
-		fmt.Fprintln(c.Output.Stdout, string(data))
-	case "plain":
+		if err := c.Output.Emit("list", payload); err != nil {
+			return 1, err
+		}
+	case c.Options.Format == "plain":
 		for _, target := range targets {
 			fmt.Fprintln(c.Output.Stdout, target.Profile)
 		}

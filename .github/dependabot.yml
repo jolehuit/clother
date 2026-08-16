@@ -1,0 +1,17 @@
+version: 2
+
+updates:
+  # Actions are pinned by commit SHA, so nothing bumps them on its own. Dependabot
+  # is what keeps those pins from rotting: it rewrites the SHA and the version
+  # comment together.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

@@ -10,21 +10,12 @@ import (
 
 var ErrSessionNotFound = errors.New("session not found")
 
-func ResumeID(args []string) string {
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-		if arg == "--resume" || arg == "-r" {
-			if i+1 < len(args) {
-				return args[i+1]
-			}
-			return ""
-		}
-		if strings.HasPrefix(arg, "--resume=") {
-			return strings.TrimPrefix(arg, "--resume=")
-		}
-	}
-	return ""
-}
+// The session id of `--resume` is extracted by runtime.ResumeOverride, which
+// classifies each token before reading it. The naive scan that used to live
+// here matched option values and everything after `--` too, and the id it
+// returned drove an in-place rewrite of a transcript on disk. It had no caller
+// left once runtime took over, so it is gone rather than left as a trap for the
+// next one.
 
 func FindSession(root, id string) (string, error) {
 	if id == "" {

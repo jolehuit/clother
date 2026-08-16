@@ -48,6 +48,12 @@ func maybeMessage(paths config.Paths, current string, now time.Time, fetch fetch
 		return "", nil
 	}
 
+	// Refuse a malformed or insecure override before touching the network.
+	metaURL, err := metadataURL()
+	if err != nil {
+		return "", err
+	}
+
 	cache, err := loadCache(paths.UpdateCacheFile)
 	if err != nil {
 		return "", err
@@ -61,7 +67,7 @@ func maybeMessage(paths config.Paths, current string, now time.Time, fetch fetch
 		dirty = true
 		ctx, cancel := context.WithTimeout(context.Background(), 1200*time.Millisecond)
 		defer cancel()
-		meta, err := fetch(ctx, metadataURL())
+		meta, err := fetch(ctx, metaURL)
 		if err == nil && normalizeVersion(meta.Version) != "" {
 			cache.LatestVersion = displayVersion(meta.Version)
 			cache.LatestURL = strings.TrimSpace(meta.URL)
@@ -101,11 +107,15 @@ func maybeMessage(paths config.Paths, current string, now time.Time, fetch fetch
 	), nil
 }
 
-func metadataURL() string {
+func metadataURL() (string, error) {
 	if override := strings.TrimSpace(os.Getenv("CLOTHER_UPDATE_URL")); override != "" {
-		return override
+		validated, err := validateUpdateURL(override)
+		if err != nil {
+			return "", fmt.Errorf("CLOTHER_UPDATE_URL: %w", err)
+		}
+		return validated, nil
 	}
-	return defaultMetadataURL
+	return defaultMetadataURL, nil
 }
 
 func shouldRefresh(cache cacheFile, now time.Time) bool {
@@ -132,7 +142,7 @@ func fetchMetadata(ctx context.Context, url string) (remoteMetadata, error) {
 	}
 	req.Header.Set("User-Agent", "clother-update-check")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := metadataClient.Do(req)
 	if err != nil {
 		return remoteMetadata{}, err
 	}

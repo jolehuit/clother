@@ -3,14 +3,43 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/jolehuit/clother/internal/providers"
 )
+
+var (
+	// ValidName is the single source of truth for names that end up as a
+	// launcher file name in BinDir (OpenRouter aliases, custom providers).
+	// Anything else — a "/" or a ".." in particular — would make
+	// launchers.Sync create and remove symlinks outside BinDir.
+	ValidName = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)
+
+	// ValidProviderName is stricter: a custom provider name is also the root
+	// of an environment variable name (<NAME>_API_KEY), which may not start
+	// with a digit.
+	ValidProviderName = regexp.MustCompile(`^[a-z][a-z0-9_-]*$`)
+)
+
+// ValidBaseURL reports whether raw is an absolute http(s) URL with a host.
+// Anything else makes http.NewRequest fail (or worse, return a nil request)
+// down the line.
+func ValidBaseURL(raw string) bool {
+	parsed, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil {
+		return false
+	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return false
+	}
+	return parsed.Host != ""
+}
 
 type ProviderOverride struct {
 	Model   string `json:"model,omitempty"`
@@ -62,9 +91,15 @@ func LoadConfig(path string) (*File, error) {
 }
 
 func SaveConfig(path string, cfg *File) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+	if err := ensurePrivateDir(filepath.Dir(path)); err != nil {
 		return err
 	}
+	return saveConfigFile(path, cfg)
+}
+
+// saveConfigFile is the write half of SaveConfig, without the directory
+// creation, so SaveConfigMerged can call it from inside the file lock.
+func saveConfigFile(path string, cfg *File) error {
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
 		return err
@@ -148,11 +183,48 @@ func (cfg *File) Normalize(catalog providers.Catalog) {
 		if name == "" || model == "" || looksLikeLauncherName(model) {
 			continue
 		}
+		// A name that is not a plain launcher-safe token would escape BinDir
+		// once launchers.Sync joins it with the bin directory.
+		if !ValidName.MatchString(name) {
+			continue
+		}
 		if _, exists := normalizedAliases[name]; !exists {
 			normalizedAliases[name] = model
 		}
 	}
 	cfg.OpenRouterAliases = normalizedAliases
+
+	normalizedCustom := map[string]CustomProvider{}
+	for name, custom := range cfg.CustomProviders {
+		name = strings.TrimSpace(strings.ToLower(name))
+		if !ValidProviderName.MatchString(name) {
+			continue
+		}
+		custom.Name = name
+		if custom.DisplayName == "" {
+			custom.DisplayName = name
+		}
+		custom.BaseURL = strings.TrimRight(strings.TrimSpace(custom.BaseURL), "/")
+		if !ValidBaseURL(custom.BaseURL) {
+			continue
+		}
+		if custom.APIKeyEnv == "" {
+			custom.APIKeyEnv = CustomProviderKeyVar(name)
+		}
+		if !ValidEnvKey(custom.APIKeyEnv) {
+			continue
+		}
+		custom.DefaultModel = strings.TrimSpace(custom.DefaultModel)
+		normalizedCustom[name] = custom
+	}
+	cfg.CustomProviders = normalizedCustom
+}
+
+// CustomProviderKeyVar derives the secrets.env key of a custom provider from
+// its name. Kept here so the derivation cannot diverge between the interactive
+// command, the legacy migration and normalization.
+func CustomProviderKeyVar(name string) string {
+	return strings.ToUpper(strings.ReplaceAll(name, "-", "_")) + "_API_KEY"
 }
 
 func normalizeProviderOverrideModel(provider providers.Provider, value string) string {
