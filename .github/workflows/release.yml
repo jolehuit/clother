@@ -3,23 +3,88 @@ name: Release
 on:
   push:
     tags:
-      - "v*"
+      # Only real version tags. A tag like "vnext" used to reach this workflow
+      # and produce a release whose latest.json froze every client.
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
+
+# Read only by default. Only the publish job, which never checks out nor runs any
+# code from the repository, is granted contents: write.
+permissions:
+  contents: read
 
 jobs:
-  release:
+  verify:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: go.mod
+      - run: go vet ./...
+      - run: go test ./...
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: go.mod
+      - run: ./scripts/package-release.sh
+      - name: Sign checksums.txt
+        env:
+          MINISIGN_SECRET_KEY: ${{ secrets.MINISIGN_SECRET_KEY }}
+          # TODO: remove this line, and only then, one release AFTER
+          # internal/update/keys/current.pub carries a real key — see the
+          # "Turning signing on, in this order" section of
+          # internal/update/keys/README.md. Removing it in the same release that
+          # publishes the key breaks `clother update` for every client still
+          # running a build with placeholder keys: they find a signature they
+          # have no key to verify and refuse to install.
+          # Until then the release is published unsigned, on purpose and loudly,
+          # and clients only warn.
+          CLOTHER_ALLOW_UNSIGNED_RELEASE: "1"
+        run: ./scripts/sign-release.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-artifacts
+          # checksums.txt* covers the signature when there is one, without
+          # failing the release while there is none.
+          path: |
+            dist/clother_*.tar.gz
+            dist/checksums.txt*
+            dist/latest.json
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          go-version-file: go.mod
-      - run: go test ./...
-      - run: ./scripts/package-release.sh
-      - uses: softprops/action-gh-release@v2
+          name: release-artifacts
+          path: dist
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
+          # A tag with a hyphen (v3.1.0-rc1) is a pre-release: without this it
+          # would become /releases/latest and its latest.json, which the client
+          # cannot parse, would silently freeze the whole update channel.
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: true
           files: |
             dist/clother_*.tar.gz
-            dist/checksums.txt
+            dist/checksums.txt*
             dist/latest.json

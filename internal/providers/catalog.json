@@ -12,80 +12,58 @@
       "model_tiers": {},
       "model_choices": [],
       "test_url": "https://api.anthropic.com",
+      "doc_url": "https://code.claude.com/docs/en/authentication",
+      "verified_at": "2026-08-15",
       "setup": [],
       "usage": []
     },
     {
       "id": "zai",
       "display_name": "Z.AI",
-      "description": "Z.AI International",
+      "description": "Z.AI International (GLM Coding Plan)",
       "category": "international",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
       "key_var": "ZAI_API_KEY",
       "base_url": "https://api.z.ai/api/anthropic",
-      "default_model": "glm-5.2",
+      "default_model": "glm-5.3[1m]",
       "model_tiers": {
-        "haiku": "glm-5.2",
-        "sonnet": "glm-5.2",
-        "opus": "glm-5.2"
+        "haiku": "glm-4.7",
+        "small": "glm-4.7",
+        "sonnet": "glm-5.3[1m]",
+        "opus": "glm-5.3[1m]",
+        "fable": "glm-5.3[1m]"
       },
       "model_choices": [
         {
-          "id": "glm-5.2",
-          "description": "GLM-5.2"
+          "id": "glm-5.3[1m]",
+          "description": "GLM-5.3 with the 1M context window"
         },
         {
-          "id": "glm-5.1",
-          "description": "GLM-5.1"
+          "id": "glm-5.3",
+          "description": "GLM-5.3"
         },
         {
-          "id": "glm-5",
-          "description": "GLM-5"
+          "id": "glm-5-turbo",
+          "description": "GLM-5-Turbo"
         },
         {
           "id": "glm-4.7",
-          "description": "GLM-4.7"
+          "description": "GLM-4.7 (cheap tier)"
         }
       ],
       "test_url": "https://api.z.ai/api/anthropic",
-      "setup": [],
-      "usage": []
-    },
-    {
-      "id": "zai-cn",
-      "display_name": "Z.AI China",
-      "description": "Z.AI China",
-      "category": "china",
-      "family": "anthropic_compatible_non_claude",
-      "auth_mode": "secret",
-      "key_var": "ZAI_CN_API_KEY",
-      "base_url": "https://open.bigmodel.cn/api/anthropic",
-      "default_model": "glm-5.2",
-      "model_tiers": {
-        "haiku": "glm-5.2",
-        "sonnet": "glm-5.2",
-        "opus": "glm-5.2"
+      "extra_env": {
+        "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
+        "API_TIMEOUT_MS": "3000000",
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
       },
-      "model_choices": [
-        {
-          "id": "glm-5.2",
-          "description": "GLM-5.2"
-        },
-        {
-          "id": "glm-5.1",
-          "description": "GLM-5.1"
-        },
-        {
-          "id": "glm-5",
-          "description": "GLM-5"
-        },
-        {
-          "id": "glm-4.7",
-          "description": "GLM-4.7"
-        }
-      ],
-      "test_url": "https://open.bigmodel.cn/api/anthropic",
+      "doc_url": "https://docs.z.ai/devpack/latest-model",
+      "verified_at": "2026-08-15",
       "setup": [],
       "usage": []
     },
@@ -98,14 +76,19 @@
       "auth_mode": "secret",
       "key_var": "MINIMAX_API_KEY",
       "base_url": "https://api.minimax.io/anthropic",
-      "default_model": "MiniMax-M3",
+      "default_model": "MiniMax-M3[1m]",
       "model_tiers": {
-        "haiku": "MiniMax-M3",
-        "sonnet": "MiniMax-M3",
-        "opus": "MiniMax-M3",
-        "small": "MiniMax-M3"
+        "haiku": "MiniMax-M3[1m]",
+        "small": "MiniMax-M3[1m]",
+        "sonnet": "MiniMax-M3[1m]",
+        "opus": "MiniMax-M3[1m]",
+        "fable": "MiniMax-M3[1m]"
       },
       "model_choices": [
+        {
+          "id": "MiniMax-M3[1m]",
+          "description": "MiniMax M3 with the 1M context window"
+        },
         {
           "id": "MiniMax-M3",
           "description": "MiniMax M3"
@@ -140,6 +123,262 @@
         }
       ],
       "test_url": "https://api.minimax.io/anthropic",
+      "extra_env": {
+        "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://platform.minimax.io/docs/token-plan/claude-code",
+      "verified_at": "2026-08-15",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "kimi",
+      "display_name": "Kimi Code",
+      "description": "Kimi Code subscription (kimi.com key, not interchangeable with a Moonshot platform key)",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "KIMI_API_KEY",
+      "auth_env_var": "ANTHROPIC_API_KEY",
+      "base_url": "https://api.kimi.com/coding",
+      "default_model": "k3-256k",
+      "model_tiers": {
+        "haiku": "k3-256k",
+        "small": "k3-256k",
+        "sonnet": "k3-256k",
+        "opus": "k3-256k",
+        "fable": "k3-256k"
+      },
+      "model_choices": [
+        {
+          "id": "k3-256k",
+          "description": "Kimi K3, 256K context"
+        },
+        {
+          "id": "k3[1m]",
+          "description": "Kimi K3 with the 1M context window",
+          "note": "1M unlocked from the Allegretto tier up"
+        },
+        {
+          "id": "k3",
+          "description": "Kimi K3",
+          "note": "Moderato tier and up"
+        },
+        {
+          "id": "kimi-for-coding",
+          "description": "Kimi coding alias (tracks K2.7 Code)"
+        },
+        {
+          "id": "kimi-for-coding-highspeed",
+          "description": "Kimi coding alias, high speed",
+          "note": "Allegretto tier and up"
+        }
+      ],
+      "test_url": "https://api.kimi.com/coding",
+      "extra_env": {
+        "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "262144",
+        "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "262144",
+        "CLAUDE_CODE_EFFORT_LEVEL": "high",
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://www.kimi.com/code/docs/en/third-party-tools/claude-code.html",
+      "verified_at": "2026-08-15",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "moonshot",
+      "display_name": "Moonshot AI",
+      "description": "Moonshot / Kimi platform, pay per token (platform key, not interchangeable with a Kimi Code key)",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "MOONSHOT_API_KEY",
+      "base_url": "https://api.moonshot.ai/anthropic",
+      "default_model": "kimi-k3[1m]",
+      "model_tiers": {
+        "haiku": "kimi-k3[1m]",
+        "small": "kimi-k3[1m]",
+        "sonnet": "kimi-k3[1m]",
+        "opus": "kimi-k3[1m]",
+        "fable": "kimi-k3[1m]"
+      },
+      "model_choices": [
+        {
+          "id": "kimi-k3[1m]",
+          "description": "Kimi K3 with the 1M context window"
+        },
+        {
+          "id": "kimi-k3",
+          "description": "Kimi K3"
+        },
+        {
+          "id": "kimi-k2.7-code",
+          "description": "Kimi K2.7 Code, 256K context",
+          "note": "refuses requests with thinking disabled; use CLAUDE_CODE_AUTO_COMPACT_WINDOW=262144"
+        },
+        {
+          "id": "kimi-k2.7-code-highspeed",
+          "description": "Kimi K2.7 Code, high speed"
+        },
+        {
+          "id": "kimi-k2.6",
+          "description": "Kimi K2.6"
+        }
+      ],
+      "test_url": "https://api.moonshot.ai/anthropic",
+      "extra_env": {
+        "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+        "CLAUDE_CODE_EFFORT_LEVEL": "max",
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://platform.kimi.ai/docs/guide/claude-code-kimi",
+      "verified_at": "2026-08-15",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "deepseek",
+      "display_name": "DeepSeek",
+      "description": "DeepSeek",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "DEEPSEEK_API_KEY",
+      "base_url": "https://api.deepseek.com/anthropic",
+      "default_model": "deepseek-v4-pro[1m]",
+      "model_tiers": {
+        "haiku": "deepseek-v4-flash",
+        "small": "deepseek-v4-flash",
+        "sonnet": "deepseek-v4-pro[1m]",
+        "opus": "deepseek-v4-pro[1m]",
+        "fable": "deepseek-v4-pro[1m]"
+      },
+      "model_choices": [
+        {
+          "id": "deepseek-v4-pro[1m]",
+          "description": "DeepSeek V4 Pro with the 1M context window"
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "description": "DeepSeek V4 Pro"
+        },
+        {
+          "id": "deepseek-v4-flash",
+          "description": "DeepSeek V4 Flash (cheap tier)"
+        }
+      ],
+      "test_url": "https://api.deepseek.com/anthropic",
+      "extra_env": {
+        "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "786432",
+        "CLAUDE_CODE_EFFORT_LEVEL": "max",
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code",
+      "verified_at": "2026-08-15",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "mimo",
+      "display_name": "Xiaomi MiMo",
+      "description": "Xiaomi MiMo",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "MIMO_API_KEY",
+      "base_url": "https://api.xiaomimimo.com/anthropic",
+      "default_model": "mimo-v2.5-pro",
+      "model_tiers": {
+        "haiku": "mimo-v2.5-pro",
+        "small": "mimo-v2.5-pro",
+        "sonnet": "mimo-v2.5-pro",
+        "opus": "mimo-v2.5-pro",
+        "fable": "mimo-v2.5-pro"
+      },
+      "model_choices": [
+        {
+          "id": "mimo-v2.5-pro",
+          "description": "MiMo V2.5 Pro"
+        }
+      ],
+      "test_url": "https://api.xiaomimimo.com/anthropic",
+      "extra_env": {
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://mimo.xiaomi.com/mimocode/models-provider",
+      "verified_at": "2026-08-15",
+      "setup": [],
+      "usage": []
+    },
+    {
+      "id": "zai-cn",
+      "display_name": "Z.AI China",
+      "description": "Zhipu / BigModel China (GLM Coding Plan)",
+      "category": "china",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "ZAI_CN_API_KEY",
+      "base_url": "https://open.bigmodel.cn/api/anthropic",
+      "default_model": "glm-5.3[1m]",
+      "model_tiers": {
+        "haiku": "glm-4.7",
+        "small": "glm-4.7",
+        "sonnet": "glm-5.3[1m]",
+        "opus": "glm-5.3[1m]",
+        "fable": "glm-5.3[1m]"
+      },
+      "model_choices": [
+        {
+          "id": "glm-5.3[1m]",
+          "description": "GLM-5.3 with the 1M context window"
+        },
+        {
+          "id": "glm-5.3",
+          "description": "GLM-5.3"
+        },
+        {
+          "id": "glm-5-turbo",
+          "description": "GLM-5-Turbo"
+        },
+        {
+          "id": "glm-4.7",
+          "description": "GLM-4.7 (cheap tier)"
+        }
+      ],
+      "test_url": "https://open.bigmodel.cn/api/anthropic",
+      "extra_env": {
+        "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
+        "API_TIMEOUT_MS": "3000000",
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://docs.bigmodel.cn/cn/coding-plan/overview",
+      "verified_at": "2026-08-15",
       "setup": [],
       "usage": []
     },
@@ -152,14 +391,19 @@
       "auth_mode": "secret",
       "key_var": "MINIMAX_CN_API_KEY",
       "base_url": "https://api.minimaxi.com/anthropic",
-      "default_model": "MiniMax-M3",
+      "default_model": "MiniMax-M3[1m]",
       "model_tiers": {
-        "haiku": "MiniMax-M3",
-        "sonnet": "MiniMax-M3",
-        "opus": "MiniMax-M3",
-        "small": "MiniMax-M3"
+        "haiku": "MiniMax-M3[1m]",
+        "small": "MiniMax-M3[1m]",
+        "sonnet": "MiniMax-M3[1m]",
+        "opus": "MiniMax-M3[1m]",
+        "fable": "MiniMax-M3[1m]"
       },
       "model_choices": [
+        {
+          "id": "MiniMax-M3[1m]",
+          "description": "MiniMax M3 with the 1M context window"
+        },
         {
           "id": "MiniMax-M3",
           "description": "MiniMax M3"
@@ -194,250 +438,23 @@
         }
       ],
       "test_url": "https://api.minimaxi.com/anthropic",
-      "setup": [],
-      "usage": []
-    },
-    {
-      "id": "kimi",
-      "display_name": "Kimi",
-      "description": "Kimi Code plan",
-      "category": "international",
-      "family": "anthropic_compatible_non_claude",
-      "auth_mode": "secret",
-      "key_var": "KIMI_API_KEY",
-      "base_url": "https://api.kimi.com/coding/",
-      "default_model": "k3-256k",
-      "model_tiers": {
-        "small": "k3-256k"
+      "extra_env": {
+        "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
       },
-      "model_choices": [
-        {
-          "id": "k3-256k",
-          "description": "Kimi K3 (256K)"
-        },
-        {
-          "id": "kimi-for-coding",
-          "description": "Kimi coding alias (tracks latest)"
-        }
-      ],
-      "test_url": "https://api.kimi.com/coding/",
-      "setup": [],
-      "usage": []
-    },
-    {
-      "id": "moonshot",
-      "display_name": "Moonshot AI",
-      "description": "Moonshot AI",
-      "category": "international",
-      "family": "anthropic_compatible_non_claude",
-      "auth_mode": "secret",
-      "key_var": "MOONSHOT_API_KEY",
-      "base_url": "https://api.moonshot.ai/anthropic",
-      "default_model": "kimi-k3",
-      "model_tiers": {},
-      "model_choices": [
-        {
-          "id": "kimi-k3",
-          "description": "Kimi K3"
-        },
-        {
-          "id": "kimi-k2.7-code",
-          "description": "Kimi K2.7 Code"
-        },
-        {
-          "id": "kimi-k2.6",
-          "description": "Kimi K2.6"
-        }
-      ],
-      "test_url": "https://api.moonshot.ai/anthropic",
-      "setup": [],
-      "usage": []
-    },
-    {
-      "id": "ve",
-      "display_name": "VolcEngine",
-      "description": "VolcEngine",
-      "category": "china",
-      "family": "anthropic_compatible_non_claude",
-      "auth_mode": "secret",
-      "key_var": "ARK_API_KEY",
-      "base_url": "https://ark.cn-beijing.volces.com/api/coding",
-      "default_model": "doubao-seed-code-preview-latest",
-      "model_tiers": {},
-      "model_choices": [],
-      "test_url": "https://ark.cn-beijing.volces.com/api/coding",
-      "setup": [],
-      "usage": []
-    },
-    {
-      "id": "deepseek",
-      "display_name": "DeepSeek",
-      "description": "DeepSeek",
-      "category": "international",
-      "family": "anthropic_compatible_non_claude",
-      "auth_mode": "secret",
-      "key_var": "DEEPSEEK_API_KEY",
-      "base_url": "https://api.deepseek.com/anthropic",
-      "default_model": "deepseek-chat",
-      "model_tiers": {
-        "small": "deepseek-chat"
-      },
-      "model_choices": [],
-      "test_url": "https://api.deepseek.com/anthropic",
-      "setup": [],
-      "usage": []
-    },
-    {
-      "id": "mimo",
-      "display_name": "Xiaomi MiMo",
-      "description": "Xiaomi MiMo",
-      "category": "international",
-      "family": "anthropic_compatible_non_claude",
-      "auth_mode": "secret",
-      "key_var": "MIMO_API_KEY",
-      "base_url": "https://api.xiaomimimo.com/anthropic",
-      "default_model": "mimo-v2.5-pro",
-      "model_tiers": {
-        "haiku": "mimo-v2.5-pro",
-        "sonnet": "mimo-v2.5-pro",
-        "opus": "mimo-v2.5-pro"
-      },
-      "model_choices": [
-        {
-          "id": "mimo-v2.5-pro",
-          "description": "MiMo V2.5 Pro"
-        }
-      ],
-      "test_url": "https://api.xiaomimimo.com/anthropic",
+      "doc_url": "https://platform.minimax.io/docs/token-plan/claude-code",
+      "verified_at": "2026-08-15",
       "setup": [],
       "usage": []
     },
     {
       "id": "alibaba",
-      "display_name": "Alibaba Coding Plan (Singapore)",
-      "description": "Alibaba Coding Plan (Singapore)",
-      "category": "international",
-      "family": "anthropic_compatible_non_claude",
-      "auth_mode": "secret",
-      "key_var": "ALIBABA_API_KEY",
-      "base_url": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic",
-      "default_model": "qwen3.7-plus",
-      "model_tiers": {
-        "haiku": "qwen3.7-plus",
-        "sonnet": "qwen3.7-plus",
-        "opus": "qwen3.7-plus"
-      },
-      "model_choices": [
-        {
-          "id": "qwen3.7-plus",
-          "description": "Qwen 3.7 Plus"
-        },
-        {
-          "id": "qwen3.6-plus",
-          "description": "Qwen 3.6 Plus"
-        },
-        {
-          "id": "qwen3.5-plus",
-          "description": "Qwen 3.5 Plus"
-        },
-        {
-          "id": "kimi-k2.5",
-          "description": "Kimi K2.5"
-        },
-        {
-          "id": "glm-5",
-          "description": "GLM-5"
-        },
-        {
-          "id": "MiniMax-M2.5",
-          "description": "MiniMax M2.5"
-        },
-        {
-          "id": "qwen3-coder-next",
-          "description": "Qwen3 Coder Next"
-        },
-        {
-          "id": "qwen3-coder-plus",
-          "description": "Qwen3 Coder Plus"
-        },
-        {
-          "id": "qwen3-max-2026-01-23",
-          "description": "Qwen3 Max"
-        },
-        {
-          "id": "glm-4.7",
-          "description": "GLM-4.7"
-        }
-      ],
-      "test_url": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic",
-      "setup": [],
-      "usage": []
-    },
-    {
-      "id": "alibaba-us",
-      "display_name": "Alibaba Coding Plan (US)",
-      "description": "Alibaba Coding Plan (US)",
-      "category": "international",
-      "family": "anthropic_compatible_non_claude",
-      "auth_mode": "secret",
-      "key_var": "ALIBABA_API_KEY",
-      "base_url": "https://coding-us.dashscope.aliyuncs.com/apps/anthropic",
-      "default_model": "qwen3.7-plus",
-      "model_tiers": {
-        "haiku": "qwen3.7-plus",
-        "sonnet": "qwen3.7-plus",
-        "opus": "qwen3.7-plus"
-      },
-      "model_choices": [
-        {
-          "id": "qwen3.7-plus",
-          "description": "Qwen 3.7 Plus"
-        },
-        {
-          "id": "qwen3.6-plus",
-          "description": "Qwen 3.6 Plus"
-        },
-        {
-          "id": "qwen3.5-plus",
-          "description": "Qwen 3.5 Plus"
-        },
-        {
-          "id": "kimi-k2.5",
-          "description": "Kimi K2.5"
-        },
-        {
-          "id": "glm-5",
-          "description": "GLM-5"
-        },
-        {
-          "id": "MiniMax-M2.5",
-          "description": "MiniMax M2.5"
-        },
-        {
-          "id": "qwen3-coder-next",
-          "description": "Qwen3 Coder Next"
-        },
-        {
-          "id": "qwen3-coder-plus",
-          "description": "Qwen3 Coder Plus"
-        },
-        {
-          "id": "qwen3-max-2026-01-23",
-          "description": "Qwen3 Max"
-        },
-        {
-          "id": "glm-4.7",
-          "description": "GLM-4.7"
-        }
-      ],
-      "test_url": "https://coding-us.dashscope.aliyuncs.com/apps/anthropic",
-      "setup": [],
-      "usage": []
-    },
-    {
-      "id": "alibaba-cn",
-      "display_name": "Alibaba Coding Plan (China)",
-      "description": "Alibaba Coding Plan (China)",
+      "display_name": "Alibaba Model Studio (Coding Plan)",
+      "description": "Alibaba Cloud Model Studio, Coding Plan endpoint",
       "category": "china",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
@@ -446,13 +463,19 @@
       "default_model": "qwen3.7-plus",
       "model_tiers": {
         "haiku": "qwen3.7-plus",
+        "small": "qwen3.7-plus",
         "sonnet": "qwen3.7-plus",
-        "opus": "qwen3.7-plus"
+        "opus": "qwen3.7-plus",
+        "fable": "qwen3.7-plus"
       },
       "model_choices": [
         {
           "id": "qwen3.7-plus",
           "description": "Qwen 3.7 Plus"
+        },
+        {
+          "id": "qwen3.7-plus[1m]",
+          "description": "Qwen 3.7 Plus with the 1M context window"
         },
         {
           "id": "qwen3.6-plus",
@@ -464,15 +487,19 @@
         },
         {
           "id": "kimi-k2.5",
-          "description": "Kimi K2.5"
+          "description": "Kimi K2.5 served by Model Studio"
         },
         {
           "id": "glm-5",
-          "description": "GLM-5"
+          "description": "GLM-5 served by Model Studio"
         },
         {
           "id": "MiniMax-M2.5",
-          "description": "MiniMax M2.5"
+          "description": "MiniMax M2.5 served by Model Studio"
+        },
+        {
+          "id": "qwen3-max-2026-01-23",
+          "description": "Qwen 3 Max, 2026-01-23 snapshot"
         },
         {
           "id": "qwen3-coder-next",
@@ -483,16 +510,278 @@
           "description": "Qwen3 Coder Plus"
         },
         {
-          "id": "qwen3-max-2026-01-23",
-          "description": "Qwen3 Max"
-        },
-        {
           "id": "glm-4.7",
-          "description": "GLM-4.7"
+          "description": "GLM-4.7 served by Model Studio"
         }
       ],
       "test_url": "https://coding.dashscope.aliyuncs.com/apps/anthropic",
-      "setup": [],
+      "extra_env": {
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://help.aliyun.com/en/model-studio/claude-code",
+      "verified_at": "2026-08-15",
+      "setup": [
+        "The Anthropic endpoint of Model Studio serves /v1/messages only: model discovery returns 404, which is expected.",
+        "The Coding Plan takes its own sk-sp-... key: a general sk-... key on this endpoint silently falls back to pay-as-you-go billing.",
+        "The model allowlist is matched character by character; a version that is not on the list is rejected rather than downgraded."
+      ],
+      "usage": []
+    },
+    {
+      "id": "alibaba-token-plan",
+      "display_name": "Alibaba Model Studio (Token Plan)",
+      "description": "Alibaba Cloud Model Studio, Token Plan Personal and Team endpoint",
+      "category": "china",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "ALIBABA_TOKEN_PLAN_API_KEY",
+      "base_url": "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic",
+      "default_model": "qwen3.8-max",
+      "model_tiers": {
+        "haiku": "qwen3.6-flash",
+        "small": "qwen3.6-flash",
+        "sonnet": "qwen3.8-max",
+        "opus": "qwen3.8-max",
+        "fable": "qwen3.8-max"
+      },
+      "model_choices": [
+        {
+          "id": "qwen3.8-max",
+          "description": "Qwen 3.8 Max"
+        },
+        {
+          "id": "qwen3.7-max",
+          "description": "Qwen 3.7 Max (documented subagent model)"
+        },
+        {
+          "id": "qwen3.6-flash",
+          "description": "Qwen 3.6 Flash (cheap tier)"
+        }
+      ],
+      "test_url": "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic",
+      "extra_env": {
+        "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "983616",
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://help.aliyun.com/en/model-studio/claude-code",
+      "verified_at": "2026-08-15",
+      "setup": [
+        "The Token Plan key is a dedicated key, distinct from the Coding Plan key and from a pay-as-you-go Model Studio key."
+      ],
+      "usage": []
+    },
+    {
+      "id": "ve",
+      "display_name": "VolcEngine Ark",
+      "description": "VolcEngine Ark Coding Plan",
+      "category": "china",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "ARK_API_KEY",
+      "base_url": "https://ark.cn-beijing.volces.com/api/coding",
+      "default_model": "doubao-seed-code",
+      "model_tiers": {
+        "haiku": "doubao-seed-code",
+        "small": "doubao-seed-code",
+        "sonnet": "doubao-seed-code",
+        "opus": "doubao-seed-code",
+        "fable": "doubao-seed-code"
+      },
+      "model_choices": [
+        {
+          "id": "doubao-seed-code",
+          "description": "Doubao Seed Code"
+        },
+        {
+          "id": "ark-code-latest",
+          "description": "Ark auto-routing alias, switched from the Ark console"
+        },
+        {
+          "id": "kimi-k2.5",
+          "description": "Kimi K2.5 served by Ark"
+        }
+      ],
+      "test_url": "https://ark.cn-beijing.volces.com/api/coding",
+      "extra_env": {
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://www.volcengine.com/article/38136",
+      "verified_at": "2026-08-15",
+      "setup": [
+        "Do not point this profile at https://ark.cn-beijing.volces.com/api/v3: that endpoint bills separately and does not draw on the Coding Plan quota.",
+        "The plan also serves Doubao-Seed-2.0-Code, GLM-4.7 and DeepSeek-V3.2, but the official page names them in prose without publishing their exact API ids: select them from the Ark console behind ark-code-latest rather than guessing a spelling."
+      ],
+      "usage": []
+    },
+    {
+      "id": "openrouter",
+      "display_name": "OpenRouter",
+      "description": "OpenRouter Anthropic-compatible endpoint",
+      "category": "gateway",
+      "family": "openrouter",
+      "auth_mode": "secret",
+      "key_var": "OPENROUTER_API_KEY",
+      "base_url": "https://openrouter.ai/api",
+      "default_model": "~anthropic/claude-sonnet-latest",
+      "model_tiers": {
+        "haiku": "~anthropic/claude-haiku-latest",
+        "small": "~anthropic/claude-haiku-latest",
+        "sonnet": "~anthropic/claude-sonnet-latest",
+        "opus": "~anthropic/claude-opus-latest",
+        "fable": "~anthropic/claude-fable-latest"
+      },
+      "model_choices": [
+        {
+          "id": "~anthropic/claude-sonnet-latest",
+          "description": "Latest Claude Sonnet through OpenRouter"
+        },
+        {
+          "id": "~anthropic/claude-opus-latest",
+          "description": "Latest Claude Opus through OpenRouter"
+        },
+        {
+          "id": "~anthropic/claude-haiku-latest",
+          "description": "Latest Claude Haiku through OpenRouter"
+        },
+        {
+          "id": "~anthropic/claude-fable-latest",
+          "description": "Latest Claude Fable through OpenRouter"
+        }
+      ],
+      "test_url": "https://openrouter.ai/api",
+      "extra_env": {
+        "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY": "1",
+        "CLAUDE_CODE_SKIP_FAST_MODE_ORG_CHECK": "1",
+        "ENABLE_TOOL_SEARCH": "true",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://openrouter.ai/docs/cookbook/coding-agents/claude-code-integration",
+      "verified_at": "2026-08-15",
+      "setup": [
+        "The base URL is https://openrouter.ai/api, without /v1: the /v1 surface is the OpenAI-compatible one.",
+        "OpenRouter only guarantees its Anthropic surface for Anthropic-provided models; other slugs are not supported there."
+      ],
+      "usage": []
+    },
+    {
+      "id": "vercel-ai-gateway",
+      "display_name": "Vercel AI Gateway",
+      "description": "Vercel AI Gateway, Claude Code compatibility endpoint",
+      "category": "gateway",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "AI_GATEWAY_API_KEY",
+      "base_url": "https://ai-gateway.vercel.sh/claude-code",
+      "default_model": "",
+      "model_tiers": {},
+      "model_choices": [],
+      "test_url": "https://ai-gateway.vercel.sh/claude-code",
+      "extra_env": {
+        "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY": "1",
+        "CLAUDE_CODE_SKIP_FAST_MODE_ORG_CHECK": "1",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://vercel.com/docs/ai-gateway/coding-agents/claude-code",
+      "verified_at": "2026-08-15",
+      "setup": [
+        "The base URL takes no /v1 suffix: the Anthropic SDK appends /v1/messages itself and adding it produces a 404.",
+        "Gateway models are listed with a claude-code/ prefix and a [1m] suffix above 1M of context; pick one from /model."
+      ],
+      "usage": []
+    },
+    {
+      "id": "fireworks",
+      "display_name": "Fireworks AI",
+      "description": "Fireworks AI Anthropic-compatible endpoint",
+      "category": "gateway",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "FIREWORKS_API_KEY",
+      "base_url": "https://api.fireworks.ai/inference",
+      "default_model": "accounts/fireworks/models/kimi-k2p5",
+      "model_tiers": {
+        "haiku": "accounts/fireworks/models/kimi-k2p5",
+        "small": "accounts/fireworks/models/kimi-k2p5",
+        "sonnet": "accounts/fireworks/models/kimi-k2p5",
+        "opus": "accounts/fireworks/models/kimi-k2p5",
+        "fable": "accounts/fireworks/models/kimi-k2p5"
+      },
+      "model_choices": [
+        {
+          "id": "accounts/fireworks/models/kimi-k2p5",
+          "description": "Kimi K2.5 hosted by Fireworks"
+        },
+        {
+          "id": "accounts/fireworks/models/deepseek-v3p2",
+          "description": "DeepSeek V3.2 hosted by Fireworks"
+        }
+      ],
+      "test_url": "https://api.fireworks.ai/inference",
+      "extra_env": {
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://docs.fireworks.ai/tools-sdks/anthropic-compatibility",
+      "verified_at": "2026-08-15",
+      "setup": [
+        "The base URL carries no /v1: the Anthropic SDK appends /v1/messages itself.",
+        "Model ids are full account paths, accounts/fireworks/models/<name>; check the catalogue on the Fireworks console for the current roster.",
+        "Server tools (web search, code execution) are not served here."
+      ],
+      "usage": []
+    },
+    {
+      "id": "sambanova",
+      "display_name": "SambaNova",
+      "description": "SambaCloud Anthropic Messages API",
+      "category": "gateway",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "SAMBANOVA_API_KEY",
+      "auth_env_var": "ANTHROPIC_API_KEY",
+      "base_url": "https://api.sambanova.ai",
+      "default_model": "MiniMax-M2.7",
+      "model_tiers": {
+        "haiku": "MiniMax-M2.7",
+        "small": "MiniMax-M2.7",
+        "sonnet": "MiniMax-M2.7",
+        "opus": "MiniMax-M2.7",
+        "fable": "MiniMax-M2.7"
+      },
+      "model_choices": [
+        {
+          "id": "MiniMax-M2.7",
+          "description": "MiniMax M2.7 served by SambaCloud"
+        }
+      ],
+      "test_url": "https://api.sambanova.ai",
+      "extra_env": {
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
+      },
+      "doc_url": "https://sambanova.ai/blog/sambacloud-now-supports-the-anthropic-messages-api",
+      "verified_at": "2026-08-15",
+      "setup": [
+        "No server tools, no PDF input, images must be base64."
+      ],
       "usage": []
     },
     {
@@ -508,10 +797,22 @@
       "model_tiers": {},
       "model_choices": [],
       "test_url": "http://localhost:11434",
+      "extra_env": {
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1",
+        "CLAUDE_ENABLE_BYTE_WATCHDOG": "0",
+        "API_TIMEOUT_MS": "3000000"
+      },
+      "doc_url": "https://ollama.com/blog/claude",
+      "verified_at": "2026-08-15",
       "setup": [
         "Install Ollama: https://ollama.com",
         "Pull a model: ollama pull qwen3-coder",
-        "Start serving: ollama serve"
+        "Start serving: ollama serve",
+        "Give the model at least 32K of context, otherwise Claude Code truncates on the first tool result."
       ],
       "usage": [
         "clother-ollama --model qwen3-coder"
@@ -530,8 +831,19 @@
       "model_tiers": {},
       "model_choices": [],
       "test_url": "http://localhost:1234",
+      "extra_env": {
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1",
+        "CLAUDE_ENABLE_BYTE_WATCHDOG": "0",
+        "API_TIMEOUT_MS": "3000000"
+      },
+      "doc_url": "https://lmstudio.ai/blog/claudecode",
+      "verified_at": "2026-08-15",
       "setup": [
-        "Install LM Studio: https://lmstudio.ai/download",
+        "Install LM Studio 0.4.1 or later: https://lmstudio.ai/download",
         "Load a model in the app",
         "Start the server on port 1234"
       ],
@@ -545,18 +857,64 @@
       "description": "llama.cpp (Local)",
       "category": "local",
       "family": "local",
-      "auth_mode": "none",
+      "auth_mode": "literal",
+      "literal_auth_token": "llamacpp",
+      "base_url": "http://localhost:8080",
+      "default_model": "",
+      "model_tiers": {},
+      "model_choices": [],
+      "test_url": "http://localhost:8080",
+      "extra_env": {
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1",
+        "CLAUDE_ENABLE_BYTE_WATCHDOG": "0",
+        "API_TIMEOUT_MS": "3000000"
+      },
+      "doc_url": "https://huggingface.co/blog/ggml-org/anthropic-messages-api-in-llamacpp",
+      "verified_at": "2026-08-15",
+      "setup": [
+        "Build llama.cpp: https://github.com/ggml-org/llama.cpp",
+        "Start the server: ./llama-server --model <model.gguf> --jinja",
+        "llama-server listens on 8080 by default; --jinja is required for tool calls to be rendered."
+      ],
+      "usage": [
+        "clother-llamacpp --model <model-name>"
+      ]
+    },
+    {
+      "id": "vllm",
+      "display_name": "vLLM",
+      "description": "vLLM (Local)",
+      "category": "local",
+      "family": "local",
+      "auth_mode": "literal",
+      "literal_auth_token": "dummy",
       "base_url": "http://localhost:8000",
       "default_model": "",
       "model_tiers": {},
       "model_choices": [],
       "test_url": "http://localhost:8000",
+      "extra_env": {
+        "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1",
+        "DISABLE_INTERLEAVED_THINKING": "1",
+        "CLAUDE_CODE_DISABLE_ADVISOR_TOOL": "1",
+        "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1",
+        "CLAUDE_ENABLE_BYTE_WATCHDOG": "0",
+        "API_TIMEOUT_MS": "3000000"
+      },
+      "doc_url": "https://docs.vllm.ai/en/stable/serving/integrations/claude_code/",
+      "verified_at": "2026-08-15",
       "setup": [
-        "Build llama.cpp: https://github.com/ggml-org/llama.cpp",
-        "Start the server: ./llama-server --model <model.gguf> --port 8000 --jinja"
+        "Serve with --enable-auto-tool-choice and the tool call parser your model needs, otherwise tool calls never come back.",
+        "A model name containing a slash does not survive the round trip: pass --served-model-name.",
+        "vLLM listens on 8000 by default; llama.cpp is the one on 8080."
       ],
       "usage": [
-        "clother-llamacpp --model <model-name>"
+        "clother-vllm --model <served-model-name>"
       ]
     }
   ]

@@ -6,19 +6,78 @@ on:
       - main
   pull_request:
 
+# Every action is pinned to a full commit SHA: a mutable tag can be repointed at
+# a malicious commit (tj-actions/changed-files, March 2025). The trailing comment
+# is the human readable version, keep both in sync when bumping.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
+    strategy:
+      fail-fast: false
+      matrix:
+        # The product has darwin specific code (bin dir, Homebrew detection,
+        # shasum vs sha256sum) and ships a Homebrew tap, so macOS is not optional.
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          # The same toolchain that builds the published binaries (release.yml
+          # uses go-version-file too, and go.mod pins the toolchain). "stable"
+          # tested a Go the releases are never built with, so a regression
+          # specific to the pinned version could ship unnoticed.
+          go-version-file: go.mod
+      - name: gofmt
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "not gofmt'd:" >&2
+            echo "$unformatted" >&2
+            exit 1
+          fi
+      - run: go vet ./...
+      - run: go build ./...
+      - run: go test -coverprofile=cover.out -covermode=atomic ./...
+      - name: coverage summary
+        run: go tool cover -func=cover.out | tail -1
+      - run: go test -race ./...
+      # The hardened build must keep compiling and passing: it is the switch that
+      # makes a missing release signature fatal.
+      - run: go test -tags clother_strict_signatures ./internal/update/...
+      - run: bash -n clother.sh scripts/install.sh scripts/package-release.sh scripts/sign-release.sh
+
+  govulncheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: go.mod
+      - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+  # Early warning for the next Go release, kept out of the required checks: it
+  # must not block a PR when upstream changes, and it is not what ships.
+  future-go:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: stable
+          check-latest: true
+      - run: go build ./...
       - run: go test ./...
-      - run: go test -race ./...
-      - run: go vet ./...
-      - run: bash -n clother.sh scripts/install.sh scripts/package-release.sh
-      - run: |
-          if ls tests/*.sh >/dev/null 2>&1; then
-            bash -n tests/*.sh
-          fi

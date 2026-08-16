@@ -19,11 +19,29 @@ func ProjectDir(root, cwd string) string {
 	if clean == "." || clean == "" {
 		return filepath.Join(root, "-")
 	}
-	slug := strings.ReplaceAll(clean, string(filepath.Separator), "-")
+	slug := slugifyProjectPath(clean)
 	if !strings.HasPrefix(slug, "-") {
 		slug = "-" + slug
 	}
 	return filepath.Join(root, slug)
+}
+
+// slugifyProjectPath mirrors how Claude Code names a project directory: every
+// character outside [A-Za-z0-9-] becomes a dash, case preserved. Replacing only
+// the path separator missed dots and underscores, so any project living under a
+// dotted path resolved to a directory that does not exist.
+func slugifyProjectPath(path string) string {
+	var slug strings.Builder
+	slug.Grow(len(path))
+	for _, r := range path {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9', r == '-':
+			slug.WriteRune(r)
+		default:
+			slug.WriteByte('-')
+		}
+	}
+	return slug.String()
 }
 
 func LatestInProject(root, cwd string) (ProjectSession, error) {

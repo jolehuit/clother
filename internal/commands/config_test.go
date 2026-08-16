@@ -1,12 +1,14 @@
 package commands
 
 import (
+	"context"
 	"io"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/jolehuit/clother/internal/config"
+	"github.com/jolehuit/clother/internal/profiles"
 	"github.com/jolehuit/clother/internal/providers"
 	"github.com/jolehuit/clother/internal/ui"
 )
@@ -184,4 +186,49 @@ func TestConfigBuiltinLocalProviderStoresRemoteBaseURL(t *testing.T) {
 	if code, err := configBuiltin(ctx, provider); err == nil || code == 0 {
 		t.Fatalf("expected invalid base URL error, got code=%d err=%v", code, err)
 	}
+}
+
+// Most refusals in Clother name the command to run next ("run `clother config
+// minimax`", "run `clother config custom` to configure one"). Four did not, and
+// left the user at a dead end.
+func TestErrorsNameTheNextAction(t *testing.T) {
+	catalog, err := providers.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := &config.File{Version: 1, ProviderOverrides: map[string]config.ProviderOverride{}, OpenRouterAliases: map[string]string{}, CustomProviders: map[string]config.CustomProvider{}}
+
+	t.Run("unknown command", func(t *testing.T) {
+		c := Context{Catalog: catalog, Config: cfg, Output: ui.NewOutput(io.Discard, io.Discard, ui.FormatHuman, false)}
+		_, err := Dispatch(context.Background(), c, "frobnicate", nil)
+		if err == nil || !strings.Contains(err.Error(), "clother help") {
+			t.Fatalf("unknown command error = %v, want a pointer to `clother help`", err)
+		}
+	})
+
+	t.Run("unknown profile", func(t *testing.T) {
+		_, err := profiles.Resolve("nosuchthing", catalog, cfg)
+		if err == nil || !strings.Contains(err.Error(), "clother list") {
+			t.Fatalf("unknown profile error = %v, want a pointer to `clother list`", err)
+		}
+	})
+
+	t.Run("unknown openrouter alias", func(t *testing.T) {
+		_, err := profiles.Resolve("or-nosuch", catalog, cfg)
+		if err == nil || !strings.Contains(err.Error(), "clother config openrouter") {
+			t.Fatalf("unknown alias error = %v, want a pointer to `clother config openrouter`", err)
+		}
+	})
+
+	t.Run("empty stdin for the key", func(t *testing.T) {
+		t.Setenv(envConfigAPIKey, "-")
+		previous := stdinReader
+		stdinReader = strings.NewReader("")
+		t.Cleanup(func() { stdinReader = previous })
+
+		_, err := nonInteractiveAPIKey()
+		if err == nil || !strings.Contains(err.Error(), "pipe the key in") {
+			t.Fatalf("empty stdin error = %v, want the way out", err)
+		}
+	})
 }

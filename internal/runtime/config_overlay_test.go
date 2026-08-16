@@ -155,12 +155,18 @@ func TestPrepareClaudeConfigOverlayHandlesStateFileInsideConfigDir(t *testing.T)
 	} else if info.Mode()&os.ModeSymlink == 0 {
 		t.Fatalf("expected %s to be a symlink", statePath)
 	}
-	// The canonical home-level state file must be mirrored, not the in-dir copy.
+	// A .claude.json sitting inside the config dir is the one CLAUDE_CONFIG_DIR
+	// relocates, so it wins over the home-level copy; the home-level file stays
+	// the fallback when the config dir has none.
 	resolved, err := os.Readlink(statePath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resolved != homeState {
-		t.Fatalf("overlay state points to %q, want home state %q", resolved, homeState)
+	inDirState := filepath.Join(claudeDir, ".claude.json")
+	if resolved != inDirState {
+		t.Fatalf("overlay state points to %q, want config-dir state %q", resolved, inDirState)
+	}
+	if _, err := os.Stat(homeState); err != nil {
+		t.Fatalf("home-level state file must be left alone: %v", err)
 	}
 }

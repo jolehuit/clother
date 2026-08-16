@@ -3,9 +3,14 @@ package session
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"os"
 	"strings"
 )
+
+// maxSessionLine caps how large a single JSONL record may be before the
+// scanner gives up on it.
+const maxSessionLine = 16 * 1024 * 1024
 
 type Analysis struct {
 	NeedsSanitization bool
@@ -23,7 +28,7 @@ func Analyze(path string) (Analysis, error) {
 	var analysis Analysis
 	scanner := bufio.NewScanner(file)
 	buf := make([]byte, 0, 1024*1024)
-	scanner.Buffer(buf, 16*1024*1024)
+	scanner.Buffer(buf, maxSessionLine)
 
 	for scanner.Scan() {
 		line := scanner.Bytes()
@@ -43,7 +48,17 @@ func Analyze(path string) (Analysis, error) {
 		analysis.MessagesTouched++
 		analysis.BlocksRemoved += removed
 	}
-	return analysis, scanner.Err()
+	if err := scanner.Err(); err != nil {
+		if errors.Is(err, bufio.ErrTooLong) {
+			// A single record larger than maxSessionLine cannot be inspected,
+			// but that is no reason to refuse to open the session: the worst
+			// case is claude seeing foreign thinking blocks, not a transcript
+			// the user can never resume again.
+			return Analysis{}, nil
+		}
+		return analysis, err
+	}
+	return analysis, nil
 }
 
 func extractMessage(payload map[string]any) (model string, role string, content []any) {

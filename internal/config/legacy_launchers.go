@@ -55,11 +55,15 @@ func MigrateLegacyLaunchers(binDir string, catalog providers.Catalog, cfg *File)
 			continue
 		}
 		if baseURL := envs["ANTHROPIC_BASE_URL"]; baseURL != "" {
+			// The key variable is derived by the shared helper so the migration,
+			// the interactive command and Normalize cannot disagree on the name
+			// a provider's secret is stored under. Entries whose name or base
+			// URL cannot work are dropped by Normalize right after.
 			cfg.CustomProviders[profile] = CustomProvider{
 				Name:         profile,
 				DisplayName:  profile,
 				BaseURL:      baseURL,
-				APIKeyEnv:    strings.ToUpper(strings.ReplaceAll(profile, "-", "_")) + "_API_KEY",
+				APIKeyEnv:    CustomProviderKeyVar(profile),
 				DefaultModel: envs["ANTHROPIC_MODEL"],
 			}
 		}
