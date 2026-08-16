@@ -271,7 +271,10 @@ func TestInstallShFailsClosedWithoutChecksumTool(t *testing.T) {
 	release := newFakeRelease(t, nil)
 
 	binDir := t.TempDir()
-	for _, tool := range []string{"curl", "tar", "basename", "dirname", "mktemp", "uname", "awk", "chmod", "rm", "tr", "cat", "sed", "grep", "ls", "cp", "mv"} {
+	// gzip matters on Linux: GNU tar shells out to it for -z, while bsdtar on
+	// macOS decompresses in process. Without it the restricted PATH fails for a
+	// reason that has nothing to do with what the test is checking.
+	for _, tool := range []string{"curl", "tar", "gzip", "gunzip", "basename", "dirname", "mktemp", "uname", "awk", "chmod", "rm", "tr", "cat", "sed", "grep", "ls", "cp", "mv"} {
 		path, err := exec.LookPath(tool)
 		if err != nil {
 			continue
@@ -308,7 +311,7 @@ func TestInstallShFallsBackToOpenSSL(t *testing.T) {
 	release := newFakeRelease(t, nil)
 
 	binDir := t.TempDir()
-	for _, tool := range []string{"curl", "tar", "basename", "dirname", "mktemp", "uname", "awk", "chmod", "rm", "tr", "cat", "sed", "grep", "ls", "cp", "mv", "env", "bash"} {
+	for _, tool := range []string{"curl", "tar", "gzip", "gunzip", "basename", "dirname", "mktemp", "uname", "awk", "chmod", "rm", "tr", "cat", "sed", "grep", "ls", "cp", "mv", "env", "bash"} {
 		path, lookErr := exec.LookPath(tool)
 		if lookErr != nil {
 			continue
