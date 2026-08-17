@@ -384,7 +384,7 @@ CLOTHER_RELEASE_BASE_URL=http://127.0.0.1:8000 \
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=jolehuit/clother&type=Date)](https://www.star-history.com/#jolehuit/clother&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=jolehuit/clother&type=Date)](https://star-history.dera.page/#jolehuit/clother&Date)
 
 ## License
 
