@@ -26,3 +26,9 @@ func writeAtomic(path string, data []byte, mode os.FileMode) error {
 	}
 	return os.Rename(tmpPath, path)
 }
+
+// WriteFileAtomic replaces path with data through a temporary file in the same
+// directory, so a reader never sees a half-written file.
+func WriteFileAtomic(path string, data []byte, mode os.FileMode) error {
+	return writeAtomic(path, data, mode)
+}

@@ -85,13 +85,17 @@ func TestPrepareClaudeConfigOverlayMirrorsConfigAndPinsModel(t *testing.T) {
 	if info.Mode()&os.ModeSymlink == 0 {
 		t.Fatalf("expected %s to be a symlink", markerPath)
 	}
+	// The state file is a sanitized copy, never a symlink to the user's file.
 	statePath := filepath.Join(overlayDir, ".claude.json")
 	stateInfo, err := os.Lstat(statePath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if stateInfo.Mode()&os.ModeSymlink == 0 {
-		t.Fatalf("expected %s to be a symlink", statePath)
+	if !stateInfo.Mode().IsRegular() {
+		t.Fatalf("expected %s to be a regular file, mode %v", statePath, stateInfo.Mode())
+	}
+	if state := readJSONFile(t, statePath); state["theme"] != "light" {
+		t.Fatalf("overlay state lost the user's settings: %+v", state)
 	}
 
 	cleanup()
@@ -149,18 +153,23 @@ func TestPrepareClaudeConfigOverlayHandlesStateFileInsideConfigDir(t *testing.T)
 	if overlayDir == "" {
 		t.Fatal("expected CLAUDE_CONFIG_DIR override")
 	}
-	statePath := filepath.Join(overlayDir, ".claude.json")
-	if info, err := os.Lstat(statePath); err != nil {
-		t.Fatalf("overlay .claude.json missing: %v", err)
-	} else if info.Mode()&os.ModeSymlink == 0 {
-		t.Fatalf("expected %s to be a symlink", statePath)
+	// The canonical home-level state file is the one Claude Code reads when
+	// CLAUDE_CONFIG_DIR is unset, not the stale copy inside ~/.claude.
+	state := readJSONFile(t, filepath.Join(overlayDir, ".claude.json"))
+	if state["home"] != true || state["stale"] != nil {
+		t.Fatalf("overlay state = %+v, want the home state", state)
 	}
-	// The canonical home-level state file must be mirrored, not the in-dir copy.
-	resolved, err := os.Readlink(statePath)
+}
+
+func readJSONFile(t *testing.T, path string) map[string]any {
+	t.Helper()
+	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resolved != homeState {
-		t.Fatalf("overlay state points to %q, want home state %q", resolved, homeState)
+	var out map[string]any
+	if err := json.Unmarshal(data, &out); err != nil {
+		t.Fatalf("decode %s: %v", path, err)
 	}
+	return out
 }
