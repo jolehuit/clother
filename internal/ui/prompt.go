@@ -13,10 +13,17 @@ import (
 type Prompter struct {
 	In  io.Reader
 	Out io.Writer
+	// TTY is the terminal secrets are read from with echo turned off. When it
+	// is empty or cannot be opened, secrets are read from In like any answer.
+	TTY string
+
+	// reader is shared by every prompt: a reader per prompt would buffer the
+	// answers to the following prompts when input is piped, and lose them.
+	reader *bufio.Reader
 }
 
 func NewPrompter(in io.Reader, out io.Writer) *Prompter {
-	return &Prompter{In: in, Out: out}
+	return &Prompter{In: in, Out: out, TTY: "/dev/tty"}
 }
 
 func (p *Prompter) Prompt(label, defaultValue string) (string, error) {
@@ -25,8 +32,10 @@ func (p *Prompter) Prompt(label, defaultValue string) (string, error) {
 	} else {
 		fmt.Fprintf(p.Out, "%s: ", label)
 	}
-	reader := bufio.NewReader(p.In)
-	value, err := reader.ReadString('\n')
+	if p.reader == nil {
+		p.reader = bufio.NewReader(p.In)
+	}
+	value, err := p.reader.ReadString('\n')
 	if err != nil && err != io.EOF {
 		return "", err
 	}
@@ -38,7 +47,10 @@ func (p *Prompter) Prompt(label, defaultValue string) (string, error) {
 }
 
 func (p *Prompter) PromptSecret(label string) (string, error) {
-	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
+	if p.TTY == "" {
+		return p.Prompt(label, "")
+	}
+	tty, err := os.OpenFile(p.TTY, os.O_RDWR, 0)
 	if err != nil {
 		return p.Prompt(label, "")
 	}

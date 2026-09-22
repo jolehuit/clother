@@ -98,7 +98,7 @@ func TestConfigBuiltinAllowsModelOverrideWithoutCatalogChoices(t *testing.T) {
 		Secrets: config.Secrets{},
 		Catalog: catalog,
 		Output:  &ui.Output{Stdout: io.Discard, Stderr: io.Discard, Format: ui.FormatHuman},
-		Prompt:  ui.NewPrompter(strings.NewReader("MiniMax-M2.7-pro\n"), io.Discard),
+		Prompt:  testPrompter("MiniMax-M2.7-pro\n"),
 	}
 
 	code, err := configBuiltin(ctx, provider)
@@ -147,7 +147,7 @@ func TestConfigBuiltinLocalProviderStoresRemoteBaseURL(t *testing.T) {
 		Secrets: config.Secrets{},
 		Catalog: catalog,
 		Output:  &ui.Output{Stdout: io.Discard, Stderr: io.Discard, Format: ui.FormatHuman},
-		Prompt:  ui.NewPrompter(strings.NewReader("http://192.168.123.123:1234\n"), io.Discard),
+		Prompt:  testPrompter("http://192.168.123.123:1234\n"),
 	}
 
 	code, err := configBuiltin(ctx, provider)
@@ -162,7 +162,7 @@ func TestConfigBuiltinLocalProviderStoresRemoteBaseURL(t *testing.T) {
 	}
 
 	// Re-running config and accepting the default keeps the override.
-	ctx.Prompt = ui.NewPrompter(strings.NewReader("\n"), io.Discard)
+	ctx.Prompt = testPrompter("\n")
 	if _, err := configBuiltin(ctx, provider); err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +171,7 @@ func TestConfigBuiltinLocalProviderStoresRemoteBaseURL(t *testing.T) {
 	}
 
 	// Entering the catalog default clears the override.
-	ctx.Prompt = ui.NewPrompter(strings.NewReader("http://localhost:1234\n"), io.Discard)
+	ctx.Prompt = testPrompter("http://localhost:1234\n")
 	if _, err := configBuiltin(ctx, provider); err != nil {
 		t.Fatal(err)
 	}
@@ -180,8 +180,123 @@ func TestConfigBuiltinLocalProviderStoresRemoteBaseURL(t *testing.T) {
 	}
 
 	// A non-HTTP value is rejected.
-	ctx.Prompt = ui.NewPrompter(strings.NewReader("192.168.1.4:1234\n"), io.Discard)
+	ctx.Prompt = testPrompter("192.168.1.4:1234\n")
 	if code, err := configBuiltin(ctx, provider); err == nil || code == 0 {
 		t.Fatalf("expected invalid base URL error, got code=%d err=%v", code, err)
+	}
+}
+
+// testPrompter reads every answer, secrets included, from input: it never
+// opens the controlling terminal, which would block a test run.
+func testPrompter(input string) *ui.Prompter {
+	return &ui.Prompter{In: strings.NewReader(input), Out: io.Discard}
+}
+
+func newConfigTestContext(t *testing.T, input string) (Context, *config.File) {
+	t.Helper()
+	root := t.TempDir()
+	t.Setenv("HOME", root)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, ".config"))
+	t.Setenv("XDG_DATA_HOME", filepath.Join(root, ".local", "share"))
+	t.Setenv("XDG_CACHE_HOME", filepath.Join(root, ".cache"))
+	t.Setenv("CLOTHER_BIN", filepath.Join(root, "bin"))
+
+	paths, err := config.Detect("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	catalog, err := providers.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := &config.File{
+		Version:           1,
+		ProviderOverrides: map[string]config.ProviderOverride{},
+		OpenRouterAliases: map[string]string{},
+		CustomProviders:   map[string]config.CustomProvider{},
+	}
+	return Context{
+		Paths:   paths,
+		Config:  cfg,
+		Secrets: config.Secrets{},
+		Catalog: catalog,
+		Output:  &ui.Output{Stdout: io.Discard, Stderr: io.Discard, Format: ui.FormatHuman},
+		Prompt:  testPrompter(input),
+	}, cfg
+}
+
+// Issue #37: an LM Studio server with "Require Authentication" needs a token.
+func TestConfigLMStudioStoresOptionalToken(t *testing.T) {
+	ctx, cfg := newConfigTestContext(t, "https://lmstudio.example.com\nsk-lm-token\n\n\n\n\n")
+	provider, _ := ctx.Catalog.Get("lmstudio")
+	if _, err := configBuiltin(ctx, provider); err != nil {
+		t.Fatal(err)
+	}
+	if got := ctx.Secrets["LMSTUDIO_API_KEY"]; got != "sk-lm-token" {
+		t.Fatalf("LMSTUDIO_API_KEY = %q, want the token", got)
+	}
+	if got := cfg.ProviderOverrides["lmstudio"].BaseURL; got != "https://lmstudio.example.com" {
+		t.Fatalf("base URL = %q", got)
+	}
+
+	// Empty keeps the token...
+	ctx.Prompt = testPrompter("\n\n\n\n\n\n")
+	if _, err := configBuiltin(ctx, provider); err != nil {
+		t.Fatal(err)
+	}
+	if got := ctx.Secrets["LMSTUDIO_API_KEY"]; got != "sk-lm-token" {
+		t.Fatalf("token after keeping = %q", got)
+	}
+	// ...and "-" removes it.
+	ctx.Prompt = testPrompter("\n-\n\n\n\n\n")
+	if _, err := configBuiltin(ctx, provider); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := ctx.Secrets["LMSTUDIO_API_KEY"]; ok {
+		t.Fatal("\"-\" did not remove the token")
+	}
+}
+
+// Issue #38: local backends map each Claude tier to a backend model.
+func TestConfigLocalProviderStoresTierModels(t *testing.T) {
+	ctx, cfg := newConfigTestContext(t, "\nqwen3.8-27b-mtp\nqwen3.8-27b-mtp\nqwopus3.6-27b-v2-mtp\nqwen3.6-35b-a3b-mtp\n")
+	provider, _ := ctx.Catalog.Get("ollama")
+	if _, err := configBuiltin(ctx, provider); err != nil {
+		t.Fatal(err)
+	}
+	override := cfg.ProviderOverrides["ollama"]
+	want := config.ProviderOverride{
+		Model: "qwen3.8-27b-mtp",
+		TierModels: config.TierModels{
+			OpusModel:   "qwen3.8-27b-mtp",
+			SonnetModel: "qwopus3.6-27b-v2-mtp",
+			HaikuModel:  "qwen3.6-35b-a3b-mtp",
+		},
+	}
+	if override != want {
+		t.Fatalf("override = %+v, want %+v", override, want)
+	}
+
+	// "-" clears a single tier and keeps the others.
+	ctx.Prompt = testPrompter("\n\n\n-\n\n")
+	if _, err := configBuiltin(ctx, provider); err != nil {
+		t.Fatal(err)
+	}
+	if got := cfg.ProviderOverrides["ollama"]; got.SonnetModel != "" || got.OpusModel != want.OpusModel || got.HaikuModel != want.HaikuModel {
+		t.Fatalf("override after clearing sonnet = %+v", got)
+	}
+}
+
+func TestConfigCustomProviderStoresTierModels(t *testing.T) {
+	ctx, cfg := newConfigTestContext(t, "gateway\nhttps://gateway.example.com\nmodel-a\nmodel-a\nmodel-b\nmodel-c\nsk-gateway\n")
+	if _, err := configCustom(ctx); err != nil {
+		t.Fatal(err)
+	}
+	custom := cfg.CustomProviders["gateway"]
+	if custom.DefaultModel != "model-a" || custom.OpusModel != "model-a" || custom.SonnetModel != "model-b" || custom.HaikuModel != "model-c" {
+		t.Fatalf("custom provider = %+v", custom)
+	}
+	if ctx.Secrets["GATEWAY_API_KEY"] != "sk-gateway" {
+		t.Fatalf("custom key not stored: %+v", ctx.Secrets)
 	}
 }
