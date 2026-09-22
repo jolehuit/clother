@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -57,7 +58,74 @@ func FindRealClaude(paths config.Paths) (string, error) {
 			return fallback, nil
 		}
 	}
+	// claude-real is a symlink into the native installer's versions dir, and
+	// Claude Code's auto-updater prunes old versions: the link then dangles.
+	if _, err := os.Lstat(fallback); err == nil {
+		if latest := newestInstalledClaude(); latest != "" && (selfResolved == "" || !samePath(latest, selfResolved)) {
+			return latest, nil
+		}
+	}
 	return "", fmt.Errorf("could not locate real claude; ensure `claude` is in PATH or `%s` exists", fallback)
+}
+
+// newestInstalledClaude returns the highest version installed by Claude
+// Code's native installer, which keeps one executable per version in
+// ~/.local/share/claude/versions (it does not follow XDG_DATA_HOME).
+func newestInstalledClaude() string {
+	dir := filepath.Join(userHomeDir(), ".local", "share", "claude", "versions")
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return ""
+	}
+	best := ""
+	var bestVersion []int
+	for _, entry := range entries {
+		version, ok := parseVersion(entry.Name())
+		if !ok {
+			continue
+		}
+		path := filepath.Join(dir, entry.Name())
+		info, err := os.Stat(path)
+		if err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0o111 == 0 {
+			continue
+		}
+		if best == "" || compareVersions(version, bestVersion) > 0 {
+			best, bestVersion = path, version
+		}
+	}
+	return best
+}
+
+func parseVersion(name string) ([]int, bool) {
+	parts := strings.Split(name, ".")
+	out := make([]int, 0, len(parts))
+	for _, part := range parts {
+		value, err := strconv.Atoi(part)
+		if err != nil || value < 0 {
+			return nil, false
+		}
+		out = append(out, value)
+	}
+	return out, len(out) > 0
+}
+
+func compareVersions(left, right []int) int {
+	for i := 0; i < len(left) || i < len(right); i++ {
+		var l, r int
+		if i < len(left) {
+			l = left[i]
+		}
+		if i < len(right) {
+			r = right[i]
+		}
+		if l != r {
+			if l > r {
+				return 1
+			}
+			return -1
+		}
+	}
+	return 0
 }
 
 func PreserveRealClaude(paths config.Paths, realClaudePath string) error {

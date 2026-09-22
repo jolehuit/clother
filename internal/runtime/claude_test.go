@@ -101,3 +101,67 @@ func TestPreserveRealClaudeMovesClaudeToClaudeReal(t *testing.T) {
 		t.Fatalf("preserved content mismatch: got %q", string(got))
 	}
 }
+
+// PR #29: Claude Code's auto-updater prunes the version claude-real points to.
+func TestFindRealClaudeRecoversFromDanglingClaudeReal(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("HOME", root)
+	binDir := filepath.Join(root, "bin")
+	if err := os.MkdirAll(binDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	self, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(self, filepath.Join(binDir, "claude")); err != nil {
+		t.Fatal(err)
+	}
+	versions := filepath.Join(root, ".local", "share", "claude", "versions")
+	if err := os.MkdirAll(versions, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(filepath.Join(versions, "2.1.9"), filepath.Join(binDir, "claude-real")); err != nil {
+		t.Fatal(err)
+	}
+	for name, mode := range map[string]os.FileMode{
+		"2.1.10":   0o755, // numerically newest: 10 > 9
+		"2.1.9.1":  0o755,
+		"2.2.0":    0o644, // not executable
+		"nightly":  0o755, // not a version
+		"2.1.2":    0o755,
+		"2.1.10.x": 0o755,
+	} {
+		if err := os.WriteFile(filepath.Join(versions, name), []byte("#!/bin/sh\n"), mode); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Setenv("PATH", binDir)
+
+	got, err := FindRealClaude(config.Paths{BinDir: binDir})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := filepath.Join(versions, "2.1.10"); got != want {
+		t.Fatalf("FindRealClaude() = %q, want %q", got, want)
+	}
+}
+
+func TestFindRealClaudeWithoutClaudeRealStillFails(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("HOME", root)
+	versions := filepath.Join(root, ".local", "share", "claude", "versions")
+	if err := os.MkdirAll(versions, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(versions, "2.1.10"), []byte("#!/bin/sh\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", filepath.Join(root, "empty"))
+
+	// Without a claude-real link there is no sign Clother installed over the
+	// native installer, so the versions dir is not guessed at.
+	if _, err := FindRealClaude(config.Paths{BinDir: filepath.Join(root, "bin")}); err == nil {
+		t.Fatal("expected an error when neither PATH nor claude-real has claude")
+	}
+}
