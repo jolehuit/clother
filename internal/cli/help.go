@@ -65,6 +65,10 @@ func ShowFull(w io.Writer, catalog providers.Catalog) {
 	fmt.Fprintln(w, "  --yolo                   shorthand for --dangerously-skip-permissions")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Providers:")
+	width := len("openrouter")
+	for _, id := range catalog.IDs() {
+		width = max(width, len(id))
+	}
 	for _, category := range catalog.Categories() {
 		fmt.Fprintf(w, "  %s\n", category)
 		providersInCategory := catalog.ProvidersByCategory(category)
@@ -72,11 +76,11 @@ func ShowFull(w io.Writer, catalog providers.Catalog) {
 			return providersInCategory[i].ID < providersInCategory[j].ID
 		})
 		for _, provider := range providersInCategory {
-			fmt.Fprintf(w, "    %-12s %s\n", provider.ID, provider.Description)
+			fmt.Fprintf(w, "    %-*s  %s\n", width, provider.ID, provider.Description)
 		}
 	}
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Advanced:")
-	fmt.Fprintln(w, "    openrouter   100+ models via native API")
-	fmt.Fprintln(w, "    custom       Anthropic-compatible endpoint")
+	fmt.Fprintf(w, "    %-*s  %s\n", width, "openrouter", "100+ models via native API")
+	fmt.Fprintf(w, "    %-*s  %s\n", width, "custom", "Anthropic-compatible endpoint")
 }

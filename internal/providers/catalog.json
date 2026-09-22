@@ -18,94 +18,127 @@
     {
       "id": "zai",
       "display_name": "Z.AI",
-      "description": "Z.AI International",
+      "description": "Z.AI International (GLM Coding Plan)",
       "category": "international",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
       "key_var": "ZAI_API_KEY",
       "base_url": "https://api.z.ai/api/anthropic",
-      "default_model": "glm-5.2",
+      "default_model": "glm-5.3[1m]",
       "model_tiers": {
-        "haiku": "glm-5.2",
-        "sonnet": "glm-5.2",
-        "opus": "glm-5.2"
+        "opus": "glm-5.3[1m]",
+        "sonnet": "glm-5.3[1m]",
+        "fable": "glm-5.3[1m]",
+        "haiku": "glm-5.3-flash[1m]"
       },
       "model_choices": [
         {
-          "id": "glm-5.2",
-          "description": "GLM-5.2"
+          "id": "glm-5.3[1m]",
+          "description": "GLM-5.3, 1M context",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000"
+          }
         },
         {
-          "id": "glm-5.1",
-          "description": "GLM-5.1"
+          "id": "glm-5.3",
+          "description": "GLM-5.3"
         },
         {
-          "id": "glm-5",
-          "description": "GLM-5"
+          "id": "glm-5.3-flash[1m]",
+          "description": "GLM-5.3-Flash, 1M context",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000"
+          }
         },
         {
-          "id": "glm-4.7",
-          "description": "GLM-4.7"
+          "id": "glm-5.3-flash",
+          "description": "GLM-5.3-Flash"
         }
       ],
+      "extra_env": {
+        "API_TIMEOUT_MS": "3000000",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+      },
       "test_url": "https://api.z.ai/api/anthropic",
-      "setup": [],
+      "setup": [
+        "The GLM Coding Plan serves GLM-5.3 and GLM-5.3-Flash only: older IDs (glm-5.2, glm-5.1, glm-4.7) are silently rerouted to them."
+      ],
       "usage": []
     },
     {
       "id": "zai-cn",
       "display_name": "Z.AI China",
-      "description": "Z.AI China",
+      "description": "Z.AI China (BigModel GLM Coding Plan)",
       "category": "china",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
       "key_var": "ZAI_CN_API_KEY",
       "base_url": "https://open.bigmodel.cn/api/anthropic",
-      "default_model": "glm-5.2",
+      "default_model": "glm-5.3[1m]",
       "model_tiers": {
-        "haiku": "glm-5.2",
-        "sonnet": "glm-5.2",
-        "opus": "glm-5.2"
+        "opus": "glm-5.3[1m]",
+        "sonnet": "glm-5.3[1m]",
+        "fable": "glm-5.3[1m]",
+        "haiku": "glm-5.3-flash[1m]"
       },
       "model_choices": [
         {
-          "id": "glm-5.2",
-          "description": "GLM-5.2"
+          "id": "glm-5.3[1m]",
+          "description": "GLM-5.3, 1M context",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000"
+          }
         },
         {
-          "id": "glm-5.1",
-          "description": "GLM-5.1"
+          "id": "glm-5.3",
+          "description": "GLM-5.3"
         },
         {
-          "id": "glm-5",
-          "description": "GLM-5"
+          "id": "glm-5.3-flash[1m]",
+          "description": "GLM-5.3-Flash, 1M context",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000"
+          }
         },
         {
-          "id": "glm-4.7",
-          "description": "GLM-4.7"
+          "id": "glm-5.3-flash",
+          "description": "GLM-5.3-Flash"
         }
       ],
+      "extra_env": {
+        "API_TIMEOUT_MS": "3000000",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+      },
       "test_url": "https://open.bigmodel.cn/api/anthropic",
-      "setup": [],
+      "setup": [
+        "The GLM Coding Plan serves GLM-5.3 and GLM-5.3-Flash only: older IDs (glm-5.2, glm-5.1, glm-4.7) are silently rerouted to them."
+      ],
       "usage": []
     },
     {
       "id": "minimax",
       "display_name": "MiniMax",
-      "description": "MiniMax International",
+      "description": "MiniMax International (Token Plan)",
       "category": "international",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
       "key_var": "MINIMAX_API_KEY",
       "base_url": "https://api.minimax.io/anthropic",
-      "default_model": "MiniMax-M3",
+      "default_model": "MiniMax-M3[1m]",
       "model_tiers": {
-        "haiku": "MiniMax-M3",
-        "sonnet": "MiniMax-M3",
-        "opus": "MiniMax-M3",
-        "small": "MiniMax-M3"
+        "opus": "MiniMax-M3[1m]",
+        "sonnet": "MiniMax-M3[1m]",
+        "haiku": "MiniMax-M3[1m]",
+        "fable": "MiniMax-M3[1m]"
       },
       "model_choices": [
+        {
+          "id": "MiniMax-M3[1m]",
+          "description": "MiniMax M3, 1M context",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000"
+          }
+        },
         {
           "id": "MiniMax-M3",
           "description": "MiniMax M3"
@@ -146,20 +179,27 @@
     {
       "id": "minimax-cn",
       "display_name": "MiniMax China",
-      "description": "MiniMax China",
+      "description": "MiniMax China (Token Plan)",
       "category": "china",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
       "key_var": "MINIMAX_CN_API_KEY",
       "base_url": "https://api.minimaxi.com/anthropic",
-      "default_model": "MiniMax-M3",
+      "default_model": "MiniMax-M3[1m]",
       "model_tiers": {
-        "haiku": "MiniMax-M3",
-        "sonnet": "MiniMax-M3",
-        "opus": "MiniMax-M3",
-        "small": "MiniMax-M3"
+        "opus": "MiniMax-M3[1m]",
+        "sonnet": "MiniMax-M3[1m]",
+        "haiku": "MiniMax-M3[1m]",
+        "fable": "MiniMax-M3[1m]"
       },
       "model_choices": [
+        {
+          "id": "MiniMax-M3[1m]",
+          "description": "MiniMax M3, 1M context",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000"
+          }
+        },
         {
           "id": "MiniMax-M3",
           "description": "MiniMax M3"
@@ -199,74 +239,314 @@
     },
     {
       "id": "kimi",
-      "display_name": "Kimi",
-      "description": "Kimi Code plan",
+      "display_name": "Kimi Code",
+      "description": "Kimi Code subscription (overseas)",
       "category": "international",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
       "key_var": "KIMI_API_KEY",
-      "base_url": "https://api.kimi.com/coding/",
+      "auth_env_var": "ANTHROPIC_API_KEY",
+      "base_url": "https://api.kimi.ai/coding/",
       "default_model": "k3-256k",
       "model_tiers": {
-        "small": "k3-256k"
+        "opus": "k3-256k",
+        "sonnet": "k3-256k",
+        "haiku": "k3-256k",
+        "fable": "k3-256k",
+        "subagent": "k3-256k"
       },
       "model_choices": [
         {
           "id": "k3-256k",
-          "description": "Kimi K3 (256K)"
+          "description": "Kimi K3, 256K context (Plus / Moderato plans and above)",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "262144",
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "262144"
+          }
+        },
+        {
+          "id": "k3[1m]",
+          "description": "Kimi K3, 1M context (Pro / Allegretto plans and above)",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1048576"
+          }
+        },
+        {
+          "id": "k3",
+          "description": "Kimi K3"
         },
         {
           "id": "kimi-for-coding",
-          "description": "Kimi coding alias (tracks latest)"
+          "description": "K2.8 Preview, 1M context (every plan)",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1048576"
+          }
+        },
+        {
+          "id": "kimi-for-coding-highspeed",
+          "description": "K2.7 Code HighSpeed, 256K context (Pro plans and above)",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "262144",
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "262144"
+          }
         }
       ],
+      "extra_env": {
+        "CLAUDE_CODE_EFFORT_LEVEL": "high"
+      },
+      "test_url": "https://api.kimi.ai/coding/",
+      "setup": [
+        "A Kimi Code key does not work on the Moonshot / Kimi Open Platform, and the reverse: they are two products with two endpoints.",
+        "Claude Code asks once whether to use the key (it arrives as ANTHROPIC_API_KEY): answer yes."
+      ],
+      "usage": []
+    },
+    {
+      "id": "kimi-cn",
+      "display_name": "Kimi Code China",
+      "description": "Kimi Code subscription (China)",
+      "category": "china",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "KIMI_CN_API_KEY",
+      "auth_env_var": "ANTHROPIC_API_KEY",
+      "base_url": "https://api.kimi.com/coding/",
+      "default_model": "k3-256k",
+      "model_tiers": {
+        "opus": "k3-256k",
+        "sonnet": "k3-256k",
+        "haiku": "k3-256k",
+        "fable": "k3-256k",
+        "subagent": "k3-256k"
+      },
+      "model_choices": [
+        {
+          "id": "k3-256k",
+          "description": "Kimi K3, 256K context (Plus / Moderato plans and above)",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "262144",
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "262144"
+          }
+        },
+        {
+          "id": "k3[1m]",
+          "description": "Kimi K3, 1M context (Pro / Allegretto plans and above)",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1048576"
+          }
+        },
+        {
+          "id": "k3",
+          "description": "Kimi K3"
+        },
+        {
+          "id": "kimi-for-coding",
+          "description": "K2.8 Preview, 1M context (every plan)",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1048576",
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1048576"
+          }
+        },
+        {
+          "id": "kimi-for-coding-highspeed",
+          "description": "K2.7 Code HighSpeed, 256K context (Pro plans and above)",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "262144",
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "262144"
+          }
+        }
+      ],
+      "extra_env": {
+        "CLAUDE_CODE_EFFORT_LEVEL": "high"
+      },
       "test_url": "https://api.kimi.com/coding/",
-      "setup": [],
+      "setup": [
+        "A Kimi Code key does not work on the Moonshot / Kimi Open Platform, and the reverse: they are two products with two endpoints.",
+        "Claude Code asks once whether to use the key (it arrives as ANTHROPIC_API_KEY): answer yes."
+      ],
       "usage": []
     },
     {
       "id": "moonshot",
       "display_name": "Moonshot AI",
-      "description": "Moonshot AI",
+      "description": "Kimi Open Platform, pay-as-you-go",
       "category": "international",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
       "key_var": "MOONSHOT_API_KEY",
       "base_url": "https://api.moonshot.ai/anthropic",
-      "default_model": "kimi-k3",
-      "model_tiers": {},
+      "default_model": "kimi-k3[1m]",
+      "model_tiers": {
+        "opus": "kimi-k3[1m]",
+        "sonnet": "kimi-k3[1m]",
+        "haiku": "kimi-k3[1m]",
+        "fable": "kimi-k3[1m]",
+        "subagent": "kimi-k3[1m]"
+      },
       "model_choices": [
+        {
+          "id": "kimi-k3[1m]",
+          "description": "Kimi K3, 1M context",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000"
+          }
+        },
         {
           "id": "kimi-k3",
           "description": "Kimi K3"
         },
         {
           "id": "kimi-k2.7-code",
-          "description": "Kimi K2.7 Code"
+          "description": "Kimi K2.7 Code (thinking must stay on)"
+        },
+        {
+          "id": "kimi-k2.7-code-highspeed",
+          "description": "Kimi K2.7 Code HighSpeed (thinking must stay on)"
         },
         {
           "id": "kimi-k2.6",
           "description": "Kimi K2.6"
         }
       ],
+      "extra_env": {
+        "CLAUDE_CODE_EFFORT_LEVEL": "max"
+      },
       "test_url": "https://api.moonshot.ai/anthropic",
-      "setup": [],
+      "setup": [
+        "kimi-k2.7-code rejects requests with thinking turned off (400 invalid thinking), so it is not used for background tasks."
+      ],
+      "usage": []
+    },
+    {
+      "id": "moonshot-cn",
+      "display_name": "Moonshot AI China",
+      "description": "Kimi Open Platform China, pay-as-you-go",
+      "category": "china",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "MOONSHOT_CN_API_KEY",
+      "base_url": "https://api.moonshot.cn/anthropic",
+      "default_model": "kimi-k3[1m]",
+      "model_tiers": {
+        "opus": "kimi-k3[1m]",
+        "sonnet": "kimi-k3[1m]",
+        "haiku": "kimi-k3[1m]",
+        "fable": "kimi-k3[1m]",
+        "subagent": "kimi-k3[1m]"
+      },
+      "model_choices": [
+        {
+          "id": "kimi-k3[1m]",
+          "description": "Kimi K3, 1M context",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000"
+          }
+        },
+        {
+          "id": "kimi-k3",
+          "description": "Kimi K3"
+        },
+        {
+          "id": "kimi-k2.7-code",
+          "description": "Kimi K2.7 Code (thinking must stay on)"
+        },
+        {
+          "id": "kimi-k2.7-code-highspeed",
+          "description": "Kimi K2.7 Code HighSpeed (thinking must stay on)"
+        },
+        {
+          "id": "kimi-k2.6",
+          "description": "Kimi K2.6"
+        }
+      ],
+      "extra_env": {
+        "CLAUDE_CODE_EFFORT_LEVEL": "max"
+      },
+      "test_url": "https://api.moonshot.cn/anthropic",
+      "setup": [
+        "kimi-k2.7-code rejects requests with thinking turned off (400 invalid thinking), so it is not used for background tasks."
+      ],
       "usage": []
     },
     {
       "id": "ve",
       "display_name": "VolcEngine",
-      "description": "VolcEngine",
+      "description": "VolcEngine Ark Coding Plan",
       "category": "china",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
       "key_var": "ARK_API_KEY",
       "base_url": "https://ark.cn-beijing.volces.com/api/coding",
-      "default_model": "doubao-seed-code-preview-latest",
-      "model_tiers": {},
-      "model_choices": [],
+      "default_model": "ark-code-latest",
+      "model_tiers": {
+        "opus": "ark-code-latest",
+        "sonnet": "ark-code-latest",
+        "haiku": "ark-code-latest"
+      },
+      "model_choices": [
+        {
+          "id": "ark-code-latest",
+          "description": "Model selected in the Ark console"
+        },
+        {
+          "id": "glm-5.3[1m]",
+          "description": "GLM-5.3, 1M context",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000"
+          }
+        },
+        {
+          "id": "glm-5.3-flash",
+          "description": "GLM-5.3-Flash"
+        },
+        {
+          "id": "kimi-k3",
+          "description": "Kimi K3"
+        },
+        {
+          "id": "kimi-k2.8-preview",
+          "description": "Kimi K2.8 Preview"
+        },
+        {
+          "id": "kimi-k2.7-code",
+          "description": "Kimi K2.7 Code"
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "description": "DeepSeek V4 Pro"
+        },
+        {
+          "id": "deepseek-v4-flash",
+          "description": "DeepSeek V4 Flash"
+        },
+        {
+          "id": "minimax-m3",
+          "description": "MiniMax M3"
+        },
+        {
+          "id": "doubao-seed-evolving",
+          "description": "Doubao Seed Evolving"
+        },
+        {
+          "id": "doubao-seed-2.1-turbo",
+          "description": "Doubao Seed 2.1 Turbo"
+        },
+        {
+          "id": "doubao-seed-2.0-lite",
+          "description": "Doubao Seed 2.0 Lite"
+        }
+      ],
+      "extra_env": {
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+      },
       "test_url": "https://ark.cn-beijing.volces.com/api/coding",
-      "setup": [],
+      "setup": [
+        "ark-code-latest follows the model picked in the Ark console, so a model retirement never breaks the launcher.",
+        "Do not point this profile at /api/v3: that endpoint is billed separately from the Coding Plan."
+      ],
       "usage": []
     },
     {
@@ -278,11 +558,41 @@
       "auth_mode": "secret",
       "key_var": "DEEPSEEK_API_KEY",
       "base_url": "https://api.deepseek.com/anthropic",
-      "default_model": "deepseek-chat",
+      "default_model": "deepseek-flash[1m]",
       "model_tiers": {
-        "small": "deepseek-chat"
+        "opus": "deepseek-flash[1m]",
+        "sonnet": "deepseek-flash[1m]",
+        "fable": "deepseek-flash[1m]",
+        "haiku": "deepseek-flash",
+        "subagent": "deepseek-flash"
       },
-      "model_choices": [],
+      "model_choices": [
+        {
+          "id": "deepseek-flash[1m]",
+          "description": "DeepSeek V4.1 Flash, 1M context",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "786432"
+          }
+        },
+        {
+          "id": "deepseek-flash",
+          "description": "DeepSeek V4.1 Flash"
+        },
+        {
+          "id": "deepseek-v4-pro[1m]",
+          "description": "DeepSeek V4 Pro, 1M context",
+          "env": {
+            "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "786432"
+          }
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "description": "DeepSeek V4 Pro"
+        }
+      ],
+      "extra_env": {
+        "CLAUDE_CODE_EFFORT_LEVEL": "max"
+      },
       "test_url": "https://api.deepseek.com/anthropic",
       "setup": [],
       "usage": []
@@ -296,13 +606,38 @@
       "auth_mode": "secret",
       "key_var": "MIMO_API_KEY",
       "base_url": "https://api.xiaomimimo.com/anthropic",
-      "default_model": "mimo-v2.5-pro",
+      "default_model": "mimo-v2.6-pro[1m]",
       "model_tiers": {
-        "haiku": "mimo-v2.5-pro",
-        "sonnet": "mimo-v2.5-pro",
-        "opus": "mimo-v2.5-pro"
+        "opus": "mimo-v2.6-pro[1m]",
+        "sonnet": "mimo-v2.6-pro[1m]",
+        "haiku": "mimo-v2.6-pro[1m]",
+        "fable": "mimo-v2.6-pro[1m]"
       },
       "model_choices": [
+        {
+          "id": "mimo-v2.6-pro[1m]",
+          "description": "MiMo V2.6 Pro, 1M context"
+        },
+        {
+          "id": "mimo-v2.6-pro",
+          "description": "MiMo V2.6 Pro"
+        },
+        {
+          "id": "mimo-v2.6-flash[1m]",
+          "description": "MiMo V2.6 Flash, 1M context"
+        },
+        {
+          "id": "mimo-v2.6-flash",
+          "description": "MiMo V2.6 Flash"
+        },
+        {
+          "id": "mimo-v2.6-pro-ultraspeed",
+          "description": "MiMo V2.6 Pro UltraSpeed (about 10x the price)"
+        },
+        {
+          "id": "mimo-v2.5-pro[1m]",
+          "description": "MiMo V2.5 Pro, 1M context"
+        },
         {
           "id": "mimo-v2.5-pro",
           "description": "MiMo V2.5 Pro"
@@ -314,8 +649,8 @@
     },
     {
       "id": "alibaba",
-      "display_name": "Alibaba Coding Plan (Singapore)",
-      "description": "Alibaba Coding Plan (Singapore)",
+      "display_name": "Alibaba Coding Plan",
+      "description": "Alibaba Model Studio Coding Plan (Singapore)",
       "category": "international",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
@@ -323,22 +658,32 @@
       "base_url": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic",
       "default_model": "qwen3.7-plus",
       "model_tiers": {
-        "haiku": "qwen3.7-plus",
+        "opus": "qwen3.7-plus",
         "sonnet": "qwen3.7-plus",
-        "opus": "qwen3.7-plus"
+        "haiku": "qwen3.7-plus",
+        "subagent": "qwen3.7-plus"
       },
       "model_choices": [
         {
           "id": "qwen3.7-plus",
-          "description": "Qwen 3.7 Plus"
+          "description": "Qwen 3.7 Plus",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1000000"
+          }
         },
         {
           "id": "qwen3.6-plus",
-          "description": "Qwen 3.6 Plus"
+          "description": "Qwen 3.6 Plus",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1000000"
+          }
         },
         {
           "id": "qwen3.5-plus",
-          "description": "Qwen 3.5 Plus"
+          "description": "Qwen 3.5 Plus",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1000000"
+          }
         },
         {
           "id": "kimi-k2.5",
@@ -358,7 +703,10 @@
         },
         {
           "id": "qwen3-coder-plus",
-          "description": "Qwen3 Coder Plus"
+          "description": "Qwen3 Coder Plus",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1000000"
+          }
         },
         {
           "id": "qwen3-max-2026-01-23",
@@ -370,74 +718,17 @@
         }
       ],
       "test_url": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic",
-      "setup": [],
-      "usage": []
-    },
-    {
-      "id": "alibaba-us",
-      "display_name": "Alibaba Coding Plan (US)",
-      "description": "Alibaba Coding Plan (US)",
-      "category": "international",
-      "family": "anthropic_compatible_non_claude",
-      "auth_mode": "secret",
-      "key_var": "ALIBABA_API_KEY",
-      "base_url": "https://coding-us.dashscope.aliyuncs.com/apps/anthropic",
-      "default_model": "qwen3.7-plus",
-      "model_tiers": {
-        "haiku": "qwen3.7-plus",
-        "sonnet": "qwen3.7-plus",
-        "opus": "qwen3.7-plus"
-      },
-      "model_choices": [
-        {
-          "id": "qwen3.7-plus",
-          "description": "Qwen 3.7 Plus"
-        },
-        {
-          "id": "qwen3.6-plus",
-          "description": "Qwen 3.6 Plus"
-        },
-        {
-          "id": "qwen3.5-plus",
-          "description": "Qwen 3.5 Plus"
-        },
-        {
-          "id": "kimi-k2.5",
-          "description": "Kimi K2.5"
-        },
-        {
-          "id": "glm-5",
-          "description": "GLM-5"
-        },
-        {
-          "id": "MiniMax-M2.5",
-          "description": "MiniMax M2.5"
-        },
-        {
-          "id": "qwen3-coder-next",
-          "description": "Qwen3 Coder Next"
-        },
-        {
-          "id": "qwen3-coder-plus",
-          "description": "Qwen3 Coder Plus"
-        },
-        {
-          "id": "qwen3-max-2026-01-23",
-          "description": "Qwen3 Max"
-        },
-        {
-          "id": "glm-4.7",
-          "description": "GLM-4.7"
-        }
+      "setup": [
+        "The Coding Plan takes its own sk-sp-... key; a general sk-... key on this endpoint is billed pay-as-you-go.",
+        "Keys are bound to their region: a Singapore key returns 401 on the China endpoint, and the reverse.",
+        "The model allowlist is matched character by character; an ID that is not on it is rejected."
       ],
-      "test_url": "https://coding-us.dashscope.aliyuncs.com/apps/anthropic",
-      "setup": [],
       "usage": []
     },
     {
       "id": "alibaba-cn",
-      "display_name": "Alibaba Coding Plan (China)",
-      "description": "Alibaba Coding Plan (China)",
+      "display_name": "Alibaba Coding Plan China",
+      "description": "Alibaba Model Studio Coding Plan (China)",
       "category": "china",
       "family": "anthropic_compatible_non_claude",
       "auth_mode": "secret",
@@ -445,22 +736,32 @@
       "base_url": "https://coding.dashscope.aliyuncs.com/apps/anthropic",
       "default_model": "qwen3.7-plus",
       "model_tiers": {
-        "haiku": "qwen3.7-plus",
+        "opus": "qwen3.7-plus",
         "sonnet": "qwen3.7-plus",
-        "opus": "qwen3.7-plus"
+        "haiku": "qwen3.7-plus",
+        "subagent": "qwen3.7-plus"
       },
       "model_choices": [
         {
           "id": "qwen3.7-plus",
-          "description": "Qwen 3.7 Plus"
+          "description": "Qwen 3.7 Plus",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1000000"
+          }
         },
         {
           "id": "qwen3.6-plus",
-          "description": "Qwen 3.6 Plus"
+          "description": "Qwen 3.6 Plus",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1000000"
+          }
         },
         {
           "id": "qwen3.5-plus",
-          "description": "Qwen 3.5 Plus"
+          "description": "Qwen 3.5 Plus",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1000000"
+          }
         },
         {
           "id": "kimi-k2.5",
@@ -480,7 +781,10 @@
         },
         {
           "id": "qwen3-coder-plus",
-          "description": "Qwen3 Coder Plus"
+          "description": "Qwen3 Coder Plus",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1000000"
+          }
         },
         {
           "id": "qwen3-max-2026-01-23",
@@ -492,7 +796,165 @@
         }
       ],
       "test_url": "https://coding.dashscope.aliyuncs.com/apps/anthropic",
-      "setup": [],
+      "setup": [
+        "The Coding Plan takes its own sk-sp-... key; a general sk-... key on this endpoint is billed pay-as-you-go.",
+        "Keys are bound to their region: a Singapore key returns 401 on the China endpoint, and the reverse.",
+        "The model allowlist is matched character by character; an ID that is not on it is rejected."
+      ],
+      "usage": []
+    },
+    {
+      "id": "alibaba-token-plan",
+      "display_name": "Alibaba Token Plan",
+      "description": "Alibaba Model Studio Token Plan (Singapore)",
+      "category": "international",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "ALIBABA_TOKEN_PLAN_API_KEY",
+      "base_url": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic",
+      "default_model": "auto",
+      "model_tiers": {
+        "opus": "qwen3.8-max",
+        "sonnet": "qwen3.8-flash",
+        "haiku": "qwen3.6-flash",
+        "subagent": "auto"
+      },
+      "model_choices": [
+        {
+          "id": "auto",
+          "description": "Platform picks a model per request",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "983616"
+          }
+        },
+        {
+          "id": "qwen3.8-max",
+          "description": "Qwen 3.8 Max",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "983616"
+          }
+        },
+        {
+          "id": "qwen3.8-flash",
+          "description": "Qwen 3.8 Flash",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "983616"
+          }
+        },
+        {
+          "id": "qwen3.7-max",
+          "description": "Qwen 3.7 Max"
+        },
+        {
+          "id": "qwen3.7-plus",
+          "description": "Qwen 3.7 Plus"
+        },
+        {
+          "id": "qwen3.6-flash",
+          "description": "Qwen 3.6 Flash",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "983616"
+          }
+        },
+        {
+          "id": "deepseek-v4.1-flash",
+          "description": "DeepSeek V4.1 Flash"
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "description": "DeepSeek V4 Pro"
+        },
+        {
+          "id": "glm-5.3",
+          "description": "GLM-5.3"
+        },
+        {
+          "id": "glm-5.2",
+          "description": "GLM-5.2"
+        }
+      ],
+      "test_url": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic",
+      "setup": [
+        "The Token Plan uses a dedicated key, distinct from the Coding Plan key and from a pay-as-you-go key.",
+        "Keys are bound to their region: the Singapore and Beijing endpoints do not accept each other's keys."
+      ],
+      "usage": []
+    },
+    {
+      "id": "alibaba-token-plan-cn",
+      "display_name": "Alibaba Token Plan China",
+      "description": "Alibaba Model Studio Token Plan (China)",
+      "category": "china",
+      "family": "anthropic_compatible_non_claude",
+      "auth_mode": "secret",
+      "key_var": "ALIBABA_TOKEN_PLAN_CN_API_KEY",
+      "base_url": "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic",
+      "default_model": "auto",
+      "model_tiers": {
+        "opus": "qwen3.8-max",
+        "sonnet": "qwen3.8-flash",
+        "haiku": "qwen3.6-flash",
+        "subagent": "auto"
+      },
+      "model_choices": [
+        {
+          "id": "auto",
+          "description": "Platform picks a model per request",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "983616"
+          }
+        },
+        {
+          "id": "qwen3.8-max",
+          "description": "Qwen 3.8 Max",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "983616"
+          }
+        },
+        {
+          "id": "qwen3.8-flash",
+          "description": "Qwen 3.8 Flash",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "983616"
+          }
+        },
+        {
+          "id": "qwen3.7-max",
+          "description": "Qwen 3.7 Max"
+        },
+        {
+          "id": "qwen3.7-plus",
+          "description": "Qwen 3.7 Plus"
+        },
+        {
+          "id": "qwen3.6-flash",
+          "description": "Qwen 3.6 Flash",
+          "env": {
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "983616"
+          }
+        },
+        {
+          "id": "deepseek-v4.1-flash",
+          "description": "DeepSeek V4.1 Flash"
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "description": "DeepSeek V4 Pro"
+        },
+        {
+          "id": "glm-5.3",
+          "description": "GLM-5.3"
+        },
+        {
+          "id": "glm-5.2",
+          "description": "GLM-5.2"
+        }
+      ],
+      "test_url": "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic",
+      "setup": [
+        "The Token Plan uses a dedicated key, distinct from the Coding Plan key and from a pay-as-you-go key.",
+        "Keys are bound to their region: the Singapore and Beijing endpoints do not accept each other's keys."
+      ],
       "usage": []
     },
     {
@@ -511,6 +973,7 @@
       "setup": [
         "Install Ollama: https://ollama.com",
         "Pull a model: ollama pull qwen3-coder",
+        "Set the context length to 64K or more in Ollama; Claude Code needs it for tool results",
         "Start serving: ollama serve"
       ],
       "usage": [
@@ -524,6 +987,7 @@
       "category": "local",
       "family": "local",
       "auth_mode": "literal",
+      "key_var": "LMSTUDIO_API_KEY",
       "literal_auth_token": "lmstudio",
       "base_url": "http://localhost:1234",
       "default_model": "",
@@ -531,9 +995,10 @@
       "model_choices": [],
       "test_url": "http://localhost:1234",
       "setup": [
-        "Install LM Studio: https://lmstudio.ai/download",
+        "Install LM Studio 0.4.1 or later: https://lmstudio.ai/download",
         "Load a model in the app",
-        "Start the server on port 1234"
+        "Start the server on port 1234",
+        "With Require Authentication on, store the API token with `clother config lmstudio`"
       ],
       "usage": [
         "clother-lmstudio --model <model-name>"
@@ -545,7 +1010,8 @@
       "description": "llama.cpp (Local)",
       "category": "local",
       "family": "local",
-      "auth_mode": "none",
+      "auth_mode": "literal",
+      "literal_auth_token": "llamacpp",
       "base_url": "http://localhost:8000",
       "default_model": "",
       "model_tiers": {},
