@@ -19,7 +19,7 @@ build_target() {
   mkdir -p "$work"
   GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build \
     -trimpath \
-    -ldflags="-s -w -X github.com/jolehuit/clother/internal/version.Value=${VERSION}" \
+    -ldflags="-s -w -X github.com/jolehuit/clother/internal/version.Value=${VERSION#v}" \
     -o "$work/clother" \
     ./cmd/clother
   tar -C "$work" -czf "$DIST_DIR/$asset" clother
