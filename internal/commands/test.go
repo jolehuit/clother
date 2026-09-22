@@ -28,6 +28,7 @@ func runTest(_ context.Context, c Context, args []string) (int, error) {
 			continue
 		}
 		req, _ := http.NewRequest(http.MethodGet, target.TestURL, nil)
+		setCredentialHeader(req, target, targetCredential(target, c.Secrets))
 		resp, err := client.Do(req)
 		if err != nil {
 			fmt.Fprintf(c.Output.Stdout, "  %-18s unreachable\n", target.Profile)

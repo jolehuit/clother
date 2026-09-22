@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -19,6 +20,8 @@ import (
 )
 
 const benchDefaultPrompt = "Say hello in one word."
+
+var contextSuffix = regexp.MustCompile(`(?i)\[[12]m\]$`)
 
 type benchResult struct {
 	Profile string
@@ -128,15 +131,13 @@ func doBench(ctx context.Context, target profiles.Target, secrets config.Secrets
 	model := benchModel(target)
 	res := benchResult{Profile: target.Profile, Model: model}
 
-	var apiKey string
-	switch target.AuthMode {
-	case providers.AuthSecret:
-		apiKey = secrets[target.SecretKey]
-	case providers.AuthLiteral:
-		apiKey = target.LiteralAuthToken
-	}
+	apiKey := targetCredential(target, secrets)
 
 	endpoint := strings.TrimRight(target.BaseURL, "/") + "/v1/messages"
+	// Claude Code strips the [1m] context suffix before sending the model ID;
+	// the provider does not know the suffixed form.
+	model = contextSuffix.ReplaceAllString(model, "")
+	res.Model = model
 
 	body, err := json.Marshal(map[string]interface{}{
 		"model":      model,
@@ -158,11 +159,7 @@ func doBench(ctx context.Context, target profiles.Target, secrets config.Secrets
 	}
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("anthropic-version", "2023-06-01")
-	if target.Family == providers.FamilyOpenRouter {
-		req.Header.Set("Authorization", "Bearer "+apiKey)
-	} else {
-		req.Header.Set("x-api-key", apiKey)
-	}
+	setCredentialHeader(req, target, apiKey)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	start := time.Now()
@@ -244,10 +241,38 @@ func benchModel(target profiles.Target) string {
 	if target.Model != "" {
 		return target.Model
 	}
-	for _, tier := range []string{"sonnet", "opus", "haiku", "small"} {
+	for _, tier := range []string{"sonnet", "opus", "haiku", "fable", "small"} {
 		if model := target.ModelTiers[tier]; model != "" {
 			return model
 		}
+	}
+	return ""
+}
+
+// setCredentialHeader sends the credential the way the launcher exports it:
+// ANTHROPIC_API_KEY travels as x-api-key, ANTHROPIC_AUTH_TOKEN as a bearer
+// token.
+func setCredentialHeader(req *http.Request, target profiles.Target, credential string) {
+	if credential == "" {
+		return
+	}
+	if target.CredentialEnvVar == providers.APIKeyEnvVar {
+		req.Header.Set("x-api-key", credential)
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+credential)
+}
+
+// targetCredential returns the credential a launcher would send, or "".
+func targetCredential(target profiles.Target, secrets config.Secrets) string {
+	switch target.AuthMode {
+	case providers.AuthSecret:
+		return secrets[target.SecretKey]
+	case providers.AuthLiteral:
+		if target.SecretKey != "" && secrets[target.SecretKey] != "" {
+			return secrets[target.SecretKey]
+		}
+		return target.LiteralAuthToken
 	}
 	return ""
 }
