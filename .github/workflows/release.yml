@@ -17,8 +17,13 @@ jobs:
           go-version-file: go.mod
       - run: go test ./...
       - run: ./scripts/package-release.sh
+      - name: Release notes
+        run: |
+          notes=".github/release-notes/${GITHUB_REF_NAME}.md"
+          if [ -f "$notes" ]; then cp "$notes" dist/RELEASE_NOTES.md; else : > dist/RELEASE_NOTES.md; fi
       - uses: softprops/action-gh-release@v2
         with:
+          body_path: dist/RELEASE_NOTES.md
           files: |
             dist/clother_*.tar.gz
             dist/checksums.txt
