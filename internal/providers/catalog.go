@@ -28,27 +28,79 @@ const (
 	FamilyCustomUnknown                Family = "custom_unknown"
 )
 
+// Claude Code reads a credential from two variables: ANTHROPIC_AUTH_TOKEN is
+// sent as "Authorization: Bearer", ANTHROPIC_API_KEY as "x-api-key".
+const (
+	AuthTokenEnvVar = "ANTHROPIC_AUTH_TOKEN"
+	APIKeyEnvVar    = "ANTHROPIC_API_KEY"
+)
+
+// Tier names a catalog entry may map to a model. "small" is the deprecated
+// ANTHROPIC_SMALL_FAST_MODEL, which Claude Code still reads and prefers over
+// the haiku tier for background work.
+const (
+	TierOpus     = "opus"
+	TierSonnet   = "sonnet"
+	TierHaiku    = "haiku"
+	TierFable    = "fable"
+	TierSmall    = "small"
+	TierSubagent = "subagent"
+)
+
 type ModelChoice struct {
 	ID          string `json:"id"`
 	Description string `json:"description"`
+	// Env only applies while this model is the session model: context window
+	// sizes differ from one model to the next, so they cannot be set per
+	// provider without breaking the other models of the same provider.
+	Env map[string]string `json:"env,omitempty"`
 }
 
 type Provider struct {
-	ID               string            `json:"id"`
-	DisplayName      string            `json:"display_name"`
-	Description      string            `json:"description"`
-	Category         string            `json:"category"`
-	Family           Family            `json:"family"`
-	AuthMode         AuthMode          `json:"auth_mode"`
-	KeyVar           string            `json:"key_var,omitempty"`
+	ID          string   `json:"id"`
+	DisplayName string   `json:"display_name"`
+	Description string   `json:"description"`
+	Category    string   `json:"category"`
+	Family      Family   `json:"family"`
+	AuthMode    AuthMode `json:"auth_mode"`
+	// KeyVar names the secret holding the credential. With auth_mode
+	// "literal" it is optional: the secret replaces the literal token when
+	// set (an LM Studio server with "Require Authentication" enabled).
+	KeyVar string `json:"key_var,omitempty"`
+	// AuthEnvVar is the variable the credential is exported through. Empty
+	// means ANTHROPIC_AUTH_TOKEN; Kimi Code documents ANTHROPIC_API_KEY.
+	AuthEnvVar       string            `json:"auth_env_var,omitempty"`
 	LiteralAuthToken string            `json:"literal_auth_token,omitempty"`
 	BaseURL          string            `json:"base_url"`
 	DefaultModel     string            `json:"default_model"`
 	ModelTiers       map[string]string `json:"model_tiers"`
 	ModelChoices     []ModelChoice     `json:"model_choices"`
-	TestURL          string            `json:"test_url"`
-	Setup            []string          `json:"setup"`
-	Usage            []string          `json:"usage"`
+	// ExtraEnv is provider-wide tuning from the vendor's Claude Code guide
+	// (timeouts, effort level). Per-model values belong on ModelChoice.Env.
+	ExtraEnv map[string]string `json:"extra_env,omitempty"`
+	TestURL  string            `json:"test_url"`
+	Setup    []string          `json:"setup"`
+	Usage    []string          `json:"usage"`
+}
+
+// CredentialEnvVar returns the variable the provider's credential is exported
+// through.
+func (p Provider) CredentialEnvVar() string {
+	if p.AuthEnvVar != "" {
+		return p.AuthEnvVar
+	}
+	return AuthTokenEnvVar
+}
+
+// ModelEnv maps each model choice to the environment it needs.
+func (p Provider) ModelEnv() map[string]map[string]string {
+	out := map[string]map[string]string{}
+	for _, choice := range p.ModelChoices {
+		if len(choice.Env) > 0 {
+			out[choice.ID] = choice.Env
+		}
+	}
+	return out
 }
 
 type Catalog struct {
@@ -70,6 +122,9 @@ func Load() (Catalog, error) {
 	for _, provider := range payload.Providers {
 		if provider.ModelTiers == nil {
 			provider.ModelTiers = map[string]string{}
+		}
+		if provider.ExtraEnv == nil {
+			provider.ExtraEnv = map[string]string{}
 		}
 		cat.ordered = append(cat.ordered, provider)
 		cat.byID[provider.ID] = provider

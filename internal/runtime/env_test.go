@@ -127,11 +127,13 @@ func TestBuildEnvClearsUnusedTierVariables(t *testing.T) {
 	if got["ANTHROPIC_DEFAULT_OPUS_MODEL"] != "glm-5" {
 		t.Fatalf("unexpected opus model: %q", got["ANTHROPIC_DEFAULT_OPUS_MODEL"])
 	}
-	if _, ok := got["ANTHROPIC_DEFAULT_HAIKU_MODEL"]; ok {
-		t.Fatal("haiku tier leaked from inherited environment")
+	// Unmapped tiers are filled from the provider's own model, never kept
+	// from the parent environment.
+	if got["ANTHROPIC_DEFAULT_HAIKU_MODEL"] != "glm-5" {
+		t.Fatalf("haiku tier = %q, want glm-5", got["ANTHROPIC_DEFAULT_HAIKU_MODEL"])
 	}
-	if _, ok := got["ANTHROPIC_DEFAULT_SONNET_MODEL"]; ok {
-		t.Fatal("sonnet tier leaked from inherited environment")
+	if got["ANTHROPIC_DEFAULT_SONNET_MODEL"] != "glm-5" {
+		t.Fatalf("sonnet tier = %q, want glm-5", got["ANTHROPIC_DEFAULT_SONNET_MODEL"])
 	}
 }
 
@@ -144,4 +146,150 @@ func envToMap(env []string) map[string]string {
 		}
 	}
 	return out
+}
+
+func TestBuildEnvExportsTheDocumentedCredentialVariable(t *testing.T) {
+	t.Setenv("ANTHROPIC_API_KEY", "sk-ant-from-shell")
+	t.Setenv("ANTHROPIC_AUTH_TOKEN", "sk-ant-from-shell")
+
+	kimi := profiles.Target{
+		Profile:          "kimi",
+		Family:           providers.FamilyAnthropicCompatibleNonClaude,
+		BaseURL:          "https://api.kimi.ai/coding/",
+		Model:            "k3-256k",
+		AuthMode:         providers.AuthSecret,
+		SecretKey:        "KIMI_API_KEY",
+		CredentialEnvVar: providers.APIKeyEnvVar,
+	}
+	got := mustBuildEnv(t, kimi, config.Secrets{"KIMI_API_KEY": "sk-kimi"})
+	if got["ANTHROPIC_API_KEY"] != "sk-kimi" {
+		t.Fatalf("ANTHROPIC_API_KEY = %q, want the Kimi key", got["ANTHROPIC_API_KEY"])
+	}
+	if v, ok := got["ANTHROPIC_AUTH_TOKEN"]; !ok || v != "" {
+		t.Fatalf("ANTHROPIC_AUTH_TOKEN must be blanked, got %q (present=%v)", v, ok)
+	}
+
+	zai := profiles.Target{
+		Profile:          "zai",
+		Family:           providers.FamilyAnthropicCompatibleNonClaude,
+		BaseURL:          "https://api.z.ai/api/anthropic",
+		Model:            "glm-5.3[1m]",
+		AuthMode:         providers.AuthSecret,
+		SecretKey:        "ZAI_API_KEY",
+		CredentialEnvVar: providers.AuthTokenEnvVar,
+	}
+	got = mustBuildEnv(t, zai, config.Secrets{"ZAI_API_KEY": "sk-zai"})
+	if got["ANTHROPIC_AUTH_TOKEN"] != "sk-zai" {
+		t.Fatalf("ANTHROPIC_AUTH_TOKEN = %q, want the Z.AI key", got["ANTHROPIC_AUTH_TOKEN"])
+	}
+	if v, ok := got["ANTHROPIC_API_KEY"]; !ok || v != "" {
+		t.Fatalf("ANTHROPIC_API_KEY must be blanked, got %q (present=%v)", v, ok)
+	}
+}
+
+func TestBuildEnvLiteralTokenCanBeReplacedBySecret(t *testing.T) {
+	t.Parallel()
+
+	target := profiles.Target{
+		Profile:          "lmstudio",
+		Family:           providers.FamilyLocal,
+		BaseURL:          "http://localhost:1234",
+		AuthMode:         providers.AuthLiteral,
+		LiteralAuthToken: "lmstudio",
+		SecretKey:        "LMSTUDIO_API_KEY",
+	}
+	if got := mustBuildEnv(t, target, config.Secrets{}); got["ANTHROPIC_AUTH_TOKEN"] != "lmstudio" {
+		t.Fatalf("without a token the literal must be used, got %q", got["ANTHROPIC_AUTH_TOKEN"])
+	}
+	got := mustBuildEnv(t, target, config.Secrets{"LMSTUDIO_API_KEY": "sk-lm-token"})
+	if got["ANTHROPIC_AUTH_TOKEN"] != "sk-lm-token" {
+		t.Fatalf("ANTHROPIC_AUTH_TOKEN = %q, want the configured LM Studio token", got["ANTHROPIC_AUTH_TOKEN"])
+	}
+}
+
+func TestBuildEnvFillsEveryTierForThirdParties(t *testing.T) {
+	t.Parallel()
+
+	target := profiles.Target{
+		Profile:  "zai",
+		Family:   providers.FamilyAnthropicCompatibleNonClaude,
+		BaseURL:  "https://api.z.ai/api/anthropic",
+		Model:    "glm-5.3[1m]",
+		AuthMode: providers.AuthSecret, SecretKey: "ZAI_API_KEY",
+		ModelTiers: map[string]string{"haiku": "glm-5.3-flash[1m]"},
+	}
+	got := mustBuildEnv(t, target, config.Secrets{"ZAI_API_KEY": "sk"})
+	want := map[string]string{
+		"ANTHROPIC_DEFAULT_OPUS_MODEL":   "glm-5.3[1m]",
+		"ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-5.3[1m]",
+		"ANTHROPIC_DEFAULT_FABLE_MODEL":  "glm-5.3[1m]",
+		"ANTHROPIC_DEFAULT_HAIKU_MODEL":  "glm-5.3-flash[1m]",
+		// Claude Code prefers the small-fast variable over haiku for
+		// background work, so it must follow the haiku mapping.
+		"ANTHROPIC_SMALL_FAST_MODEL": "glm-5.3-flash[1m]",
+	}
+	for key, value := range want {
+		if got[key] != value {
+			t.Fatalf("%s = %q, want %q", key, got[key], value)
+		}
+	}
+	if _, ok := got["CLAUDE_CODE_SUBAGENT_MODEL"]; ok {
+		t.Fatal("the subagent model is only set when the catalog asks for it")
+	}
+}
+
+func TestBuildEnvAppliesCatalogEnvAndDropsInheritedRouting(t *testing.T) {
+	t.Setenv("CLAUDE_CODE_USE_BEDROCK", "1")
+	t.Setenv("CLAUDE_CODE_SUBAGENT_MODEL", "claude-sonnet-5")
+	t.Setenv("CLAUDE_CODE_MAX_CONTEXT_TOKENS", "123")
+	t.Setenv("CLAUDE_SECURESTORAGE_CONFIG_DIR", "/home/me/.claude")
+	t.Setenv("CLAUDE_CODE_EFFORT_LEVEL", "low")
+
+	target := profiles.Target{
+		Profile:  "deepseek",
+		Family:   providers.FamilyAnthropicCompatibleNonClaude,
+		BaseURL:  "https://api.deepseek.com/anthropic",
+		Model:    "deepseek-flash[1m]",
+		AuthMode: providers.AuthSecret, SecretKey: "DEEPSEEK_API_KEY",
+		ModelTiers: map[string]string{"subagent": "deepseek-flash"},
+		ExtraEnv:   map[string]string{"CLAUDE_CODE_EFFORT_LEVEL": "max"},
+		ModelEnv: map[string]map[string]string{
+			"deepseek-flash[1m]": {"CLAUDE_CODE_AUTO_COMPACT_WINDOW": "786432"},
+		},
+	}
+	got := mustBuildEnv(t, target, config.Secrets{"DEEPSEEK_API_KEY": "sk"})
+	for key, value := range map[string]string{
+		"CLAUDE_CODE_EFFORT_LEVEL":        "max",
+		"CLAUDE_CODE_AUTO_COMPACT_WINDOW": "786432",
+		"CLAUDE_CODE_SUBAGENT_MODEL":      "deepseek-flash",
+	} {
+		if got[key] != value {
+			t.Fatalf("%s = %q, want %q", key, got[key], value)
+		}
+	}
+	for _, key := range []string{"CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_MAX_CONTEXT_TOKENS", "CLAUDE_SECURESTORAGE_CONFIG_DIR"} {
+		if _, ok := got[key]; ok {
+			t.Fatalf("%s leaked from the parent environment", key)
+		}
+	}
+}
+
+func TestBuildEnvNativeKeepsUserRouting(t *testing.T) {
+	t.Setenv("CLAUDE_CODE_USE_BEDROCK", "1")
+	t.Setenv("CLAUDE_CODE_SUBAGENT_MODEL", "claude-sonnet-5")
+
+	target := profiles.Target{Profile: "native", Family: providers.FamilyClaudeStrict, AuthMode: providers.AuthNone}
+	got := mustBuildEnv(t, target, config.Secrets{})
+	if got["CLAUDE_CODE_USE_BEDROCK"] != "1" || got["CLAUDE_CODE_SUBAGENT_MODEL"] != "claude-sonnet-5" {
+		t.Fatalf("native must keep the user's own Anthropic routing: %+v", got)
+	}
+}
+
+func mustBuildEnv(t *testing.T, target profiles.Target, secrets config.Secrets) map[string]string {
+	t.Helper()
+	env, err := BuildEnv(target, secrets)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return envToMap(env)
 }

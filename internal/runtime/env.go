@@ -32,6 +32,32 @@ func IsHomebrew() bool {
 	return strings.Contains(resolved, "/Cellar/")
 }
 
+// tierEnvVars maps each tier to the variable Claude Code reads it from.
+var tierEnvVars = map[string]string{
+	providers.TierOpus:     "ANTHROPIC_DEFAULT_OPUS_MODEL",
+	providers.TierSonnet:   "ANTHROPIC_DEFAULT_SONNET_MODEL",
+	providers.TierHaiku:    "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+	providers.TierFable:    "ANTHROPIC_DEFAULT_FABLE_MODEL",
+	providers.TierSmall:    "ANTHROPIC_SMALL_FAST_MODEL",
+	providers.TierSubagent: "CLAUDE_CODE_SUBAGENT_MODEL",
+}
+
+// inheritedRoutingKeys are dropped from the parent environment for every
+// family but claude_strict. Each of them can reroute a third-party session:
+// the cloud-provider switches send it to Bedrock/Vertex/Foundry, a stale
+// subagent model or context size was meant for another provider, and
+// CLAUDE_SECURESTORAGE_CONFIG_DIR would point the keychain lookup back at the
+// user's own Anthropic credentials.
+var inheritedRoutingKeys = []string{
+	"CLAUDE_CODE_SUBAGENT_MODEL",
+	"CLAUDE_CODE_USE_BEDROCK",
+	"CLAUDE_CODE_USE_VERTEX",
+	"CLAUDE_CODE_USE_FOUNDRY",
+	"CLAUDE_CODE_AUTO_COMPACT_WINDOW",
+	"CLAUDE_CODE_MAX_CONTEXT_TOKENS",
+	"CLAUDE_SECURESTORAGE_CONFIG_DIR",
+}
+
 func BuildEnv(target profiles.Target, secrets config.Secrets) ([]string, error) {
 	envMap := map[string]string{}
 	for _, pair := range os.Environ() {
@@ -41,6 +67,12 @@ func BuildEnv(target profiles.Target, secrets config.Secrets) ([]string, error) 
 		}
 	}
 	clearAnthropicEnv(envMap)
+	strict := target.Family == providers.FamilyClaudeStrict
+	if !strict {
+		for _, key := range inheritedRoutingKeys {
+			delete(envMap, key)
+		}
+	}
 
 	if target.BaseURL != "" {
 		envMap["ANTHROPIC_BASE_URL"] = target.BaseURL
@@ -48,38 +80,56 @@ func BuildEnv(target profiles.Target, secrets config.Secrets) ([]string, error) 
 	if target.Model != "" {
 		envMap["ANTHROPIC_MODEL"] = target.Model
 	}
-	for key, value := range target.ModelTiers {
-		switch key {
-		case "haiku":
-			envMap["ANTHROPIC_DEFAULT_HAIKU_MODEL"] = value
-		case "sonnet":
-			envMap["ANTHROPIC_DEFAULT_SONNET_MODEL"] = value
-		case "opus":
-			envMap["ANTHROPIC_DEFAULT_OPUS_MODEL"] = value
-		case "small":
-			envMap["ANTHROPIC_SMALL_FAST_MODEL"] = value
+	for tier, model := range profiles.EffectiveTiers(target) {
+		if key, ok := tierEnvVars[tier]; ok {
+			envMap[key] = model
 		}
 	}
 
 	switch target.AuthMode {
 	case providers.AuthNone:
 	case providers.AuthLiteral:
-		envMap["ANTHROPIC_AUTH_TOKEN"] = target.LiteralAuthToken
-		envMap["ANTHROPIC_API_KEY"] = ""
+		token := target.LiteralAuthToken
+		if target.SecretKey != "" && secrets[target.SecretKey] != "" {
+			token = secrets[target.SecretKey]
+		}
+		exportCredential(envMap, target, token)
 	case providers.AuthSecret:
 		value := secrets[target.SecretKey]
 		if value == "" {
 			return nil, fmt.Errorf("%s not configured", target.SecretKey)
 		}
-		envMap["ANTHROPIC_AUTH_TOKEN"] = value
-		if target.Family == providers.FamilyOpenRouter || target.Family == providers.FamilyLocal || target.Family == providers.FamilyCustomUnknown {
-			envMap["ANTHROPIC_API_KEY"] = ""
-		}
+		exportCredential(envMap, target, value)
 	default:
 		return nil, fmt.Errorf("unsupported auth mode %q", target.AuthMode)
 	}
 
+	if !strict {
+		for key, value := range target.ExtraEnv {
+			envMap[key] = value
+		}
+		for key, value := range target.ModelEnv[target.Model] {
+			envMap[key] = value
+		}
+	}
+
 	return flattenEnv(envMap), nil
+}
+
+// exportCredential publishes the credential through the variable the provider
+// documents and blanks the other one, so a key exported by the user's shell
+// can never ride along to the third party.
+func exportCredential(envMap map[string]string, target profiles.Target, value string) {
+	chosen := target.CredentialEnvVar
+	if chosen == "" {
+		chosen = providers.AuthTokenEnvVar
+	}
+	envMap[chosen] = value
+	for _, key := range []string{providers.AuthTokenEnvVar, providers.APIKeyEnvVar} {
+		if key != chosen {
+			envMap[key] = ""
+		}
+	}
 }
 
 func clearAnthropicEnv(envMap map[string]string) {

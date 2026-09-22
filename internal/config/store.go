@@ -12,9 +12,41 @@ import (
 	"github.com/jolehuit/clother/internal/providers"
 )
 
+// TierModels maps Claude Code's model aliases to backend model IDs. An empty
+// field falls back to the default model.
+type TierModels struct {
+	OpusModel   string `json:"opus_model,omitempty"`
+	SonnetModel string `json:"sonnet_model,omitempty"`
+	HaikuModel  string `json:"haiku_model,omitempty"`
+}
+
+// Map returns the non-empty tier mappings keyed by tier name.
+func (t TierModels) Map() map[string]string {
+	out := map[string]string{}
+	for tier, model := range map[string]string{
+		providers.TierOpus:   t.OpusModel,
+		providers.TierSonnet: t.SonnetModel,
+		providers.TierHaiku:  t.HaikuModel,
+	} {
+		if model = strings.TrimSpace(model); model != "" {
+			out[tier] = model
+		}
+	}
+	return out
+}
+
+func (t TierModels) trimmed() TierModels {
+	return TierModels{
+		OpusModel:   strings.TrimSpace(t.OpusModel),
+		SonnetModel: strings.TrimSpace(t.SonnetModel),
+		HaikuModel:  strings.TrimSpace(t.HaikuModel),
+	}
+}
+
 type ProviderOverride struct {
 	Model   string `json:"model,omitempty"`
 	BaseURL string `json:"base_url,omitempty"`
+	TierModels
 }
 
 type CustomProvider struct {
@@ -23,6 +55,7 @@ type CustomProvider struct {
 	BaseURL      string `json:"base_url"`
 	APIKeyEnv    string `json:"api_key_env"`
 	DefaultModel string `json:"default_model,omitempty"`
+	TierModels
 }
 
 type File struct {
@@ -124,6 +157,7 @@ func (cfg *File) Normalize(catalog providers.Catalog) {
 	for id, override := range cfg.ProviderOverrides {
 		override.Model = strings.TrimSpace(override.Model)
 		override.BaseURL = strings.TrimSpace(override.BaseURL)
+		override.TierModels = override.TierModels.trimmed()
 		provider, ok := catalog.Get(id)
 		if ok {
 			override.Model = normalizeProviderOverrideModel(provider, override.Model)
