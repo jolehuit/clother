@@ -3,28 +3,89 @@ name: Release
 on:
   push:
     tags:
-      - "v*"
+      # Only real version tags. A tag like "vnext" used to reach this workflow
+      # and produce a release whose latest.json froze every client.
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
+
+# Read only by default. Only the publish job, which never checks out nor runs any
+# code from the repository, is granted contents: write.
+permissions:
+  contents: read
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+  verify:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+      - run: go vet ./...
       - run: go test ./...
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
       - run: ./scripts/package-release.sh
+      - name: Sign checksums.txt
+        env:
+          MINISIGN_SECRET_KEY: ${{ secrets.MINISIGN_SECRET_KEY }}
+          # Remove this line in the release that commits the real
+          # internal/update/keys/current.pub, see "Turning signing on" in
+          # internal/update/keys/README.md. Until then the release is published
+          # unsigned, on purpose and loudly, and clients only warn.
+          CLOTHER_ALLOW_UNSIGNED_RELEASE: "1"
+        run: ./scripts/sign-release.sh
       - name: Release notes
         run: |
           notes=".github/release-notes/${GITHUB_REF_NAME}.md"
           if [ -f "$notes" ]; then cp "$notes" dist/RELEASE_NOTES.md; else : > dist/RELEASE_NOTES.md; fi
-      - uses: softprops/action-gh-release@v2
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-artifacts
+          # checksums.txt* covers the signature when there is one, without
+          # failing the release while there is none.
+          path: |
+            dist/clother_*.tar.gz
+            dist/checksums.txt*
+            dist/latest.json
+            dist/RELEASE_NOTES.md
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-artifacts
+          path: dist
+      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           body_path: dist/RELEASE_NOTES.md
+          # A tag with a hyphen (v3.1.0-rc1) is a pre-release: without this it
+          # would become /releases/latest and its latest.json, which the client
+          # cannot parse, would silently freeze the whole update channel.
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: true
           files: |
             dist/clother_*.tar.gz
-            dist/checksums.txt
+            dist/checksums.txt*
             dist/latest.json
