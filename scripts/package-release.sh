@@ -7,7 +7,7 @@ DEFAULT_VERSION="$(sed -n 's/^var Value = "\(.*\)"$/\1/p' "$ROOT_DIR/internal/ve
 VERSION="${VERSION:-${GITHUB_REF_NAME:-${DEFAULT_VERSION:-dev}}}"
 
 mkdir -p "$DIST_DIR"
-rm -f "$DIST_DIR"/clother_*.tar.gz "$DIST_DIR"/checksums.txt "$DIST_DIR"/latest.json
+rm -f "$DIST_DIR"/clother_*.tar.gz "$DIST_DIR"/checksums.txt "$DIST_DIR"/checksums.txt.minisig "$DIST_DIR"/latest.json "$DIST_DIR"/RELEASE_NOTES.md
 
 build_target() {
   local os="$1"
