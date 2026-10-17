@@ -128,7 +128,7 @@ Clother keeps `claude --resume ...` working with Clother features after install.
 | `clother status` | Installation status |
 | `clother install` | Install/update Clother (create/refresh symlinks) |
 | `clother update` | Update to latest version |
-| `clother uninstall` | Remove everything |
+| `clother uninstall` | Remove Clother and restore your `claude` |
 
 ### Update
 
@@ -137,6 +137,16 @@ clother update
 ```
 
 Routes to `brew upgrade clother` under Homebrew, or downloads the latest release for curl installs. Also refreshes provider symlinks.
+
+Downloads go over https only, never follow a redirect off GitHub, and are checked against the release's `checksums.txt` before anything is replaced. If the update cannot be downloaded or verified, the command says so and exits non-zero instead of reporting success.
+
+### Uninstall
+
+```bash
+clother uninstall
+```
+
+Lists every path it is about to remove before asking. Only the launchers Clother created and the files it wrote are deleted, and the `claude` binary that `clother install` moved aside is put back. A directory that holds anything else (a mistyped `CLOTHER_CONFIG_DIR`, for instance) is kept, with a warning.
 
 ### Changing the Default Model
 
@@ -445,6 +455,8 @@ Test the binary installer locally against a local directory or server:
 CLOTHER_RELEASE_BASE_URL=http://127.0.0.1:8000 \
   ./scripts/install.sh install
 ```
+
+`http://` is accepted for loopback origins only. `clother update` refuses a release origin set through `CLOTHER_RELEASE_BASE_URL` or `CLOTHER_UPDATE_URL` when it cannot authenticate it; add `CLOTHER_ALLOW_UNSIGNED_ORIGIN=1` while testing.
 
 ## Contributors
 
