@@ -161,7 +161,7 @@ func doBench(ctx context.Context, target profiles.Target, secrets config.Secrets
 	req.Header.Set("anthropic-version", "2023-06-01")
 	setCredentialHeader(req, target, apiKey)
 
-	client := &http.Client{Timeout: 30 * time.Second}
+	client := credentialClient(30 * time.Second)
 	start := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
@@ -172,7 +172,7 @@ func doBench(ctx context.Context, target profiles.Target, secrets config.Secrets
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 256))
-		res.Err = fmt.Errorf("HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+		res.Err = fmt.Errorf("HTTP %d: %s", resp.StatusCode, redactSecrets(strings.TrimSpace(string(body)), secrets))
 		return res
 	}
 
@@ -211,11 +211,7 @@ func doBench(ctx context.Context, target profiles.Target, secrets config.Secrets
 	}
 
 	res.Total = time.Since(start)
-	p := strings.TrimSpace(preview.String())
-	if len(p) > 40 {
-		p = p[:40] + "…"
-	}
-	res.Preview = p
+	res.Preview = truncateRunes(strings.TrimSpace(preview.String()), 40)
 	return res
 }
 
@@ -227,11 +223,7 @@ func benchFmtDur(d time.Duration) string {
 }
 
 func benchShortErr(err error) string {
-	s := err.Error()
-	if len(s) > 40 {
-		return s[:40] + "…"
-	}
-	return s
+	return truncateRunes(err.Error(), 40)
 }
 
 // benchModel resolves the model to request for a target: the explicit default

@@ -5,34 +5,64 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
+	"syscall"
 
 	"github.com/jolehuit/clother/internal/providers"
 )
 
 var envKeyPattern = regexp.MustCompile(`^[A-Z_][A-Z0-9_]*$`)
 
+// shellSafeValue matches the values that can be written to secrets.env without
+// any quoting. Anything else is encoded in full with the $'...' form so that
+// Save -> Load is strictly symmetric: a partial rule (the previous code only
+// quoted values containing "\n\t'\\ ") silently truncated values wrapped in
+// double quotes.
+var shellSafeValue = regexp.MustCompile(`^[A-Za-z0-9._:/+@-]+$`)
+
+// ValidEnvKey reports whether key can be used as an environment variable name
+// in secrets.env. Callers that derive a key from a provider name must check it
+// before writing anything, otherwise SaveSecrets fails after config.json has
+// already been persisted.
+func ValidEnvKey(key string) bool {
+	return envKeyPattern.MatchString(key)
+}
+
 type Secrets map[string]string
 
 func LoadSecrets(path string) (Secrets, error) {
 	secrets := Secrets{}
-	data, err := os.ReadFile(path)
+	// O_NOFOLLOW makes the symlink check happen *before* the read: the previous
+	// order (ReadFile then Lstat) had already followed the link by the time it
+	// refused it.
+	file, err := os.OpenFile(path, os.O_RDONLY|openNoFollow, 0)
 	if errors.Is(err, os.ErrNotExist) {
 		return secrets, nil
 	}
 	if err != nil {
+		if errors.Is(err, syscall.ELOOP) {
+			return nil, fmt.Errorf("secrets file is a symlink: %s", path)
+		}
 		return nil, err
 	}
-	info, err := os.Lstat(path)
+	defer file.Close()
+
+	info, err := file.Stat()
 	if err != nil {
 		return nil, err
 	}
-	if info.Mode()&os.ModeSymlink != 0 {
-		return nil, fmt.Errorf("secrets file is a symlink: %s", path)
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("secrets file is not a regular file: %s", path)
+	}
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
 	}
 
 	scanner := bufio.NewScanner(bytes.NewReader(data))
@@ -60,9 +90,15 @@ func LoadSecrets(path string) (Secrets, error) {
 }
 
 func SaveSecrets(path string, secrets Secrets) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+	if err := ensurePrivateDir(filepath.Dir(path)); err != nil {
 		return err
 	}
+	return saveSecretsFile(path, secrets)
+}
+
+// saveSecretsFile is the write half of SaveSecrets, without the directory
+// creation, so SaveSecretsMerged can call it from inside the file lock.
+func saveSecretsFile(path string, secrets Secrets) error {
 	var keys []string
 	for key := range secrets {
 		keys = append(keys, key)
@@ -99,21 +135,24 @@ func NormalizeLegacySecrets(secrets Secrets, catalog providers.Catalog) {
 	}
 }
 
+// MaskSecret renders a credential for display. Only the last four characters
+// of a sufficiently long value are shown: the previous version revealed eight
+// characters, which left a single character hidden on a short key.
 func MaskSecret(value string) string {
 	if value == "" {
 		return ""
 	}
-	if len(value) <= 8 {
+	if len(value) < 16 {
 		return "****"
 	}
-	return value[:4] + "****" + value[len(value)-4:]
+	return "****" + value[len(value)-4:]
 }
 
 func decodeShellValue(value string) (string, error) {
 	if len(value) >= 2 && value[0] == '\'' && value[len(value)-1] == '\'' {
 		return value[1 : len(value)-1], nil
 	}
-	if strings.HasPrefix(value, "$'") && strings.HasSuffix(value, "'") {
+	if strings.HasPrefix(value, "$'") && strings.HasSuffix(value, "'") && len(value) >= 3 {
 		var out strings.Builder
 		escaped := value[2 : len(value)-1]
 		for i := 0; i < len(escaped); i++ {
@@ -128,6 +167,8 @@ func decodeShellValue(value string) (string, error) {
 			switch escaped[i] {
 			case 'n':
 				out.WriteByte('\n')
+			case 'r':
+				out.WriteByte('\r')
 			case 't':
 				out.WriteByte('\t')
 			case '\\':
@@ -140,6 +181,9 @@ func decodeShellValue(value string) (string, error) {
 		}
 		return out.String(), nil
 	}
+	// Compatibility path: secrets.env files written by earlier versions, or
+	// edited by hand as KEY="value", are still accepted. shellQuote never
+	// produces this form any more.
 	if len(value) >= 2 && value[0] == '"' && value[len(value)-1] == '"' {
 		value = value[1 : len(value)-1]
 	}
@@ -150,9 +194,9 @@ func shellQuote(value string) string {
 	if value == "" {
 		return "''"
 	}
-	if !strings.ContainsAny(value, "\n\t'\\ ") {
+	if shellSafeValue.MatchString(value) {
 		return value
 	}
-	replacer := strings.NewReplacer(`\`, `\\`, "\n", `\n`, "\t", `\t`, `'`, `\'`)
+	replacer := strings.NewReplacer(`\`, `\\`, "\n", `\n`, "\r", `\r`, "\t", `\t`, `'`, `\'`)
 	return "$'" + replacer.Replace(value) + "'"
 }
