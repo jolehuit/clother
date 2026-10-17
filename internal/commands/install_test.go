@@ -20,6 +20,9 @@ func TestRunInstallPreservesSameBinClaude(t *testing.T) {
 	binDir := filepath.Join(root, "bin")
 
 	t.Setenv("HOME", home)
+	// GitHub's macOS runners export HOMEBREW_PREFIX, which routes runInstall
+	// down the Homebrew path where no binary is copied into BinDir.
+	t.Setenv("HOMEBREW_PREFIX", "")
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
 	t.Setenv("XDG_DATA_HOME", filepath.Join(home, ".local", "share"))
 	t.Setenv("XDG_CACHE_HOME", filepath.Join(home, ".cache"))
@@ -86,6 +89,9 @@ func TestRunInstallUpgradesToLatestRelease(t *testing.T) {
 	binDir := filepath.Join(root, "bin")
 
 	t.Setenv("HOME", home)
+	// GitHub's macOS runners export HOMEBREW_PREFIX, which routes runInstall
+	// down the Homebrew path where no binary is copied into BinDir.
+	t.Setenv("HOMEBREW_PREFIX", "")
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
 	t.Setenv("XDG_DATA_HOME", filepath.Join(home, ".local", "share"))
 	t.Setenv("XDG_CACHE_HOME", filepath.Join(home, ".cache"))
@@ -159,6 +165,9 @@ func TestRunInstallWarnsWhenBinDirIsNotOnPath(t *testing.T) {
 	realClaudeDir := filepath.Join(root, "claude-bin")
 
 	t.Setenv("HOME", home)
+	// GitHub's macOS runners export HOMEBREW_PREFIX, which routes runInstall
+	// down the Homebrew path where no binary is copied into BinDir.
+	t.Setenv("HOMEBREW_PREFIX", "")
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
 	t.Setenv("XDG_DATA_HOME", filepath.Join(home, ".local", "share"))
 	t.Setenv("XDG_CACHE_HOME", filepath.Join(home, ".cache"))
